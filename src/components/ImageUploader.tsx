@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 interface Props {
   onImageSelect: (file: File, preview: string) => void;
@@ -8,6 +8,7 @@ interface Props {
 
 export default function ImageUploader({ onImageSelect }: Props) {
   const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
     (file: File) => {
@@ -61,17 +62,22 @@ export default function ImageUploader({ onImageSelect }: Props) {
         Перетащите фото сюда
       </p>
       <p className="mb-4 text-sm text-gray-500">или</p>
-      <label className="btn-primary cursor-pointer !text-sm">
+      <button
+        type="button"
+        className="btn-primary !text-sm"
+        onClick={() => fileInputRef.current?.click()}
+      >
         Выбрать файл
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            if (e.target.files?.[0]) handleFile(e.target.files[0]);
-          }}
-        />
-      </label>
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.[0]) handleFile(e.target.files[0]);
+        }}
+      />
       <p className="mt-3 text-xs text-gray-400">JPG, PNG до 10 МБ</p>
     </div>
   );

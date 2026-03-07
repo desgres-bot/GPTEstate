@@ -1,4 +1,4 @@
-export type Mode = "enhance" | "redesign";
+export type Mode = "enhance" | "redesign" | "remove";
 
 export type Style = "modern" | "scandinavian" | "loft" | "classic" | "japanese";
 

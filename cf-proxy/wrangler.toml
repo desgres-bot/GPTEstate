@@ -1,0 +1,8 @@
+name = "openai-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+account_id = "371dc91a50801282c70e8e1240baef81"
+
+[[kv_namespaces]]
+binding = "IMAGES"
+id = "b56b4a5a99a8443eab174668171dbf9c"

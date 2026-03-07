@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ImageUploader from "@/components/ImageUploader";
+import MaskPainter from "@/components/MaskPainter";
 import { STYLES } from "@/lib/constants";
 import type { Mode, Style } from "@/types";
 
@@ -13,6 +14,8 @@ export default function GeneratePage() {
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [removeDescription, setRemoveDescription] = useState("");
+  const [maskDataUrl, setMaskDataUrl] = useState<string | null>(null);
 
   const handleImageSelect = (file: File, previewUrl: string) => {
     setSelectedFile(file);
@@ -23,6 +26,12 @@ export default function GeneratePage() {
 
   const handleGenerate = async () => {
     if (!selectedFile) return;
+
+    if (mode === "remove" && !removeDescription.trim() && !maskDataUrl) {
+      setError("Опишите текстом что убрать или закрасьте объекты на фото");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -31,6 +40,10 @@ export default function GeneratePage() {
       formData.append("image", selectedFile);
       formData.append("mode", mode);
       if (mode === "redesign") formData.append("style", style);
+      if (mode === "remove") {
+        if (removeDescription.trim()) formData.append("description", removeDescription.trim());
+        if (maskDataUrl) formData.append("mask", maskDataUrl);
+      }
 
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -56,6 +69,14 @@ export default function GeneratePage() {
     setPreview(null);
     setResult(null);
     setError(null);
+    setRemoveDescription("");
+    setMaskDataUrl(null);
+  };
+
+  const generateButtonLabel = () => {
+    if (mode === "enhance") return "🧹 Убрать бардак";
+    if (mode === "redesign") return "🎨 Редизайн";
+    return "✂️ Убрать объекты";
   };
 
   return (
@@ -68,7 +89,7 @@ export default function GeneratePage() {
       </div>
 
       {/* Mode selector */}
-      <div className="mt-8 flex justify-center gap-3">
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
         <button
           onClick={() => setMode("enhance")}
           className={`rounded-xl px-6 py-3 text-sm font-semibold transition-all ${
@@ -77,7 +98,7 @@ export default function GeneratePage() {
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
         >
-          ✨ Улучшить фото
+          🧹 Уборка фото
         </button>
         <button
           onClick={() => setMode("redesign")}
@@ -88,6 +109,16 @@ export default function GeneratePage() {
           }`}
         >
           🎨 Редизайн интерьера
+        </button>
+        <button
+          onClick={() => setMode("remove")}
+          className={`rounded-xl px-6 py-3 text-sm font-semibold transition-all ${
+            mode === "remove"
+              ? "bg-navy-900 text-white shadow-lg"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          ✂️ Убрать объекты
         </button>
       </div>
 
@@ -122,16 +153,22 @@ export default function GeneratePage() {
         ) : (
           <div className="space-y-6">
             <div className={`grid gap-6 ${result ? "md:grid-cols-2" : ""}`}>
-              {/* Original */}
+              {/* Original / Mask Painter */}
               <div>
-                <div className="mb-2 text-sm font-medium text-gray-500">Оригинал</div>
-                <div className="overflow-hidden rounded-2xl border border-gray-200">
-                  <img
-                    src={preview}
-                    alt="Оригинальное фото"
-                    className="w-full object-cover"
-                  />
+                <div className="mb-2 text-sm font-medium text-gray-500">
+                  {mode === "remove" && !result ? "Закрасьте объекты для удаления" : "Оригинал"}
                 </div>
+                {mode === "remove" && !result ? (
+                  <MaskPainter imageSrc={preview} onMaskChange={setMaskDataUrl} />
+                ) : (
+                  <div className="overflow-hidden rounded-2xl border border-gray-200">
+                    <img
+                      src={preview}
+                      alt="Оригинальное фото"
+                      className="w-full object-cover"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Result */}
@@ -148,6 +185,25 @@ export default function GeneratePage() {
                 </div>
               )}
             </div>
+
+            {/* Remove mode: text description */}
+            {mode === "remove" && !result && (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-600">
+                  Опишите что убрать (необязательно)
+                </label>
+                <textarea
+                  value={removeDescription}
+                  onChange={(e) => setRemoveDescription(e.target.value)}
+                  placeholder="Например: убери посуду со стола и коробки в углу"
+                  rows={2}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 resize-none"
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  Закрасьте объекты на фото и/или опишите текстом что нужно убрать
+                </p>
+              </div>
+            )}
 
             {error && (
               <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
@@ -172,9 +228,7 @@ export default function GeneratePage() {
                         Генерация...
                       </span>
                     ) : (
-                      <>
-                        {mode === "enhance" ? "✨ Улучшить" : "🎨 Редизайн"}
-                      </>
+                      generateButtonLabel()
                     )}
                   </button>
                   <button onClick={reset} className="btn-secondary !py-3 !px-8">
@@ -210,6 +264,9 @@ export default function GeneratePage() {
           <li>&#8226; Минимальное разрешение — 512x512 пикселей</li>
           <li>&#8226; Для редизайна лучше подходят фото пустых или полупустых комнат</li>
           <li>&#8226; Избегайте сильно затемнённых или размытых фото</li>
+          {mode === "remove" && (
+            <li>&#8226; Для удаления объектов закрасьте их кистью и/или опишите текстом</li>
+          )}
         </ul>
       </div>
     </div>
