@@ -133,6 +133,57 @@ Be specific about colors, patterns, materials. Keep very concise.`,
 }
 
 /**
+ * Stage empty room — add furniture to an empty/unfurnished room.
+ */
+export async function stageRoom(
+  imageBase64: string,
+  style: string
+): Promise<string> {
+  const replicate = getReplicate();
+
+  const stylePrompts: Record<string, string> = {
+    modern:
+      "Add modern minimalist furniture: a stylish sofa, coffee table, sleek shelving, pendant lights. " +
+      "Neutral colors with accent pieces, clean lines, contemporary feel.",
+    scandinavian:
+      "Add Scandinavian style furniture: light wood pieces, white and beige textiles, cozy throws, plants. " +
+      "Warm minimal aesthetic, hygge feeling.",
+    loft:
+      "Add industrial loft furniture: vintage leather sofa, metal shelving, Edison bulb lighting. " +
+      "Dark wood and metal accents, raw aesthetic.",
+    classic:
+      "Add classic elegant furniture: traditional pieces with curved lines, rich fabrics, warm wood. " +
+      "Elegant curtains, chandelier lighting, refined atmosphere.",
+    japanese:
+      "Add Japanese minimalist furniture: low bed/sofa, tatami elements, shoji screens, bonsai plants. " +
+      "Natural materials, zen simplicity, clean open space.",
+  };
+
+  const stylePrompt = stylePrompts[style] || stylePrompts.modern;
+
+  const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
+    input: {
+      prompt:
+        "Virtual staging: furnish this empty room. " + stylePrompt +
+        " IMPORTANT: Keep the EXACT same walls, wallpaper, paint color, windows, " +
+        "window frames, doors, flooring, ceiling and room shape. " +
+        "The room is currently empty or mostly empty — add appropriate furniture and decor. " +
+        "Keep the same camera angle and lighting. Professional real estate photo.",
+      input_image: imageBase64,
+      aspect_ratio: "match_input_image",
+      output_format: "jpg",
+    },
+  });
+
+  const resultUrl = extractUrl(output);
+  const response = await fetch(resultUrl);
+  const arrayBuf = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuf);
+
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+}
+
+/**
  * Redesign room — uses Flux Kontext Pro for better structure preservation.
  */
 export async function redesignRoom(

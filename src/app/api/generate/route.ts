@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { enhancePhoto, redesignRoom, removeObjects } from "@/lib/openai";
+import { enhancePhoto, stageRoom, redesignRoom, removeObjects } from "@/lib/openai";
 
 export const maxDuration = 300; // Allow up to 5 min for image generation
 
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Изображение не загружено" }, { status: 400 });
     }
 
-    if (!["enhance", "redesign", "remove"].includes(mode)) {
+    if (!["enhance", "staging", "redesign", "remove"].includes(mode)) {
       return NextResponse.json({ error: "Неверный режим" }, { status: 400 });
     }
 
@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
 
     if (mode === "enhance") {
       outputDataUri = await enhancePhoto(dataUri);
+    } else if (mode === "staging") {
+      outputDataUri = await stageRoom(dataUri, style || "modern");
     } else if (mode === "remove") {
       outputDataUri = await removeObjects(dataUri, description, mask);
     } else {

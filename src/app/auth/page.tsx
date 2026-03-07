@@ -26,7 +26,7 @@ export default function AuthPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-500 text-2xl font-black text-white">
             AI
           </div>
-          <h1 className="text-2xl font-bold">Вход в ФотоЭстейт</h1>
+          <h1 className="text-2xl font-bold">Вход в GPT Estate</h1>
           <p className="mt-2 text-gray-500">
             Войдите, чтобы сохранять результаты и управлять подпиской
           </p>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Улучшение фото недвижимости — AI-обработка для риелторов | ФотоЭстейт",
+  title: "Улучшение фото недвижимости — AI-обработка для риелторов | GPT Estate",
   description:
     "AI-улучшение фотографий недвижимости для риелторов и собственников. Профессиональное качество без фотографа. HDR, коррекция света, увеличение резкости.",
   keywords: "улучшение фото недвижимости, обработка фото квартир, фото для риелторов, AI обработка фото",
@@ -17,7 +17,7 @@ export default function UluchshenieFotoNedvizhimosti() {
 
       <p className="mt-6 text-lg leading-relaxed text-gray-600">
         Профессиональный фотограф недвижимости берёт от 5 000 ₽ за съёмку
-        одной квартиры. С ФотоЭстейт вы получите сравнимое качество за
+        одной квартиры. С GPT Estate вы получите сравнимое качество за
         считанные рубли и секунды — просто загрузите фото с телефона.
       </p>
 
@@ -35,7 +35,7 @@ export default function UluchshenieFotoNedvizhimosti() {
         ))}
       </div>
 
-      <h2 className="mt-10 text-2xl font-bold">Что умеет AI ФотоЭстейт?</h2>
+      <h2 className="mt-10 text-2xl font-bold">Что умеет AI GPT Estate?</h2>
       <ul className="mt-4 space-y-2 text-gray-600">
         <li>&#10003; Автоматическая коррекция баланса белого и экспозиции</li>
         <li>&#10003; HDR-обработка для максимальной детализации</li>

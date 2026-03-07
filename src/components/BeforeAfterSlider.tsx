@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 interface Props {
   beforeSrc: string;
@@ -11,7 +11,7 @@ interface Props {
 export default function BeforeAfterSlider({ beforeSrc, afterSrc, label }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState(50);
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
 
   const updatePosition = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -20,17 +20,48 @@ export default function BeforeAfterSlider({ beforeSrc, afterSrc, label }: Props)
     setPosition((x / rect.width) * 100);
   }, []);
 
-  const handleMouseDown = () => setIsDragging(true);
-  const handleMouseUp = () => setIsDragging(false);
+  /* ---- Mouse handlers ---- */
+  const handleMouseDown = () => { isDraggingRef.current = true; };
+  const handleMouseUp = () => { isDraggingRef.current = false; };
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) updatePosition(e.clientX);
-  };
-  const handleTouchMove = (e: React.TouchEvent) => {
-    updatePosition(e.touches[0].clientX);
+    if (isDraggingRef.current) updatePosition(e.clientX);
   };
 
+  /* ---- Touch handlers (attached via ref to allow preventDefault) ---- */
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      isDraggingRef.current = true;
+      updatePosition(e.touches[0].clientX);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      e.preventDefault(); // prevent page scroll while dragging
+      updatePosition(e.touches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+      isDraggingRef.current = false;
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    el.addEventListener("touchcancel", onTouchEnd);
+
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [updatePosition]);
+
   return (
-    <div className="relative overflow-hidden rounded-2xl">
+    <div className="relative overflow-hidden">
       {label && (
         <div className="absolute top-3 left-3 z-10 rounded-lg bg-black/60 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
           {label}
@@ -38,12 +69,11 @@ export default function BeforeAfterSlider({ beforeSrc, afterSrc, label }: Props)
       )}
       <div
         ref={containerRef}
-        className="relative aspect-[4/3] w-full cursor-col-resize select-none"
+        className="relative aspect-[4/3] w-full cursor-col-resize select-none touch-none"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onMouseMove={handleMouseMove}
-        onTouchMove={handleTouchMove}
       >
         {/* After image (background) */}
         <div
@@ -72,8 +102,8 @@ export default function BeforeAfterSlider({ beforeSrc, afterSrc, label }: Props)
           style={{ left: `${position}%` }}
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-white/90 shadow-lg">
-            <svg className="h-5 w-5 text-navy-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+            <svg className="h-5 w-5 text-neutral-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 8l4 4-4 4m-6 0l-4-4 4-4" />
             </svg>
           </div>
         </div>

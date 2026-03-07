@@ -4,10 +4,13 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
-  title: "ФотоЭстейт — AI-улучшение фото квартир для Авито и ЦИАН",
+  title: "GPT Estate — AI-улучшение фото квартир для Авито и ЦИАН",
   description:
     "Профессиональные фото для объявлений недвижимости за 30 секунд. AI-улучшение, виртуальный стейджинг и редизайн интерьера.",
   keywords:
@@ -21,9 +24,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body className={inter.className}>
+      <body className={`${inter.variable} font-sans`}>
         <Header />
-        <main className="min-h-screen">{children}</main>
+        <main>{children}</main>
         <Footer />
       </body>
     </html>

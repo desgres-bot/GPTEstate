@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { PLANS } from "@/lib/constants";
+import CTASplitBanner from "@/components/CTASplitBanner";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Тарифы — ФотоЭстейт",
+  title: "Тарифы — GPT Estate",
   description: "Выберите тариф для улучшения фото недвижимости. От 15 рублей за фото.",
 };
 
@@ -11,99 +12,90 @@ export default function PricingPage() {
   const isPremium = (id: string) => id === "premium_pro";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold lg:text-4xl">Простые и понятные тарифы</h1>
-        <p className="mt-3 text-lg text-gray-500">
-          Начните бесплатно, масштабируйте по мере роста
-        </p>
-      </div>
-
-      <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {PLANS.map((plan) => (
-          <div
-            key={plan.id}
-            className={`relative rounded-2xl border p-8 transition-shadow hover:shadow-lg ${
-              plan.popular
-                ? "border-accent-500 shadow-lg ring-2 ring-accent-500/20 bg-white"
-                : isPremium(plan.id)
-                ? "border-navy-800 bg-navy-950 text-white shadow-lg ring-2 ring-navy-700/50"
-                : "border-gray-200 bg-white"
-            }`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-accent-500 px-5 py-1.5 text-xs font-bold text-white shadow-md">
-                Популярный
-              </div>
-            )}
-            {isPremium(plan.id) && (
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-1.5 text-xs font-bold text-white shadow-md">
-                PRO
-              </div>
-            )}
-            <div className={`text-sm font-semibold ${isPremium(plan.id) ? "text-gray-400" : "text-gray-500"}`}>
-              {plan.name}
+    <>
+      <div className="bg-[#1E1B18] text-white pt-32 pb-24 lg:pt-44 lg:pb-40">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="max-w-3xl">
+            <div className="section-label mb-8">
+              <span className="section-number-light">01</span>
+              <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">Тарифы</span>
             </div>
-            <div className="mt-3">
-              <span className="text-4xl font-extrabold">
-                {plan.price === 0 ? "0" : plan.price.toLocaleString("ru-RU")}
-              </span>
-              {plan.price > 0 && (
-                <span className={`text-xl font-bold ${isPremium(plan.id) ? "text-gray-500" : "text-gray-400"}`}>
-                  {" "} &#8381;
-                </span>
-              )}
-            </div>
-            <div className={`mt-1 text-sm ${isPremium(plan.id) ? "text-gray-500" : "text-gray-400"}`}>
-              {plan.credits} {plan.credits === 2 ? "генерации" : "генераций"}
-            </div>
-
-            <ul className="mt-6 space-y-3">
-              {plan.features.map((feature) => (
-                <li
-                  key={feature}
-                  className={`flex items-start gap-2 text-sm ${isPremium(plan.id) ? "text-gray-300" : "text-gray-600"}`}
-                >
-                  <svg
-                    className={`mt-0.5 h-4 w-4 flex-shrink-0 ${isPremium(plan.id) ? "text-purple-400" : "text-green-500"}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-
-            <Link
-              href={plan.price === 0 ? "/generate" : "/auth"}
-              className={`mt-8 block w-full rounded-xl py-3.5 text-center text-sm font-semibold transition-all ${
-                plan.popular
-                  ? "bg-accent-500 text-white hover:bg-accent-600 shadow-md"
-                  : isPremium(plan.id)
-                  ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:from-purple-700 hover:to-pink-600 shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {plan.price === 0 ? "Начать бесплатно" : isPremium(plan.id) ? "Подключить Pro" : "Подключить"}
-            </Link>
+            <h1 className="heading-display text-[40px] leading-[1.08] sm:text-[64px] lg:text-[80px]">
+              Простые и понятные тарифы
+            </h1>
+            <p className="mt-8 text-lg text-[#BFBFBF]">
+              Начните бесплатно, масштабируйте по мере роста
+            </p>
           </div>
-        ))}
+        </div>
       </div>
 
-      <div className="mt-16 rounded-2xl bg-gray-50 p-8 text-center">
-        <h3 className="text-xl font-bold">Нужен индивидуальный план?</h3>
-        <p className="mt-2 text-gray-500">
-          Свяжитесь с нами для обсуждения условий для крупных агентств недвижимости
-        </p>
-        <a
-          href="mailto:support@fotoestate.ru"
-          className="btn-secondary mt-4 inline-block"
-        >
-          Написать нам
-        </a>
+      <div className="bg-white py-24 lg:py-40">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid gap-px bg-neutral-200 md:grid-cols-2 lg:grid-cols-4">
+            {PLANS.map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative p-10 ${
+                  plan.popular || isPremium(plan.id)
+                    ? "bg-[#1E1B18] text-white"
+                    : "bg-white"
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-10 rounded-lg bg-white px-3 py-1 text-xs font-medium text-[#1E1B18]">
+                    Популярный
+                  </div>
+                )}
+                {isPremium(plan.id) && (
+                  <div className="absolute -top-3 left-10 rounded-lg bg-white px-3 py-1 text-xs font-medium text-[#1E1B18]">
+                    PRO
+                  </div>
+                )}
+                <div className={`text-xs uppercase tracking-widest ${plan.popular || isPremium(plan.id) ? "text-neutral-400" : "text-[#7D756E]"}`}>
+                  {plan.name}
+                </div>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="heading-display text-[40px] sm:text-[48px]">
+                    {plan.price === 0 ? "0" : plan.price.toLocaleString("ru-RU")}
+                  </span>
+                  {plan.price > 0 && (
+                    <span className="text-xl opacity-50">&#8381;</span>
+                  )}
+                </div>
+                <div className={`mt-1 text-sm ${plan.popular || isPremium(plan.id) ? "text-neutral-400" : "text-[#7D756E]"}`}>
+                  {plan.credits} {plan.credits === 2 ? "генерации" : "генераций"}
+                </div>
+
+                <ul className="mt-8 space-y-3">
+                  {plan.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className={`flex items-start gap-2 text-base ${plan.popular || isPremium(plan.id) ? "text-neutral-300" : "text-[#6B6560]"}`}
+                    >
+                      <span className="mt-0.5 text-xs">+</span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href={plan.price === 0 ? "/generate" : "/auth"}
+                  className={`mt-8 block w-full rounded-lg py-3 text-center text-base transition-all ${
+                    plan.popular || isPremium(plan.id)
+                      ? "bg-white text-[#1E1B18] hover:bg-neutral-200"
+                      : "border border-neutral-300 text-[#1E1B18] hover:bg-[#1E1B18] hover:text-white hover:border-[#1E1B18]"
+                  }`}
+                >
+                  {plan.price === 0 ? "Начать бесплатно" : isPremium(plan.id) ? "Подключить Pro" : "Подключить"}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+
+      <CTASplitBanner />
+    </>
   );
 }

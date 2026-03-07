@@ -4,23 +4,65 @@
 
 @layer base {
   body {
-    @apply bg-white text-navy-950 antialiased;
+    @apply bg-white text-neutral-900 antialiased;
   }
 }
 
 @layer components {
+  /* ===== Display headings — tight letter-spacing like Luzen/Geist ===== */
+  .heading-display {
+    letter-spacing: -0.055em;
+    font-weight: 400;
+  }
+
+  /* ===== Buttons — Luzen: rounded-lg (8px), weight 400, 16px ===== */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl bg-accent-500 px-6 py-3 text-base font-semibold text-white transition-all hover:bg-accent-600 active:scale-[0.98];
+    @apply relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-[#1E1B18] px-6 py-3 text-base text-white transition-all duration-300 hover:bg-neutral-700 active:scale-[0.98];
   }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border-2 border-navy-900 px-6 py-3 text-base font-semibold text-navy-900 transition-all hover:bg-navy-900 hover:text-white active:scale-[0.98];
+
+  .btn-beige {
+    @apply relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-[#CCCAC7] px-6 py-3 text-base text-[#111] transition-all duration-300 hover:bg-[#b8b6b3] active:scale-[0.98];
   }
-  .card {
-    @apply rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md;
+
+  .btn-terra {
+    @apply relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-terra-500 px-6 py-3 text-base text-white transition-all duration-300 hover:bg-terra-600 active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply relative inline-flex items-center justify-center overflow-hidden rounded-lg border border-neutral-300 px-6 py-3 text-base text-neutral-900 transition-all duration-300 hover:bg-[#1E1B18] hover:text-white hover:border-[#1E1B18] active:scale-[0.98];
+  }
+
+  .btn-outline-light {
+    @apply relative inline-flex items-center justify-center overflow-hidden rounded-lg border border-white/30 px-6 py-3 text-base text-white transition-all duration-300 hover:bg-white hover:text-[#1E1B18] active:scale-[0.98];
+  }
+
+  .btn-white {
+    @apply relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-white px-6 py-3 text-base text-[#1E1B18] transition-all duration-300 hover:bg-neutral-100 active:scale-[0.98];
+  }
+
+  /* ===== Section number label (01, 02...) — Luzen: 80px decorative ===== */
+  .section-label {
+    @apply flex items-baseline gap-4;
+  }
+
+  .section-number {
+    font-size: 80px;
+    line-height: 1;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    color: #1E1B18;
+  }
+
+  .section-number-light {
+    font-size: 80px;
+    line-height: 1;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    color: #ffffff;
   }
 }
 
-/* Scroll-triggered fade-in animations */
+/* ===== Scroll-triggered fade-in animations ===== */
 .fade-in-section {
   opacity: 0;
   transform: translateY(30px);
@@ -32,7 +74,6 @@
   transform: translateY(0);
 }
 
-/* Staggered children animation */
 .fade-in-section.is-visible .stagger-child {
   opacity: 1;
   transform: translateY(0);
@@ -49,7 +90,7 @@
 .stagger-child:nth-child(3) { transition-delay: 0.3s; }
 .stagger-child:nth-child(4) { transition-delay: 0.4s; }
 
-/* Horizontal scroll gallery for mobile */
+/* ===== Horizontal scroll gallery ===== */
 .scroll-gallery {
   display: flex;
   gap: 1.5rem;
@@ -78,5 +119,36 @@
   }
   .scroll-gallery > * {
     flex-shrink: 1;
+  }
+}
+
+/* ===== FAQ Accordion ===== */
+.faq-item {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1.5rem 0;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item[open] summary .faq-icon {
+  transform: rotate(45deg);
+}
+
+.faq-icon {
+  transition: transform 0.3s ease;
+}
+
+/* ===== Responsive section numbers ===== */
+@media (max-width: 639px) {
+  .section-number,
+  .section-number-light {
+    font-size: 48px;
   }
 }

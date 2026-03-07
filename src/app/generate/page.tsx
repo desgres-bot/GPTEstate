@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ImageUploader from "@/components/ImageUploader";
 import MaskPainter from "@/components/MaskPainter";
 import { STYLES } from "@/lib/constants";
@@ -9,6 +9,15 @@ import type { Mode, Style } from "@/types";
 export default function GeneratePage() {
   const [mode, setMode] = useState<Mode>("enhance");
   const [style, setStyle] = useState<Style>("modern");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlMode = params.get("mode");
+    if (urlMode && ["enhance", "staging", "redesign", "remove"].includes(urlMode)) {
+      setMode(urlMode as Mode);
+    }
+  }, []);
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
@@ -16,6 +25,7 @@ export default function GeneratePage() {
   const [error, setError] = useState<string | null>(null);
   const [removeDescription, setRemoveDescription] = useState("");
   const [maskDataUrl, setMaskDataUrl] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(true);
 
   const handleImageSelect = (file: File, previewUrl: string) => {
     setSelectedFile(file);
@@ -39,7 +49,7 @@ export default function GeneratePage() {
       const formData = new FormData();
       formData.append("image", selectedFile);
       formData.append("mode", mode);
-      if (mode === "redesign") formData.append("style", style);
+      if (mode === "redesign" || mode === "staging") formData.append("style", style);
       if (mode === "remove") {
         if (removeDescription.trim()) formData.append("description", removeDescription.trim());
         if (maskDataUrl) formData.append("mask", maskDataUrl);
@@ -57,6 +67,7 @@ export default function GeneratePage() {
 
       const data = await res.json();
       setResult(data.output_url);
+      setShowResult(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Произошла ошибка");
     } finally {
@@ -73,201 +84,199 @@ export default function GeneratePage() {
     setMaskDataUrl(null);
   };
 
-  const generateButtonLabel = () => {
-    if (mode === "enhance") return "🧹 Убрать бардак";
-    if (mode === "redesign") return "🎨 Редизайн";
-    return "✂️ Убрать объекты";
-  };
+  const modes = [
+    { id: "enhance" as Mode, label: "Уборка", desc: "Убрать бардак" },
+    { id: "staging" as Mode, label: "Мебель", desc: "Обставить пустую" },
+    { id: "redesign" as Mode, label: "Новый стиль", desc: "Сменить интерьер" },
+    { id: "remove" as Mode, label: "Удаление", desc: "Убрать объекты" },
+  ];
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Генерация фото</h1>
-        <p className="mt-2 text-gray-500">
-          Загрузите фото и выберите режим обработки
-        </p>
-      </div>
-
-      {/* Mode selector */}
-      <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <button
-          onClick={() => setMode("enhance")}
-          className={`rounded-xl px-6 py-3 text-sm font-semibold transition-all ${
-            mode === "enhance"
-              ? "bg-navy-900 text-white shadow-lg"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          🧹 Уборка фото
-        </button>
-        <button
-          onClick={() => setMode("redesign")}
-          className={`rounded-xl px-6 py-3 text-sm font-semibold transition-all ${
-            mode === "redesign"
-              ? "bg-navy-900 text-white shadow-lg"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          🎨 Редизайн интерьера
-        </button>
-        <button
-          onClick={() => setMode("remove")}
-          className={`rounded-xl px-6 py-3 text-sm font-semibold transition-all ${
-            mode === "remove"
-              ? "bg-navy-900 text-white shadow-lg"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          ✂️ Убрать объекты
-        </button>
-      </div>
-
-      {/* Style selector (redesign mode) */}
-      {mode === "redesign" && (
-        <div className="mt-6">
-          <p className="mb-3 text-center text-sm font-medium text-gray-600">
-            Выберите стиль дизайна
+    <div className="min-h-screen bg-[#1E1B18] text-white pt-24">
+      <div className="mx-auto max-w-3xl px-6 pb-12">
+        {/* Page title */}
+        <div className="mb-8">
+          <h1 className="heading-display text-[32px] sm:text-[48px]">Улучшение фото</h1>
+          <p className="mt-2 text-[#BFBFBF] text-base">
+            {mode === "enhance" ? "Уборка фото" : mode === "staging" ? "Добавить мебель" : mode === "redesign" ? "Новый стиль интерьера" : "Удаление объектов"}
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+        </div>
+
+        {/* Mode tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {modes.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className={`rounded-lg px-3 py-3 text-center transition-all ${
+                mode === m.id
+                  ? "bg-white text-[#1E1B18]"
+                  : "bg-white/8 text-white/70 hover:bg-white/12"
+              }`}
+            >
+              <div className="text-sm font-medium">{m.label}</div>
+              <div className={`text-xs mt-0.5 ${mode === m.id ? "text-[#6B6560]" : "text-white/50"}`}>{m.desc}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Style chips (redesign mode) */}
+        {(mode === "redesign" || mode === "staging") && (
+          <div className="mt-4 flex flex-wrap gap-2">
             {STYLES.map((s) => (
               <button
                 key={s.id}
                 onClick={() => setStyle(s.id as Style)}
-                className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                className={`rounded-lg px-4 py-2 text-sm transition-all ${
                   style === s.id
-                    ? "bg-accent-500 text-white shadow-md"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-white text-[#1E1B18]"
+                    : "bg-white/8 text-white/70 hover:bg-white/12"
                 }`}
               >
                 {s.emoji} {s.name}
               </button>
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Upload / Preview area */}
-      <div className="mt-8">
-        {!preview ? (
-          <ImageUploader onImageSelect={handleImageSelect} />
-        ) : (
-          <div className="space-y-6">
-            <div className={`grid gap-6 ${result ? "md:grid-cols-2" : ""}`}>
-              {/* Original / Mask Painter */}
-              <div>
-                <div className="mb-2 text-sm font-medium text-gray-500">
-                  {mode === "remove" && !result ? "Закрасьте объекты для удаления" : "Оригинал"}
-                </div>
-                {mode === "remove" && !result ? (
-                  <MaskPainter imageSrc={preview} onMaskChange={setMaskDataUrl} />
-                ) : (
-                  <div className="overflow-hidden rounded-2xl border border-gray-200">
-                    <img
-                      src={preview}
-                      alt="Оригинальное фото"
-                      className="w-full object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Result */}
-              {result && (
+        {/* Main content area */}
+        <div className="mt-8">
+          {!preview ? (
+            <ImageUploader onImageSelect={handleImageSelect} />
+          ) : (
+            <div className="space-y-4">
+              {/* Photo — tap to toggle before/after */}
+              {result ? (
                 <div>
-                  <div className="mb-2 text-sm font-medium text-accent-500">Результат</div>
-                  <div className="overflow-hidden rounded-2xl border-2 border-accent-200">
+                  <div
+                    className="relative cursor-pointer overflow-hidden"
+                    onClick={() => setShowResult(!showResult)}
+                  >
                     <img
-                      src={result}
-                      alt="Результат генерации"
-                      className="w-full object-cover"
+                      src={showResult ? result : preview}
+                      alt={showResult ? "Результат" : "Оригинал"}
+                      className="w-full object-cover transition-opacity duration-300"
                     />
+                    {/* Dark gradient for text readability */}
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-4 left-4 flex gap-2">
+                      <span className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${
+                        !showResult ? "bg-white text-[#1E1B18]" : "bg-black/40 text-white backdrop-blur-sm"
+                      }`}>
+                        До
+                      </span>
+                      <span className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${
+                        showResult ? "bg-white text-[#1E1B18]" : "bg-black/40 text-white backdrop-blur-sm"
+                      }`}>
+                        После
+                      </span>
+                    </div>
                   </div>
+                  <p className="mt-3 text-center text-sm text-neutral-400">
+                    Нажмите на фото для сравнения
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  {mode === "remove" && !result ? (
+                    <>
+                      <MaskPainter imageSrc={preview} onMaskChange={setMaskDataUrl} />
+                      <p className="mt-3 text-sm text-neutral-400">
+                        Закрасьте объекты, которые нужно убрать
+                      </p>
+                    </>
+                  ) : (
+                    <div className="overflow-hidden">
+                      <img
+                        src={preview}
+                        alt="Оригинальное фото"
+                        className="w-full object-cover"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
 
-            {/* Remove mode: text description */}
-            {mode === "remove" && !result && (
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-600">
-                  Опишите что убрать (необязательно)
-                </label>
+              {/* Remove mode text input */}
+              {mode === "remove" && !result && (
                 <textarea
                   value={removeDescription}
                   onChange={(e) => setRemoveDescription(e.target.value)}
-                  placeholder="Например: убери посуду со стола и коробки в углу"
+                  placeholder="Что убрать? Например: посуду со стола, коробки в углу"
                   rows={2}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 resize-none"
+                  className="w-full bg-white/8 rounded-lg px-4 py-3 text-base text-white placeholder:text-white/50 focus:bg-white/12 focus:outline-none resize-none"
                 />
-                <p className="mt-1 text-xs text-gray-400">
-                  Закрасьте объекты на фото и/или опишите текстом что нужно убрать
-                </p>
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
-                {error}
-              </div>
-            )}
-
-            <div className="flex flex-wrap justify-center gap-3">
-              {!result ? (
-                <>
-                  <button
-                    onClick={handleGenerate}
-                    disabled={loading}
-                    className="btn-primary !py-3 !px-8 disabled:opacity-50"
-                  >
-                    {loading ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Генерация...
-                      </span>
-                    ) : (
-                      generateButtonLabel()
-                    )}
-                  </button>
-                  <button onClick={reset} className="btn-secondary !py-3 !px-8">
-                    Выбрать другое фото
-                  </button>
-                </>
-              ) : (
-                <>
-                  <a
-                    href={result}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-primary !py-3 !px-8"
-                  >
-                    Скачать результат
-                  </a>
-                  <button onClick={reset} className="btn-secondary !py-3 !px-8">
-                    Новое фото
-                  </button>
-                </>
               )}
+
+              {error && (
+                <div className="rounded-lg bg-red-500/20 border border-red-500/30 p-4 text-sm text-red-300">
+                  {error}
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-3 pt-2">
+                {!result ? (
+                  <>
+                    <button
+                      onClick={handleGenerate}
+                      disabled={loading}
+                      className="flex-1 rounded-lg bg-white py-4 text-base font-medium text-[#1E1B18] transition-all hover:bg-neutral-100 disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Улучшаем...
+                        </span>
+                      ) : (
+                        mode === "enhance" ? "Убрать бардак" : mode === "staging" ? "Добавить мебель" : mode === "redesign" ? "Сменить стиль" : "Убрать объекты"
+                      )}
+                    </button>
+                    <button
+                      onClick={reset}
+                      className="rounded-lg bg-white/8 px-5 py-4 text-base text-white/70 transition-all hover:bg-white/12"
+                    >
+                      Другое фото
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <a
+                      href={result}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 rounded-lg bg-white py-4 text-center text-base font-medium text-[#1E1B18] transition-all hover:bg-neutral-100"
+                    >
+                      Скачать
+                    </a>
+                    <button
+                      onClick={reset}
+                      className="rounded-lg bg-white/8 px-5 py-4 text-base text-white/70 transition-all hover:bg-white/12"
+                    >
+                      Ещё фото
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* Tips */}
+        {!preview && (
+          <div className="mt-12 border-t border-white/10 pt-8">
+            <h3 className="text-base text-neutral-400">Советы</h3>
+            <ul className="mt-4 space-y-3 text-base text-neutral-400">
+              <li>— Горизонтальные фото работают лучше</li>
+              <li>— Минимум 512x512 пикселей</li>
+              <li>— Снимайте с хорошим охватом комнаты</li>
+            </ul>
           </div>
         )}
-      </div>
-
-      {/* Info */}
-      <div className="mt-12 rounded-2xl bg-gray-50 p-6">
-        <h3 className="text-lg font-bold">Советы для лучшего результата</h3>
-        <ul className="mt-3 space-y-2 text-sm text-gray-600">
-          <li>&#8226; Используйте горизонтальные фото с хорошим охватом комнаты</li>
-          <li>&#8226; Минимальное разрешение — 512x512 пикселей</li>
-          <li>&#8226; Для редизайна лучше подходят фото пустых или полупустых комнат</li>
-          <li>&#8226; Избегайте сильно затемнённых или размытых фото</li>
-          {mode === "remove" && (
-            <li>&#8226; Для удаления объектов закрасьте их кистью и/или опишите текстом</li>
-          )}
-        </ul>
       </div>
     </div>
   );
