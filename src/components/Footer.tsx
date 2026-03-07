@@ -16,7 +16,7 @@ export default function Footer() {
             <nav className="flex flex-col gap-3 text-base">
               <Link href="/generate" className="text-white transition-colors hover:text-neutral-300">Улучшить фото</Link>
               <Link href="/pricing" className="text-white transition-colors hover:text-neutral-300">Тарифы</Link>
-              <Link href="/gallery" className="text-white transition-colors hover:text-neutral-300">Блог</Link>
+              <Link href="/gallery" className="text-white transition-colors hover:text-neutral-300">Примеры</Link>
             </nav>
           </div>
 
@@ -25,10 +25,10 @@ export default function Footer() {
               Возможности
             </h4>
             <nav className="flex flex-col gap-3 text-base">
-              <span className="text-neutral-300">Уборка фото</span>
-              <span className="text-neutral-300">Виртуальная мебель</span>
-              <span className="text-neutral-300">Новый стиль интерьера</span>
-              <span className="text-neutral-300">Удаление объектов</span>
+              <Link href="/uluchshenie-foto-nedvizhimosti" className="text-neutral-300 transition-colors hover:text-white">Уборка фото</Link>
+              <Link href="/virtualnyj-stejdzhing" className="text-neutral-300 transition-colors hover:text-white">Виртуальная мебель</Link>
+              <Link href="/dizajn-interera-online" className="text-neutral-300 transition-colors hover:text-white">Новый стиль интерьера</Link>
+              <Link href="/foto-kvartiry-dlya-avito" className="text-neutral-300 transition-colors hover:text-white">Фото для Авито</Link>
             </nav>
           </div>
 

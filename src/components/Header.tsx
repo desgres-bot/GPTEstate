@@ -23,7 +23,7 @@ export default function Header() {
     { href: "/", label: "Главная" },
     { href: "/generate", label: "Улучшить" },
     { href: "/pricing", label: "Тарифы" },
-    { href: "/gallery", label: "Блог" },
+    { href: "/gallery", label: "Примеры" },
   ];
 
   return (

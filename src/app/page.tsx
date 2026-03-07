@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import BeforeAfterToggle from "@/components/BeforeAfterToggle";
 import CTASplitBanner from "@/components/CTASplitBanner";
 import { STYLES } from "@/lib/constants";
 import FadeInSection from "@/components/FadeInSection";
+import { getFAQSchema } from "@/lib/jsonld";
+
+export const metadata: Metadata = {
+  title: "GPT Estate — AI-улучшение фото квартир для Авито и ЦИАН",
+  description:
+    "Профессиональные фото для объявлений недвижимости за 30 секунд. AI-улучшение, виртуальный стейджинг и редизайн интерьера. От 15 рублей за фото. 2 фото бесплатно.",
+  alternates: { canonical: "https://fotoestate.ru" },
+};
 
 const FAQ_ITEMS = [
   {
@@ -647,6 +656,14 @@ export default function HomePage() {
 
       {/* ===== CTA ===== */}
       <CTASplitBanner />
+
+      {/* FAQ structured data for Google rich snippets — static data from our own FAQ_ITEMS array */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(getFAQSchema(FAQ_ITEMS)),
+        }}
+      />
     </>
   );
 }

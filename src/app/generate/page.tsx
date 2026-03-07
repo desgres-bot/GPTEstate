@@ -139,6 +139,17 @@ export default function GeneratePage() {
           </div>
         )}
 
+        {/* Trust strip */}
+        {!preview && (
+          <div className="mt-4 flex items-center justify-center gap-4 text-sm text-neutral-500">
+            <span>4.9/5 ★</span>
+            <span className="w-px h-3 bg-white/20" />
+            <span>12 847 фото обработано</span>
+            <span className="w-px h-3 bg-white/20" />
+            <span>30 секунд</span>
+          </div>
+        )}
+
         {/* Main content area */}
         <div className="mt-8">
           {!preview ? (
@@ -275,6 +286,25 @@ export default function GeneratePage() {
               <li>— Минимум 512x512 пикселей</li>
               <li>— Снимайте с хорошим охватом комнаты</li>
             </ul>
+
+            {/* FOMO element */}
+            <div className="mt-8 rounded-xl bg-white/[0.04] border border-white/10 p-4 flex items-center gap-3">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terra-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-terra-400" />
+              </span>
+              <span className="text-sm text-neutral-400">47 риелторов обрабатывают фото прямо сейчас</span>
+            </div>
+          </div>
+        )}
+
+        {/* Cross-sell after result */}
+        {result && (
+          <div className="mt-6 rounded-lg bg-terra-500/10 border border-terra-500/20 p-4 text-center">
+            <p className="text-sm text-terra-300">Понравился результат? Получите 50 фото за 799₽</p>
+            <a href="/pricing" className="text-sm text-terra-400 underline mt-1 inline-block">
+              Смотреть тарифы →
+            </a>
           </div>
         )}
       </div>
