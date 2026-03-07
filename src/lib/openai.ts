@@ -319,3 +319,138 @@ export async function removeObjects(
 
   return `data:image/jpeg;base64,${removeBuffer.toString("base64")}`;
 }
+
+/**
+ * Describe photo — GPT-4o Vision analyzes the photo and generates a listing description.
+ */
+export async function describePhoto(
+  imageBase64: string,
+  platform: string,
+  tone: string,
+): Promise<string> {
+  const imgSrc = await compressForAnalysis(imageBase64);
+
+  const platformNames: Record<string, string> = {
+    avito: "Авито",
+    cian: "ЦИАН",
+    domclick: "ДомКлик",
+  };
+
+  const tonePrompts: Record<string, string> = {
+    business: "деловой стиль, сдержанный и профессиональный тон",
+    warm: "тёплый стиль, уютное описание с эмоциональной окраской",
+    selling: "продающий стиль, акцент на выгодах, call-to-action, создание срочности",
+  };
+
+  const platformName = platformNames[platform] || "Авито";
+  const toneDesc = tonePrompts[tone] || tonePrompts.selling;
+
+  console.log("[describe] Generating listing for", platformName, "tone:", tone);
+
+  const text = await openaiChatViaProxy(
+    [
+      {
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: imgSrc, detail: "high" } },
+          {
+            type: "text",
+            text: `Ты — эксперт по недвижимости и копирайтер. Проанализируй это фото квартиры/дома и напиши объявление для площадки ${platformName}.
+
+Стиль: ${toneDesc}.
+
+Требования:
+1. Начни с цепляющего заголовка (до 50 символов)
+2. Опиши что видишь на фото: комнату, отделку, мебель, освещение, вид
+3. Подчеркни достоинства: пространство, свет, ремонт, планировка
+4. Добавь эмоциональные триггеры и выгоды для покупателя
+5. Закончи призывом к действию
+6. Формат: заголовок + 3-4 абзаца + призыв к действию
+7. Пиши на русском языке
+8. Не упоминай цену (её добавит риелтор)
+9. Длина: 800-1200 символов (оптимально для ${platformName})
+
+Формат ответа — только текст объявления, без пояснений.`,
+          },
+        ],
+      },
+    ],
+    1500,
+  );
+
+  return text;
+}
+
+/**
+ * Day to Dusk — transform a daytime exterior photo into a twilight/dusk scene.
+ */
+export async function dayToDusk(imageBase64: string): Promise<string> {
+  const replicate = getReplicate();
+
+  console.log("[dusk] Transforming to dusk with Flux Kontext Pro...");
+  const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
+    input: {
+      prompt:
+        "Transform this daytime exterior photo into a beautiful dusk/twilight scene. " +
+        "Add warm golden sunset sky with soft clouds. " +
+        "Make windows glow with warm interior lighting. " +
+        "Add subtle landscape lighting and pathway lights if applicable. " +
+        "The sky should transition from deep blue at the top to warm orange/pink at the horizon. " +
+        "Keep the building structure, landscaping, and all architectural details PIXEL-PERFECT identical. " +
+        "Same camera angle and composition. Professional real estate twilight photography.",
+      input_image: imageBase64,
+      aspect_ratio: "match_input_image",
+      output_format: "jpg",
+    },
+  });
+
+  const resultUrl = extractUrl(output);
+  const response = await fetch(resultUrl);
+  const arrayBuf = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuf);
+
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+}
+
+/**
+ * Replace Sky — swap the sky in an exterior photo.
+ */
+export async function replaceSky(
+  imageBase64: string,
+  skyType: string,
+): Promise<string> {
+  const replicate = getReplicate();
+
+  const skyPrompts: Record<string, string> = {
+    sunny:
+      "Replace the sky with a beautiful clear sunny sky with bright blue color and a few white fluffy clouds. Bright daylight.",
+    sunset:
+      "Replace the sky with a stunning sunset sky with warm orange, pink and purple gradients. Golden hour lighting on the building.",
+    dramatic:
+      "Replace the sky with dramatic clouds and deep blue sky. Moody but impressive atmosphere. Professional dramatic sky.",
+    blue:
+      "Replace the sky with a perfectly clear bright blue sky. No clouds, pure blue gradient. Clean and fresh look.",
+  };
+
+  const skyPrompt = skyPrompts[skyType] || skyPrompts.sunny;
+
+  console.log("[sky] Replacing sky:", skyType);
+  const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
+    input: {
+      prompt:
+        skyPrompt +
+        " CRITICAL: Keep the building, landscaping, roads, and all ground-level elements PIXEL-PERFECT identical. " +
+        "Only change the sky area. Same camera angle and composition. Professional real estate photography.",
+      input_image: imageBase64,
+      aspect_ratio: "match_input_image",
+      output_format: "jpg",
+    },
+  });
+
+  const resultUrl = extractUrl(output);
+  const response = await fetch(resultUrl);
+  const arrayBuf = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuf);
+
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+}

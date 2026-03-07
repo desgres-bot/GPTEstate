@@ -29,6 +29,8 @@ export default function Footer() {
               <Link href="/virtualnyj-stejdzhing" className="text-neutral-300 transition-colors hover:text-white">Виртуальная мебель</Link>
               <Link href="/dizajn-interera-online" className="text-neutral-300 transition-colors hover:text-white">Новый стиль интерьера</Link>
               <Link href="/foto-kvartiry-dlya-avito" className="text-neutral-300 transition-colors hover:text-white">Фото для Авито</Link>
+              <Link href="/generaciya-opisaniya-kvartiry" className="text-neutral-300 transition-colors hover:text-white">AI-описание объявления</Link>
+              <Link href="/day-to-dusk-foto" className="text-neutral-300 transition-colors hover:text-white">Day-to-Dusk фото</Link>
             </nav>
           </div>
 

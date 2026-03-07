@@ -66,6 +66,25 @@ export const STYLES = [
   { id: "japanese", name: "Японский", emoji: "🎋" },
 ] as const;
 
+export const SKY_OPTIONS = [
+  { id: "sunny", name: "Солнечное", emoji: "☀️" },
+  { id: "sunset", name: "Закатное", emoji: "🌅" },
+  { id: "dramatic", name: "Драматичное", emoji: "⛈️" },
+  { id: "blue", name: "Чистое голубое", emoji: "🌤️" },
+] as const;
+
+export const PLATFORMS = [
+  { id: "avito", name: "Авито" },
+  { id: "cian", name: "ЦИАН" },
+  { id: "domclick", name: "ДомКлик" },
+] as const;
+
+export const TONES = [
+  { id: "business", name: "Деловой", emoji: "💼" },
+  { id: "warm", name: "Тёплый", emoji: "🏡" },
+  { id: "selling", name: "Продающий", emoji: "🔥" },
+] as const;
+
 export const GALLERY_ITEMS = [
   {
     id: 1,

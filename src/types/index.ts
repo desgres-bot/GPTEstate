@@ -1,6 +1,12 @@
-export type Mode = "enhance" | "staging" | "redesign" | "remove";
+export type Mode = "enhance" | "staging" | "redesign" | "remove" | "describe" | "dusk" | "sky";
 
 export type Style = "modern" | "scandinavian" | "loft" | "classic" | "japanese";
+
+export type SkyType = "sunny" | "sunset" | "dramatic" | "blue";
+
+export type Platform = "avito" | "cian" | "domclick";
+
+export type Tone = "business" | "warm" | "selling";
 
 export type PlanId = "free" | "basic" | "realtor" | "agency";
 
