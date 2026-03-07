@@ -8,7 +8,7 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const hasDarkHero = pathname === "/";
+  const hasDarkHero = pathname === "/" || pathname === "/en" || pathname.startsWith("/blog") || pathname === "/tour" || pathname === "/api-docs";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -19,12 +19,22 @@ export default function Header() {
   // На страницах без тёмного героя — тёмный текст и светлый фон контейнера
   const dark = hasDarkHero;
 
-  const navItems = [
-    { href: "/", label: "Главная" },
-    { href: "/generate", label: "Улучшить" },
-    { href: "/pricing", label: "Тарифы" },
-    { href: "/gallery", label: "Примеры" },
-  ];
+  const isEn = pathname.startsWith("/en");
+
+  const navItems = isEn
+    ? [
+        { href: "/en", label: "Home" },
+        { href: "/generate", label: "Enhance" },
+        { href: "/en/pricing", label: "Pricing" },
+        { href: "/en/virtual-staging", label: "Staging" },
+      ]
+    : [
+        { href: "/", label: "Главная" },
+        { href: "/generate", label: "Улучшить" },
+        { href: "/pricing", label: "Тарифы" },
+        { href: "/blog", label: "Блог" },
+        { href: "/tour", label: "Тур 360°" },
+      ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[1000]">
@@ -85,7 +95,20 @@ export default function Header() {
               ))}
             </div>
 
-            {/* CTA кнопка */}
+            {/* Lang switch */}
+            <Link
+              href={isEn ? "/" : "/en"}
+              className={`text-[14px] transition-colors duration-500 ${
+                dark
+                  ? "text-white/50 hover:text-white"
+                  : "text-[#6B6560] hover:text-[#0e0e0e]"
+              }`}
+              style={{ letterSpacing: "-0.14px" }}
+            >
+              {isEn ? "RU" : "EN"}
+            </Link>
+
+            {/* CTA */}
             <Link
               href="/generate"
               className={`hidden md:inline-flex items-center justify-center text-[16px] font-normal transition-all duration-500 ${
@@ -100,7 +123,7 @@ export default function Header() {
                 letterSpacing: "-0.16px",
               }}
             >
-              Попробовать
+              {isEn ? "Try free" : "Попробовать"}
             </Link>
 
             {/* Мобильное меню */}

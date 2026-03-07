@@ -3,8 +3,9 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import JSZip from "jszip";
-import { STYLES, SKY_OPTIONS } from "@/lib/constants";
-import type { Mode, Style, SkyType } from "@/types";
+import { STYLES, SKY_OPTIONS, RENOVATION_OPTIONS } from "@/lib/constants";
+import type { Mode, Style, SkyType, RenovationType } from "@/types";
+import SlideshowExporter from "@/components/SlideshowExporter";
 
 interface BatchFile {
   file: File;
@@ -18,14 +19,19 @@ export default function BatchPage() {
   const [mode, setMode] = useState<Mode>("enhance");
   const [style, setStyle] = useState<Style>("modern");
   const [skyType, setSkyType] = useState<SkyType>("sunny");
+  const [renovationType, setRenovationType] = useState<RenovationType>("white_walls");
   const [files, setFiles] = useState<BatchFile[]>([]);
   const [processing, setProcessing] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [showSlideshow, setShowSlideshow] = useState(false);
+  const [scoring, setScoring] = useState(false);
+  const [scores, setScores] = useState<Record<number, number>>({});
 
   const modes = [
     { id: "enhance" as Mode, label: "Уборка", desc: "Убрать бардак" },
     { id: "staging" as Mode, label: "Мебель", desc: "Обставить пустую" },
     { id: "redesign" as Mode, label: "Новый стиль", desc: "Сменить интерьер" },
+    { id: "renovation" as Mode, label: "Ремонт", desc: "Стены и полы" },
     { id: "dusk" as Mode, label: "Закат", desc: "День → вечер" },
     { id: "sky" as Mode, label: "Небо", desc: "Заменить небо" },
   ];
@@ -72,6 +78,7 @@ export default function BatchPage() {
         if (mode === "redesign" || mode === "staging")
           formData.append("style", style);
         if (mode === "sky") formData.append("skyType", skyType);
+        if (mode === "renovation") formData.append("renovationType", renovationType);
 
         const res = await fetch("/api/generate", {
           method: "POST",
@@ -131,9 +138,37 @@ export default function BatchPage() {
     }
   };
 
+  const scoreAll = async () => {
+    const doneFiles = files
+      .map((f, i) => ({ f, i }))
+      .filter(({ f }) => f.status === "done" && f.result);
+    if (doneFiles.length === 0) return;
+    setScoring(true);
+    for (const { f, i } of doneFiles) {
+      try {
+        const formData = new FormData();
+        const blob = await fetch(f.result!).then((r) => r.blob());
+        formData.append("image", blob, "photo.jpg");
+        formData.append("mode", "score");
+        const res = await fetch("/api/generate", { method: "POST", body: formData });
+        if (res.ok) {
+          const data = await res.json();
+          const match = data.text?.match(/(\d+)/);
+          if (match) {
+            setScores((prev) => ({ ...prev, [i]: parseInt(match[1], 10) }));
+          }
+        }
+      } catch {
+        // skip scoring errors
+      }
+    }
+    setScoring(false);
+  };
+
   const doneCount = files.filter((f) => f.status === "done").length;
   const errorCount = files.filter((f) => f.status === "error").length;
   const processingIndex = files.findIndex((f) => f.status === "processing");
+  const doneResults = files.filter((f) => f.status === "done" && f.result).map((f) => f.result!);
 
   return (
     <div className="min-h-screen bg-[#1E1B18] text-white pt-24">
@@ -157,7 +192,7 @@ export default function BatchPage() {
         </div>
 
         {/* Mode tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           {modes.map((m) => (
             <button
               key={m.id}
@@ -214,6 +249,26 @@ export default function BatchPage() {
                 } disabled:opacity-50`}
               >
                 {s.emoji} {s.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Renovation type chips */}
+        {mode === "renovation" && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {RENOVATION_OPTIONS.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRenovationType(r.id as RenovationType)}
+                disabled={processing}
+                className={`rounded-lg px-4 py-2 text-sm transition-all ${
+                  renovationType === r.id
+                    ? "bg-white text-[#1E1B18]"
+                    : "bg-white/8 text-white/70 hover:bg-white/12"
+                } disabled:opacity-50`}
+              >
+                {r.emoji} {r.name}
               </button>
             ))}
           </div>
@@ -316,7 +371,18 @@ export default function BatchPage() {
                   </div>
                 )}
                 {f.status === "done" && (
-                  <span className="text-xs text-green-400">Готово</span>
+                  <span className="flex items-center gap-2">
+                    {scores[i] !== undefined && (
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        scores[i] >= 8 ? "bg-green-500/20 text-green-400" :
+                        scores[i] >= 5 ? "bg-yellow-500/20 text-yellow-400" :
+                        "bg-red-500/20 text-red-400"
+                      }`}>
+                        {scores[i]}/10
+                      </span>
+                    )}
+                    <span className="text-xs text-green-400">Готово</span>
+                  </span>
                 )}
                 {f.status === "error" && (
                   <span className="text-xs text-red-400" title={f.error}>
@@ -407,11 +473,30 @@ export default function BatchPage() {
           </div>
         )}
 
+        {/* Extra actions */}
+        {doneCount >= 2 && !processing && (
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={() => setShowSlideshow(true)}
+              className="flex-1 rounded-lg bg-white/8 py-3 text-sm text-white/80 hover:bg-white/12 transition-all"
+            >
+              Создать слайдшоу
+            </button>
+            <button
+              onClick={scoreAll}
+              disabled={scoring}
+              className="flex-1 rounded-lg bg-white/8 py-3 text-sm text-white/80 hover:bg-white/12 transition-all disabled:opacity-50"
+            >
+              {scoring ? "Оценка..." : "Оценить все фото"}
+            </button>
+          </div>
+        )}
+
         {/* Cross-sell */}
         {doneCount > 0 && !processing && (
           <div className="mt-6 rounded-lg bg-terra-500/10 border border-terra-500/20 p-4 text-center">
             <p className="text-sm text-terra-300">
-              Обрабатываете много фото? Получите 150 фото за 1990₽
+              Обрабатываете много фото? Получите 150 фото за 6 990₽
             </p>
             <Link
               href="/pricing"
@@ -420,6 +505,14 @@ export default function BatchPage() {
               Смотреть тарифы →
             </Link>
           </div>
+        )}
+
+        {/* Slideshow modal */}
+        {showSlideshow && doneResults.length >= 2 && (
+          <SlideshowExporter
+            images={doneResults}
+            onClose={() => setShowSlideshow(false)}
+          />
         )}
 
         {/* Empty state info */}

@@ -32,7 +32,7 @@ export function getWebApplicationSchema() {
     offers: {
       "@type": "AggregateOffer",
       lowPrice: "0",
-      highPrice: "3990",
+      highPrice: "6990",
       priceCurrency: "RUB",
       offerCount: 4,
     },
@@ -58,6 +58,53 @@ export function getFAQSchema(items: { q: string; a: string }[]) {
         text: item.a,
       },
     })),
+  };
+}
+
+export function getArticleSchema(article: {
+  title: string;
+  description: string;
+  date: string;
+  slug: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.description,
+    datePublished: article.date,
+    dateModified: article.date,
+    author: {
+      "@type": "Organization",
+      name: "GPT Estate",
+      url: BASE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "GPT Estate",
+      logo: { "@type": "ImageObject", url: `${BASE_URL}/logo.png` },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${BASE_URL}/blog/${article.slug}`,
+    },
+  };
+}
+
+export function getSoftwareAppSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "GPT Estate API",
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Web",
+    description:
+      "REST API для AI-обработки фото недвижимости: улучшение, виртуальный стейджинг, редизайн интерьера.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "RUB",
+    },
   };
 }
 

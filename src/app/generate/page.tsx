@@ -4,20 +4,22 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import ImageUploader from "@/components/ImageUploader";
 import MaskPainter from "@/components/MaskPainter";
-import { STYLES, SKY_OPTIONS, PLATFORMS, TONES } from "@/lib/constants";
-import type { Mode, Style, SkyType, Platform, Tone } from "@/types";
+import { STYLES, SKY_OPTIONS, RENOVATION_OPTIONS, PLATFORMS, TONES } from "@/lib/constants";
+import type { Mode, Style, SkyType, RenovationType, Platform, Tone } from "@/types";
 
 export default function GeneratePage() {
   const [mode, setMode] = useState<Mode>("enhance");
   const [style, setStyle] = useState<Style>("modern");
+  const [customStyle, setCustomStyle] = useState("");
   const [skyType, setSkyType] = useState<SkyType>("sunny");
+  const [renovationType, setRenovationType] = useState<RenovationType>("white_walls");
   const [platform, setPlatform] = useState<Platform>("avito");
   const [tone, setTone] = useState<Tone>("selling");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlMode = params.get("mode");
-    if (urlMode && ["enhance", "staging", "redesign", "remove", "describe", "dusk", "sky"].includes(urlMode)) {
+    if (urlMode && VALID_MODES.includes(urlMode)) {
       setMode(urlMode as Mode);
     }
   }, []);
@@ -25,7 +27,7 @@ export default function GeneratePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
-  const [descriptionResult, setDescriptionResult] = useState<string | null>(null);
+  const [textResult, setTextResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [removeDescription, setRemoveDescription] = useState("");
@@ -33,11 +35,20 @@ export default function GeneratePage() {
   const [showResult, setShowResult] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  const VALID_MODES = [
+    "enhance", "staging", "redesign", "remove",
+    "describe", "dusk", "sky",
+    "score", "analyze", "renovation",
+  ];
+
+  const TEXT_MODES: Mode[] = ["describe", "score", "analyze"];
+  const isTextMode = TEXT_MODES.includes(mode);
+
   const handleImageSelect = (file: File, previewUrl: string) => {
     setSelectedFile(file);
     setPreview(previewUrl);
     setResult(null);
-    setDescriptionResult(null);
+    setTextResult(null);
     setError(null);
   };
 
@@ -56,7 +67,12 @@ export default function GeneratePage() {
       const formData = new FormData();
       formData.append("image", selectedFile);
       formData.append("mode", mode);
-      if (mode === "redesign" || mode === "staging") formData.append("style", style);
+      if (mode === "redesign" || mode === "staging") {
+        formData.append("style", style);
+        if (style === "custom" && customStyle.trim()) {
+          formData.append("customStyle", customStyle.trim());
+        }
+      }
       if (mode === "remove") {
         if (removeDescription.trim()) formData.append("description", removeDescription.trim());
         if (maskDataUrl) formData.append("mask", maskDataUrl);
@@ -67,6 +83,9 @@ export default function GeneratePage() {
       }
       if (mode === "sky") {
         formData.append("skyType", skyType);
+      }
+      if (mode === "renovation") {
+        formData.append("renovationType", renovationType);
       }
 
       const res = await fetch("/api/generate", {
@@ -80,8 +99,8 @@ export default function GeneratePage() {
       }
 
       const data = await res.json();
-      if (mode === "describe") {
-        setDescriptionResult(data.text);
+      if (isTextMode) {
+        setTextResult(data.text);
       } else {
         setResult(data.output_url);
         setShowResult(true);
@@ -97,7 +116,7 @@ export default function GeneratePage() {
     setSelectedFile(null);
     setPreview(null);
     setResult(null);
-    setDescriptionResult(null);
+    setTextResult(null);
     setError(null);
     setRemoveDescription("");
     setMaskDataUrl(null);
@@ -105,8 +124,8 @@ export default function GeneratePage() {
   };
 
   const copyToClipboard = async () => {
-    if (!descriptionResult) return;
-    await navigator.clipboard.writeText(descriptionResult);
+    if (!textResult) return;
+    await navigator.clipboard.writeText(textResult);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -116,7 +135,10 @@ export default function GeneratePage() {
     { id: "staging" as Mode, label: "Мебель", desc: "Обставить пустую" },
     { id: "redesign" as Mode, label: "Новый стиль", desc: "Сменить интерьер" },
     { id: "remove" as Mode, label: "Удаление", desc: "Убрать объекты" },
+    { id: "renovation" as Mode, label: "Ремонт", desc: "Стены и полы" },
     { id: "describe" as Mode, label: "Описание", desc: "Текст для Авито" },
+    { id: "score" as Mode, label: "Оценка", desc: "Рейтинг фото" },
+    { id: "analyze" as Mode, label: "Анализ", desc: "Что на фото" },
     { id: "dusk" as Mode, label: "Закат", desc: "День → вечер" },
     { id: "sky" as Mode, label: "Небо", desc: "Заменить небо" },
   ];
@@ -126,7 +148,10 @@ export default function GeneratePage() {
     staging: "Добавить мебель",
     redesign: "Новый стиль интерьера",
     remove: "Удаление объектов",
+    renovation: "Виртуальный ремонт",
     describe: "AI-описание для объявления",
+    score: "Оценка качества фото",
+    analyze: "Анализ характеристик комнаты",
     dusk: "Дневное фото → закатное",
     sky: "Замена неба на фото",
   };
@@ -136,16 +161,32 @@ export default function GeneratePage() {
     staging: "Добавить мебель",
     redesign: "Сменить стиль",
     remove: "Убрать объекты",
+    renovation: "Сделать ремонт",
     describe: "Написать описание",
+    score: "Оценить фото",
+    analyze: "Анализировать",
     dusk: "Сделать закат",
     sky: "Заменить небо",
   };
 
-  const hasResult = result || descriptionResult;
+  const loadingLabel: Record<Mode, string> = {
+    enhance: "Убираем...",
+    staging: "Расставляем мебель...",
+    redesign: "Меняем стиль...",
+    remove: "Удаляем...",
+    renovation: "Делаем ремонт...",
+    describe: "Пишем...",
+    score: "Оцениваем...",
+    analyze: "Анализируем...",
+    dusk: "Создаём закат...",
+    sky: "Меняем небо...",
+  };
+
+  const hasResult = result || textResult;
 
   return (
     <div className="min-h-screen bg-[#1E1B18] text-white pt-24">
-      <div className="mx-auto max-w-3xl px-6 pb-12">
+      <div className="mx-auto max-w-3xl px-6 pb-24 md:pb-12">
         {/* Page title */}
         <div className="mb-8 flex items-start justify-between">
           <div>
@@ -160,13 +201,13 @@ export default function GeneratePage() {
           </Link>
         </div>
 
-        {/* Mode tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {/* Mode tabs — 5 columns on desktop, 2 on mobile */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {modes.map((m) => (
             <button
               key={m.id}
               onClick={() => setMode(m.id)}
-              className={`rounded-lg px-3 py-3 text-center transition-all ${
+              className={`rounded-lg px-3 py-3 min-h-[48px] text-center transition-all ${
                 mode === m.id
                   ? "bg-white text-[#1E1B18]"
                   : "bg-white/8 text-white/70 hover:bg-white/12"
@@ -180,20 +221,32 @@ export default function GeneratePage() {
 
         {/* Style chips (redesign & staging modes) */}
         {(mode === "redesign" || mode === "staging") && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {STYLES.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setStyle(s.id as Style)}
-                className={`rounded-lg px-4 py-2 text-sm transition-all ${
-                  style === s.id
-                    ? "bg-white text-[#1E1B18]"
-                    : "bg-white/8 text-white/70 hover:bg-white/12"
-                }`}
-              >
-                {s.emoji} {s.name}
-              </button>
-            ))}
+          <div className="mt-4">
+            <div className="flex flex-wrap gap-2">
+              {STYLES.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setStyle(s.id as Style)}
+                  className={`rounded-lg px-3 py-2 text-sm transition-all ${
+                    style === s.id
+                      ? "bg-white text-[#1E1B18]"
+                      : "bg-white/8 text-white/70 hover:bg-white/12"
+                  }`}
+                >
+                  {s.emoji} {s.name}
+                </button>
+              ))}
+            </div>
+            {/* Custom style text input */}
+            {style === "custom" && (
+              <input
+                type="text"
+                value={customStyle}
+                onChange={(e) => setCustomStyle(e.target.value)}
+                placeholder="Опишите стиль: марокканский с арками, лаунж-бар, детская..."
+                className="mt-3 w-full bg-white/8 rounded-lg px-4 py-3 text-base text-white placeholder:text-white/40 focus:bg-white/12 focus:outline-none"
+              />
+            )}
           </div>
         )}
 
@@ -211,6 +264,25 @@ export default function GeneratePage() {
                 }`}
               >
                 {s.emoji} {s.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Renovation type chips */}
+        {mode === "renovation" && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {RENOVATION_OPTIONS.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRenovationType(r.id as RenovationType)}
+                className={`rounded-lg px-4 py-2 text-sm transition-all ${
+                  renovationType === r.id
+                    ? "bg-white text-[#1E1B18]"
+                    : "bg-white/8 text-white/70 hover:bg-white/12"
+                }`}
+              >
+                {r.emoji} {r.name}
               </button>
             ))}
           </div>
@@ -305,8 +377,8 @@ export default function GeneratePage() {
                     Нажмите на фото для сравнения
                   </p>
                 </div>
-              ) : descriptionResult ? (
-                /* Text result (for describe mode) */
+              ) : textResult ? (
+                /* Text result (for describe/score/analyze modes) */
                 <div>
                   <div className="flex items-center gap-3 mb-3">
                     <img
@@ -315,22 +387,28 @@ export default function GeneratePage() {
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                     <div>
-                      <p className="text-sm text-white font-medium">Описание готово</p>
+                      <p className="text-sm text-white font-medium">
+                        {mode === "describe" ? "Описание готово" : mode === "score" ? "Оценка готова" : "Анализ готов"}
+                      </p>
                       <p className="text-xs text-neutral-400">
-                        {PLATFORMS.find(p => p.id === platform)?.name} &middot; {TONES.find(t => t.id === tone)?.name} стиль
+                        {mode === "describe" && (
+                          <>{PLATFORMS.find(p => p.id === platform)?.name} &middot; {TONES.find(t => t.id === tone)?.name} стиль</>
+                        )}
+                        {mode === "score" && "Оценка качества по 5 критериям"}
+                        {mode === "analyze" && "Характеристики помещения"}
                       </p>
                     </div>
                   </div>
                   <div className="bg-white/[0.06] border border-white/10 rounded-xl p-5">
                     <p className="text-base text-white/90 whitespace-pre-wrap leading-relaxed">
-                      {descriptionResult}
+                      {textResult}
                     </p>
                   </div>
                   <button
                     onClick={copyToClipboard}
                     className="mt-3 w-full rounded-lg bg-white/8 py-3 text-sm text-white/70 hover:bg-white/12 transition-all"
                   >
-                    {copied ? "✓ Скопировано!" : "Копировать текст"}
+                    {copied ? "Скопировано!" : "Копировать текст"}
                   </button>
                 </div>
               ) : (
@@ -378,8 +456,8 @@ export default function GeneratePage() {
                   <>
                     <button
                       onClick={handleGenerate}
-                      disabled={loading}
-                      className="flex-1 rounded-lg bg-white py-4 text-base font-medium text-[#1E1B18] transition-all hover:bg-neutral-100 disabled:opacity-50"
+                      disabled={loading || (style === "custom" && !customStyle.trim() && (mode === "redesign" || mode === "staging"))}
+                      className="btn-generate flex-1"
                     >
                       {loading ? (
                         <span className="flex items-center justify-center gap-2">
@@ -387,7 +465,7 @@ export default function GeneratePage() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                           </svg>
-                          {mode === "describe" ? "Пишем..." : "Улучшаем..."}
+                          {loadingLabel[mode]}
                         </span>
                       ) : (
                         buttonLabel[mode]
@@ -408,17 +486,17 @@ export default function GeneratePage() {
                         download
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 rounded-lg bg-white py-4 text-center text-base font-medium text-[#1E1B18] transition-all hover:bg-neutral-100"
+                        className="btn-generate flex-1 text-center"
                       >
                         Скачать
                       </a>
                     )}
-                    {descriptionResult && (
+                    {textResult && (
                       <button
                         onClick={copyToClipboard}
-                        className="flex-1 rounded-lg bg-white py-4 text-center text-base font-medium text-[#1E1B18] transition-all hover:bg-neutral-100"
+                        className="btn-generate flex-1"
                       >
-                        {copied ? "✓ Скопировано!" : "Копировать"}
+                        {copied ? "Скопировано!" : "Копировать"}
                       </button>
                     )}
                     <button
@@ -444,6 +522,24 @@ export default function GeneratePage() {
                   <li>— Фото должно хорошо показывать комнату</li>
                   <li>— Чем больше деталей видно, тем лучше описание</li>
                   <li>— Попробуйте разные стили текста для сравнения</li>
+                </>
+              ) : mode === "score" ? (
+                <>
+                  <li>— Загрузите фото перед публикацией объявления</li>
+                  <li>— AI оценит освещение, композицию, порядок</li>
+                  <li>— Получите конкретные рекомендации что улучшить</li>
+                </>
+              ) : mode === "analyze" ? (
+                <>
+                  <li>— Загрузите фото комнаты для полного анализа</li>
+                  <li>— AI определит тип помещения, площадь, ремонт</li>
+                  <li>— Используйте результат для заполнения объявления</li>
+                </>
+              ) : mode === "renovation" ? (
+                <>
+                  <li>— Выберите тип ремонта: стены, полы или полная реновация</li>
+                  <li>— Покажите покупателю потенциал квартиры</li>
+                  <li>— Идеально для квартир с устаревшим ремонтом</li>
                 </>
               ) : mode === "dusk" || mode === "sky" ? (
                 <>
@@ -474,7 +570,7 @@ export default function GeneratePage() {
         {/* Cross-sell after result */}
         {hasResult && (
           <div className="mt-6 rounded-lg bg-terra-500/10 border border-terra-500/20 p-4 text-center">
-            <p className="text-sm text-terra-300">Понравился результат? Получите 50 фото за 799₽</p>
+            <p className="text-sm text-terra-300">Понравился результат? Получите 50 фото за 2 490₽</p>
             <a href="/pricing" className="text-sm text-terra-400 underline mt-1 inline-block">
               Смотреть тарифы →
             </a>

@@ -64,6 +64,113 @@ function extractUrl(output: unknown): string {
   return String(output);
 }
 
+/** Shared style prompts for staging and redesign modes (25 styles + custom). */
+const STYLE_PROMPTS_STAGE: Record<string, string> = {
+  modern:
+    "Add modern minimalist furniture: a stylish sofa, coffee table, sleek shelving, pendant lights. Neutral colors with accent pieces, clean lines, contemporary feel.",
+  scandinavian:
+    "Add Scandinavian style furniture: light wood pieces, white and beige textiles, cozy throws, plants. Warm minimal aesthetic, hygge feeling.",
+  loft:
+    "Add industrial loft furniture: vintage leather sofa, metal shelving, Edison bulb lighting. Dark wood and metal accents, raw aesthetic.",
+  classic:
+    "Add classic elegant furniture: traditional pieces with curved lines, rich fabrics, warm wood. Elegant curtains, chandelier lighting, refined atmosphere.",
+  japanese:
+    "Add Japanese minimalist furniture: low bed/sofa, tatami elements, shoji screens, bonsai plants. Natural materials, zen simplicity, clean open space.",
+  minimalist:
+    "Add ultra-minimalist furniture: very few pieces, clean surfaces, monochrome palette. Simple bed or sofa, one accent piece, nothing extra.",
+  boho:
+    "Add bohemian furniture: eclectic mix of patterns, macrame wall hangings, floor cushions, many plants. Warm colors, layered textiles, relaxed vibe.",
+  provence:
+    "Add Provence-style furniture: whitewashed wood, lavender accents, floral textiles. Vintage charm, soft pastels, French countryside atmosphere.",
+  artdeco:
+    "Add Art Deco furniture: geometric patterns, gold and black accents, velvet upholstery. Glamorous mirrors, luxury materials, 1920s elegance.",
+  hightech:
+    "Add high-tech modern furniture: chrome and glass pieces, LED lighting accents, sleek black surfaces. Futuristic, technology-forward aesthetic.",
+  country:
+    "Add country-style furniture: warm wood pieces, checkered textiles, cozy rugs. Comfortable sofas, rustic shelving, homey atmosphere.",
+  eco:
+    "Add eco-friendly furniture: natural wood, bamboo elements, linen textiles, many green plants. Sustainable materials, earthy tones, biophilic design.",
+  industrial:
+    "Add industrial furniture: metal and reclaimed wood pieces, exposed-style shelving, factory-inspired lighting. Urban warehouse aesthetic.",
+  mediterranean:
+    "Add Mediterranean furniture: terracotta accents, wrought iron details, blue and white textiles. Ceramic tiles, olive branches, coastal warmth.",
+  retro:
+    "Add retro/vintage furniture: 1960s-70s inspired pieces, bold colors, rounded forms. Vintage lamps, retro patterns, nostalgic atmosphere.",
+  neoclassic:
+    "Add neoclassical furniture: elegant symmetrical pieces, muted luxury, classical columns influence. Refined fabrics, subtle gold accents, timeless elegance.",
+  midcentury:
+    "Add mid-century modern furniture: iconic 1950s-60s design, organic curves, wooden legs. Eames-style chairs, teak sideboards, retro-modern feel.",
+  coastal:
+    "Add coastal-style furniture: white and blue palette, rope accents, driftwood elements. Light fabrics, nautical touches, breezy beach house feel.",
+  farmhouse:
+    "Add farmhouse furniture: shiplap-style elements, distressed wood, mason jar accents. Comfortable seating, rustic charm, warm hospitality.",
+  rustic:
+    "Add rustic furniture: raw natural wood, stone accents, thick woolen textiles. Log cabin aesthetic, warm fireplace feel, natural imperfections.",
+  glam:
+    "Add glamorous furniture: mirrored surfaces, crystal chandeliers, plush velvet. Gold accents, fur throws, Hollywood luxury aesthetic.",
+  transitional:
+    "Add transitional furniture: blend of traditional and modern, neutral palette, comfortable sophistication. Clean lines with warm wood tones.",
+  baroque:
+    "Add baroque-style furniture: ornate carved wood, rich brocade fabrics, gold gilding. Dramatic chandelier, heavy curtains, royal palace aesthetic.",
+  fusion:
+    "Add fusion-style furniture: creative mix of East and West, bold color combinations, eclectic art pieces. Unique personality, cultural blend.",
+  ethnic:
+    "Add ethnic-style furniture: tribal patterns, handwoven textiles, carved wood accents. Rich colors, global artisan pieces, cultural authenticity.",
+};
+
+const STYLE_PROMPTS_REDESIGN: Record<string, string> = {
+  modern:
+    "Replace the furniture with modern minimalist style: stylish sofa, modern coffee table, sleek shelving, pendant lights. Neutral colors with accent pieces, clean lines.",
+  scandinavian:
+    "Replace the furniture with Scandinavian style: light wood furniture, white and beige textiles, cozy throws, plants. Warm minimal aesthetic, hygge feeling.",
+  loft:
+    "Replace the furniture with industrial loft style: vintage leather furniture, metal shelving, Edison bulb lighting. Dark wood and metal accents.",
+  classic:
+    "Replace the furniture with classic elegant style: traditional furniture with curved lines, rich fabrics, warm wood. Elegant curtains, chandelier lighting.",
+  japanese:
+    "Replace the furniture with Japanese minimalist style: low furniture, tatami elements, shoji screens, bonsai plants. Natural materials, zen simplicity.",
+  minimalist:
+    "Replace the furniture with ultra-minimalist style: very few pieces, clean surfaces, monochrome palette. Only essential items, nothing extra.",
+  boho:
+    "Replace the furniture with bohemian style: eclectic patterns, macrame, floor cushions, plants. Warm colors, layered textiles, relaxed vibe.",
+  provence:
+    "Replace the furniture with Provence style: whitewashed wood, lavender accents, floral textiles. Vintage charm, soft pastels, French countryside.",
+  artdeco:
+    "Replace the furniture with Art Deco style: geometric patterns, gold and black, velvet upholstery. Glamorous mirrors, luxury materials.",
+  hightech:
+    "Replace the furniture with high-tech style: chrome and glass, LED lighting, sleek black surfaces. Futuristic, technology-forward look.",
+  country:
+    "Replace the furniture with country style: warm wood, checkered textiles, cozy rugs. Comfortable sofas, rustic shelving, homey feel.",
+  eco:
+    "Replace the furniture with eco style: natural wood, bamboo, linen, many green plants. Sustainable materials, earthy tones, biophilic design.",
+  industrial:
+    "Replace the furniture with industrial style: metal and reclaimed wood, exposed shelving, factory lighting. Urban warehouse aesthetic.",
+  mediterranean:
+    "Replace the furniture with Mediterranean style: terracotta, wrought iron, blue and white. Ceramic details, olive branches, coastal warmth.",
+  retro:
+    "Replace the furniture with retro style: 1960s-70s pieces, bold colors, rounded forms. Vintage lamps, retro patterns, nostalgic feel.",
+  neoclassic:
+    "Replace the furniture with neoclassical style: elegant symmetry, muted luxury, classical influence. Refined fabrics, subtle gold accents.",
+  midcentury:
+    "Replace the furniture with mid-century modern style: 1950s-60s design, organic curves, wooden legs. Iconic chairs, teak pieces.",
+  coastal:
+    "Replace the furniture with coastal style: white and blue palette, rope accents, driftwood. Light fabrics, nautical touches, beach house vibe.",
+  farmhouse:
+    "Replace the furniture with farmhouse style: shiplap elements, distressed wood, mason jars. Comfortable seating, rustic charm.",
+  rustic:
+    "Replace the furniture with rustic style: raw natural wood, stone accents, thick wool textiles. Log cabin feel, natural imperfections.",
+  glam:
+    "Replace the furniture with glamorous style: mirrored surfaces, crystal chandeliers, plush velvet. Gold accents, Hollywood luxury.",
+  transitional:
+    "Replace the furniture with transitional style: blend of traditional and modern, neutral palette. Clean lines with warm wood tones.",
+  baroque:
+    "Replace the furniture with baroque style: ornate carved wood, rich brocade, gold gilding. Dramatic chandelier, heavy curtains.",
+  fusion:
+    "Replace the furniture with fusion style: creative East-West mix, bold colors, eclectic art. Unique personality, cultural blend.",
+  ethnic:
+    "Replace the furniture with ethnic style: tribal patterns, handwoven textiles, carved wood. Rich colors, global artisan pieces.",
+};
+
 /**
  * Enhance photo = Virtual cleanup using Flux Kontext Pro.
  * GPT-4o first describes the room, then Kontext edits with precise preservation.
@@ -137,29 +244,17 @@ Be specific about colors, patterns, materials. Keep very concise.`,
  */
 export async function stageRoom(
   imageBase64: string,
-  style: string
+  style: string,
+  customStyle?: string,
 ): Promise<string> {
   const replicate = getReplicate();
 
-  const stylePrompts: Record<string, string> = {
-    modern:
-      "Add modern minimalist furniture: a stylish sofa, coffee table, sleek shelving, pendant lights. " +
-      "Neutral colors with accent pieces, clean lines, contemporary feel.",
-    scandinavian:
-      "Add Scandinavian style furniture: light wood pieces, white and beige textiles, cozy throws, plants. " +
-      "Warm minimal aesthetic, hygge feeling.",
-    loft:
-      "Add industrial loft furniture: vintage leather sofa, metal shelving, Edison bulb lighting. " +
-      "Dark wood and metal accents, raw aesthetic.",
-    classic:
-      "Add classic elegant furniture: traditional pieces with curved lines, rich fabrics, warm wood. " +
-      "Elegant curtains, chandelier lighting, refined atmosphere.",
-    japanese:
-      "Add Japanese minimalist furniture: low bed/sofa, tatami elements, shoji screens, bonsai plants. " +
-      "Natural materials, zen simplicity, clean open space.",
-  };
-
-  const stylePrompt = stylePrompts[style] || stylePrompts.modern;
+  let stylePrompt: string;
+  if (style === "custom" && customStyle) {
+    stylePrompt = `Add furniture in the following style: ${customStyle}. Make it look professional and realistic.`;
+  } else {
+    stylePrompt = STYLE_PROMPTS_STAGE[style] || STYLE_PROMPTS_STAGE.modern;
+  }
 
   const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
@@ -188,34 +283,17 @@ export async function stageRoom(
  */
 export async function redesignRoom(
   imageBase64: string,
-  style: string
+  style: string,
+  customStyle?: string,
 ): Promise<string> {
   const replicate = getReplicate();
 
-  const stylePrompts: Record<string, string> = {
-    modern:
-      "Replace the furniture with modern minimalist style: " +
-      "stylish sofa, modern coffee table, sleek shelving, pendant lights. " +
-      "Neutral colors with accent pieces, clean lines.",
-    scandinavian:
-      "Replace the furniture with Scandinavian style: " +
-      "light wood furniture, white and beige textiles, cozy throws, plants. " +
-      "Warm minimal aesthetic, hygge feeling.",
-    loft:
-      "Replace the furniture with industrial loft style: " +
-      "vintage leather furniture, metal shelving, Edison bulb lighting. " +
-      "Dark wood and metal accents.",
-    classic:
-      "Replace the furniture with classic elegant style: " +
-      "traditional furniture with curved lines, rich fabrics, warm wood. " +
-      "Elegant curtains, chandelier lighting.",
-    japanese:
-      "Replace the furniture with Japanese minimalist style: " +
-      "low furniture, tatami elements, shoji screens, bonsai plants. " +
-      "Natural materials, zen simplicity.",
-  };
-
-  const stylePrompt = stylePrompts[style] || stylePrompts.modern;
+  let stylePrompt: string;
+  if (style === "custom" && customStyle) {
+    stylePrompt = `Replace the furniture with this style: ${customStyle}. Make it look professional and realistic.`;
+  } else {
+    stylePrompt = STYLE_PROMPTS_REDESIGN[style] || STYLE_PROMPTS_REDESIGN.modern;
+  }
 
   const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
@@ -441,6 +519,181 @@ export async function replaceSky(
         skyPrompt +
         " CRITICAL: Keep the building, landscaping, roads, and all ground-level elements PIXEL-PERFECT identical. " +
         "Only change the sky area. Same camera angle and composition. Professional real estate photography.",
+      input_image: imageBase64,
+      aspect_ratio: "match_input_image",
+      output_format: "jpg",
+    },
+  });
+
+  const resultUrl = extractUrl(output);
+  const response = await fetch(resultUrl);
+  const arrayBuf = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuf);
+
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+}
+
+/**
+ * Score photo — GPT-4o Vision rates the real estate photo quality 1-10 with recommendations.
+ */
+export async function scorePhoto(imageBase64: string): Promise<string> {
+  const imgSrc = await compressForAnalysis(imageBase64);
+
+  console.log("[score] Scoring photo quality...");
+
+  const text = await openaiChatViaProxy(
+    [
+      {
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: imgSrc, detail: "high" } },
+          {
+            type: "text",
+            text: `Ты — эксперт по фотографии недвижимости. Оцени это фото квартиры/дома по шкале от 1 до 10.
+
+Критерии оценки:
+1. Освещение (яркость, естественный свет, тени)
+2. Композиция (ракурс, симметрия, охват комнаты)
+3. Порядок (чистота, отсутствие бардака, подготовка к съёмке)
+4. Качество (резкость, баланс белого)
+5. Привлекательность (насколько фото продаёт объект)
+
+Формат ответа:
+
+ОЦЕНКА: X/10
+
+КРИТЕРИИ:
+- Освещение: X/10
+- Композиция: X/10
+- Порядок: X/10
+- Качество: X/10
+- Привлекательность: X/10
+
+СИЛЬНЫЕ СТОРОНЫ:
+- пункт 1
+- пункт 2
+
+ЧТО УЛУЧШИТЬ:
+- конкретная рекомендация 1
+- конкретная рекомендация 2
+- конкретная рекомендация 3
+
+РЕКОМЕНДУЕМЫЕ РЕЖИМЫ GPT ESTATE:
+- режим: зачем использовать
+
+Пиши на русском. Будь конкретен и полезен. Давай практичные советы.`,
+          },
+        ],
+      },
+    ],
+    1000,
+  );
+
+  return text;
+}
+
+/**
+ * Analyze room — GPT-4o Vision identifies room characteristics for listing auto-fill.
+ */
+export async function analyzeRoom(imageBase64: string): Promise<string> {
+  const imgSrc = await compressForAnalysis(imageBase64);
+
+  console.log("[analyze] Analyzing room characteristics...");
+
+  const text = await openaiChatViaProxy(
+    [
+      {
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: imgSrc, detail: "high" } },
+          {
+            type: "text",
+            text: `Ты — эксперт по недвижимости. Проанализируй это фото и определи все характеристики помещения.
+
+Заполни каждый раздел:
+
+ТИП ПОМЕЩЕНИЯ: (кухня / спальня / гостиная / ванная / прихожая / балкон / студия / офис)
+
+ПЛОЩАДЬ (примерно): X м²
+
+РЕМОНТ: (евроремонт / хороший / косметический / требует ремонта / черновая отделка)
+
+СТИЛЬ: (если определяется)
+
+ОТДЕЛКА:
+- Стены: материал, цвет, состояние
+- Пол: материал, цвет, состояние
+- Потолок: тип, примерная высота
+
+МЕБЕЛЬ И ТЕХНИКА:
+- перечислить всё, что видно на фото
+
+ОКНА:
+- Количество, тип (пластиковые/деревянные), состояние
+
+ОСВЕЩЕНИЕ:
+- Естественное, искусственное, тип светильников
+
+ДОСТОИНСТВА:
+- что привлечёт покупателя
+
+НЕДОСТАТКИ:
+- что может оттолкнуть
+
+РЕКОМЕНДАЦИИ ДЛЯ ПРОДАЖИ:
+- что улучшить перед показом/фото
+- какие режимы GPT Estate использовать
+
+Пиши на русском. Если что-то не определяется — напиши "не видно на фото".`,
+          },
+        ],
+      },
+    ],
+    1200,
+  );
+
+  return text;
+}
+
+/**
+ * Renovate room — virtual wall/floor replacement using Flux Kontext Pro.
+ */
+export async function renovateRoom(
+  imageBase64: string,
+  renovationType: string,
+): Promise<string> {
+  const replicate = getReplicate();
+
+  const renovationPrompts: Record<string, string> = {
+    white_walls:
+      "Repaint all walls to clean bright white color. Smooth matte finish. Fresh, clean, bright white walls throughout the room.",
+    beige_walls:
+      "Repaint all walls to warm beige/cream color. Smooth finish. Elegant, warm, inviting beige tone throughout the room.",
+    gray_walls:
+      "Repaint all walls to modern light gray color. Smooth matte finish. Contemporary, sophisticated light gray walls.",
+    laminate:
+      "Replace the floor with modern light oak laminate flooring. Clean, uniform planks, modern laminate with natural wood pattern.",
+    tile:
+      "Replace the floor with modern large-format light gray porcelain tiles. Clean even grout lines, contemporary polished tile floor.",
+    parquet:
+      "Replace the floor with classic herringbone parquet in warm natural oak color. Elegant, traditional herringbone parquet flooring.",
+    full_light:
+      "Complete light renovation: repaint all walls pure white, replace floor with light oak laminate. Clean modern white baseboards. Fresh, bright, modern renovation.",
+    full_dark:
+      "Complete dark renovation: paint all walls sophisticated dark charcoal gray, replace floor with dark walnut laminate. Modern dark baseboards. Dramatic, modern, sophisticated look.",
+  };
+
+  const renovationPrompt = renovationPrompts[renovationType] || renovationPrompts.white_walls;
+
+  console.log("[renovation] Type:", renovationType);
+  const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
+    input: {
+      prompt:
+        "Virtual renovation of this room. " + renovationPrompt +
+        " CRITICAL: Keep ALL furniture, fixtures, appliances, windows, window frames, doors, " +
+        "ceiling, light fixtures, and room layout PIXEL-PERFECT identical. " +
+        "Only change the walls and/or floor as specified. " +
+        "Keep the same camera angle, perspective, and lighting. Professional real estate photo.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",

@@ -9,14 +9,14 @@ import { getFAQSchema, getBreadcrumbSchema } from "@/lib/jsonld";
 export const metadata: Metadata = {
   title: "Виртуальный стейджинг квартиры — мебель за 30 секунд",
   description:
-    "Виртуальный стейджинг квартиры с помощью AI. Добавьте мебель в пустую комнату за 15 рублей вместо 50 000₽ за реальную мебель. 5 стилей интерьера.",
+    "Виртуальный стейджинг квартиры с помощью AI. Добавьте мебель в пустую комнату за 15 рублей вместо 50 000₽ за реальную мебель. 25 стилей интерьера.",
   keywords:
     "виртуальный стейджинг, стейджинг квартиры, виртуальная меблировка, AI мебель, виртуальная мебель для фото",
   alternates: { canonical: "https://fotoestate.ru/virtualnyj-stejdzhing" },
   openGraph: {
     title: "Виртуальный стейджинг — GPT Estate",
     description:
-      "Добавьте мебель в пустую комнату за 15₽ и 30 секунд. 5 стилей на выбор.",
+      "Добавьте мебель в пустую комнату за 50₽ и 30 секунд. 25 стилей на выбор.",
   },
 };
 
@@ -27,7 +27,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Какие стили доступны?",
-    a: "5 стилей: современный, скандинавский, лофт, классика, японский. Каждый создан профессиональными дизайнерами.",
+    a: "25 стилей: от современного до барокко. Плюс можно описать свой стиль текстом — AI воплотит любую идею.",
   },
   {
     q: "Можно использовать для коммерческой недвижимости?",
@@ -39,7 +39,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Сколько стоит?",
-    a: "От 15₽ за фото. Первые 2 — бесплатно, без регистрации.",
+    a: "От 50₽ за фото. Первые 2 — бесплатно, без регистрации.",
   },
 ];
 
@@ -66,7 +66,7 @@ export default function VirtualnyjStejdzhing() {
               <span className="text-terra-400">не продаётся</span>
             </h1>
             <p className="mt-6 text-base leading-relaxed text-neutral-300 sm:text-lg max-w-xl mx-auto">
-              Добавьте мебель за 15₽ вместо 50 000₽. AI расставит мебель
+              Добавьте мебель за 50₽ вместо 50 000₽. AI расставит мебель
               в вашем стиле за 30 секунд.
             </p>
             <Link href="/generate" className="btn-terra mt-8 inline-flex">
@@ -89,9 +89,9 @@ export default function VirtualnyjStejdzhing() {
         <div className="mx-auto max-w-7xl px-6 py-16 lg:py-20">
           <div className="grid grid-cols-3 gap-4 text-center">
             {[
-              { value: "5", label: "стилей мебели" },
+              { value: "25", label: "стилей мебели" },
               { value: "30 сек", label: "до результата" },
-              { value: "15₽", label: "вместо 50 000₽ за реальную мебель" },
+              { value: "50₽", label: "вместо 50 000₽ за реальную мебель" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="heading-display text-[36px] sm:text-[48px] lg:text-[64px] text-terra-400">
@@ -191,7 +191,7 @@ export default function VirtualnyjStejdzhing() {
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
-            5 стилей. Ваша комната.{" "}
+            25 стилей. Ваша комната.{" "}
             <span className="text-terra-500">30 секунд.</span>
           </h2>
 
@@ -222,7 +222,7 @@ export default function VirtualnyjStejdzhing() {
               {
                 step: "02",
                 title: "Выберите стиль мебели",
-                desc: "Современный, скандинавский, лофт, классика или японский — под любого покупателя.",
+                desc: "25 стилей от минимализма до барокко. Или опишите свой стиль текстом.",
               },
               {
                 step: "03",
@@ -295,7 +295,7 @@ export default function VirtualnyjStejdzhing() {
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
             Реальная мебель: 50 000₽.{" "}
-            <span className="text-terra-500">Виртуальная: 15₽.</span>
+            <span className="text-terra-500">Виртуальная: 50₽.</span>
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -333,10 +333,10 @@ export default function VirtualnyjStejdzhing() {
               </div>
               <div className="space-y-5">
                 {[
-                  { item: "Стоимость", cost: "от 15₽ за фото" },
+                  { item: "Стоимость", cost: "от 50₽ за фото" },
                   { item: "Доставка", cost: "не нужна" },
                   { item: "Уборка", cost: "не нужна" },
-                  { item: "Стили", cost: "5 на выбор" },
+                  { item: "Стили", cost: "25 + свой стиль" },
                   { item: "Срок", cost: "30 секунд" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">

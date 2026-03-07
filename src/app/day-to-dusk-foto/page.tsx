@@ -35,7 +35,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Сколько стоит Day-to-Dusk обработка?",
-    a: "Всего 15₽ за фото. Для сравнения: BoxBrownie берёт $4-5 за одно фото, что в 20-30 раз дороже.",
+    a: "Всего 50₽ за фото. Для сравнения: BoxBrownie берёт $4-5 за одно фото, что в 20-30 раз дороже.",
   },
   {
     q: "Как быстро я получу результат?",
@@ -78,7 +78,7 @@ export default function DayToDuskFoto() {
           <div className="grid grid-cols-3 gap-4 text-center">
             {[
               { value: "30 сек", label: "до результата" },
-              { value: "15₽", label: "вместо $5 за BoxBrownie" },
+              { value: "50₽", label: "вместо $5 за BoxBrownie" },
               { value: "x2", label: "больше просмотров" },
             ].map((stat) => (
               <div key={stat.label}>
@@ -201,7 +201,7 @@ export default function DayToDuskFoto() {
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
-            BoxBrownie: $5. <span className="text-terra-500">GPT Estate: 15₽.</span>
+            BoxBrownie: $5. <span className="text-terra-500">GPT Estate: 50₽.</span>
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -232,7 +232,7 @@ export default function DayToDuskFoto() {
               <div className="text-xs uppercase tracking-widest text-terra-500 mb-6">GPT Estate</div>
               <div className="space-y-5">
                 {[
-                  { item: "Стоимость", cost: "15₽ (~$0.15)" },
+                  { item: "Стоимость", cost: "50₽ (~$0.50)" },
                   { item: "Скорость", cost: "30 секунд" },
                   { item: "Качество", cost: "Professional Twilight" },
                   { item: "Ожидание", cost: "мгновенно" },

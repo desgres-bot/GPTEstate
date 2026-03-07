@@ -6,12 +6,12 @@ import { getFAQSchema, getBreadcrumbSchema } from "@/lib/jsonld";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Тарифы и цены — от 15₽ за фото",
+  title: "Тарифы и цены — от 50₽ за фото",
   description:
-    "Прозрачные тарифы для риелторов и агентств. Бесплатный старт — 2 фото без регистрации. Тариф Риелтор от 799₽ за 50 фото. Гарантия возврата денег.",
+    "Прозрачные тарифы для риелторов и агентств. Бесплатный старт — 2 фото без регистрации. Тариф Риелтор — 2 490₽ за 50 фото. Гарантия возврата денег.",
   alternates: { canonical: "https://fotoestate.ru/pricing" },
   openGraph: {
-    title: "Тарифы GPT Estate — AI-фото от 15₽",
+    title: "Тарифы GPT Estate — AI-фото от 50₽",
     description: "Начните бесплатно. 2 фото без регистрации и без карты.",
   },
 };
@@ -31,7 +31,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Есть ли скидки для агентств?",
-    a: "Тариф Агентство (1 990\u20BD за 150 фото) — уже со скидкой. Если нужно больше — напишите нам, подберём индивидуальные условия.",
+    a: "Тариф Агентство (6 990\u20BD за 150 фото) — уже со скидкой. Если нужно больше — напишите нам, подберём индивидуальные условия.",
   },
   {
     q: "Что если закончатся генерации?",
@@ -54,10 +54,10 @@ const PRICING_CARDS = [
   },
   {
     name: "Риелтор",
-    price: "799",
+    price: "2 490",
     per: "\u20BD",
     credits: "50 фото",
-    perPhoto: "16\u20BD/фото",
+    perPhoto: "50\u20BD/фото",
     features: [
       "Уборка + Новый стиль",
       "Высокое качество",
@@ -71,12 +71,12 @@ const PRICING_CARDS = [
   },
   {
     name: "Агентство",
-    price: "1 990",
+    price: "6 990",
     per: "\u20BD",
     credits: "150 фото",
-    perPhoto: "13\u20BD/фото",
+    perPhoto: "47\u20BD/фото",
     features: [
-      "Все 4 режима",
+      "Все 10 режимов",
       "Лучшее качество",
       "Виртуальная мебель",
       "Поддержка каждый день",
@@ -88,10 +88,10 @@ const PRICING_CARDS = [
   },
   {
     name: "Профи",
-    price: "3 990",
+    price: "5 990",
     per: "\u20BD",
     credits: "100 фото",
-    perPhoto: "40\u20BD/фото",
+    perPhoto: "60\u20BD/фото",
     features: [
       "Точечное удаление",
       "Все режимы + максимальное качество",
@@ -160,7 +160,7 @@ export default function PricingPage() {
             {PRICING_CARDS.map((plan) => (
               <div
                 key={plan.name}
-                className={`stagger-child relative p-10 ${
+                className={`stagger-child relative p-10 transition-transform duration-300 ease-spring hover:-translate-y-1 ${
                   plan.dark ? "bg-[#1E1B18] text-white" : "bg-white"
                 }`}
               >
@@ -216,10 +216,12 @@ export default function PricingPage() {
 
                 <Link
                   href={plan.href}
-                  className={`mt-8 block w-full rounded-lg py-3 text-center text-base transition-all ${
-                    plan.dark
-                      ? "bg-white text-[#1E1B18] hover:bg-neutral-200"
-                      : "border border-neutral-300 text-[#1E1B18] hover:bg-[#1E1B18] hover:text-white hover:border-[#1E1B18]"
+                  className={`mt-8 block w-full text-center ${
+                    plan.dark && plan.badge
+                      ? "btn-terra-glow"
+                      : plan.dark
+                        ? "btn-white"
+                        : "btn-outline"
                   }`}
                 >
                   {plan.cta}
@@ -283,7 +285,7 @@ export default function PricingPage() {
               </div>
               <div className="space-y-5">
                 {[
-                  { item: "Стоимость", cost: "15\u20BD за фото" },
+                  { item: "Стоимость", cost: "от 50\u20BD за фото" },
                   { item: "Скорость", cost: "30 секунд" },
                   { item: "Уборка", cost: "не нужна" },
                   { item: "Мебель", cost: "виртуальная, бесплатно" },
@@ -304,7 +306,7 @@ export default function PricingPage() {
           </div>
 
           <p className="mt-12 text-center heading-display text-[28px] sm:text-[36px] lg:text-[48px] text-terra-500">
-            Экономия: от 54 985&#8381; в месяц при 10 объектах
+            Экономия: от 49 000&#8381; в месяц при 10 объектах
           </p>
         </div>
       </FadeInSection>

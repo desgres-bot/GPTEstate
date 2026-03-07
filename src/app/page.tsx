@@ -44,7 +44,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Почему это дешевле фотографа?",
-    a: "Фотограф тратит время на выезд, съёмку, обработку. Наш сервис делает всё это за 30 секунд автоматически. Поэтому 15₽ вместо 5 000₽.",
+    a: "Фотограф тратит время на выезд, съёмку, обработку. Наш сервис делает всё это за 30 секунд автоматически. Поэтому 50₽ вместо 5 000₽.",
   },
 ];
 
@@ -66,7 +66,7 @@ export default function HomePage() {
               <br className="hidden sm:block" />
               Без фотографа, без уборки, без ожидания.
             </p>
-            <Link href="/generate" className="btn-terra mt-8 inline-flex">
+            <Link href="/generate" className="btn-terra-glow mt-8 inline-flex">
               Попробовать бесплатно — 2 фото без регистрации
             </Link>
           </div>
@@ -92,7 +92,7 @@ export default function HomePage() {
               <Link
                 key={item.problem}
                 href={item.href}
-                className="group rounded-2xl p-5 lg:p-6 transition-all active:scale-[0.98]"
+                className="group rounded-2xl p-5 lg:p-6 transition-all duration-300 ease-spring hover:-translate-y-1 active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(212,101,75,0.06) 50%, rgba(255,255,255,0.03) 100%)",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -111,7 +111,7 @@ export default function HomePage() {
             {[
               { value: "12 847", label: "фото за месяц" },
               { value: "30 сек", label: "до результата" },
-              { value: "15₽", label: "вместо 5 000₽ за фотографа" },
+              { value: "50₽", label: "вместо 5 000₽ за фотографа" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="heading-display text-[36px] sm:text-[48px] lg:text-[64px] text-terra-400">{stat.value}</div>
@@ -224,7 +224,7 @@ export default function HomePage() {
                     </div>
                     <div className="flex justify-between items-center py-2">
                       <span className="text-[#6B6560]">Одно фото с нами</span>
-                      <span className="font-medium text-terra-500">15₽</span>
+                      <span className="font-medium text-terra-500">50₽</span>
                     </div>
                   </div>
                 </div>
@@ -397,7 +397,7 @@ export default function HomePage() {
               <div className="text-xs uppercase tracking-widest text-terra-400 mb-6">С нами</div>
               <div className="space-y-5">
                 {[
-                  { item: "Стоимость", cost: "15₽ за фото" },
+                  { item: "Стоимость", cost: "50₽ за фото" },
                   { item: "Ожидание", cost: "30 секунд" },
                   { item: "Уборка", cost: "не нужна" },
                   { item: "Мебель", cost: "виртуальная, бесплатно" },
@@ -541,7 +541,7 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
             <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl">
-              Ваши конкуренты платят 15₽ за фото. А вы?
+              Ваши конкуренты платят 50₽ за фото. А вы?
             </h2>
             <Link href="/pricing" className="btn-outline self-start">
               Все тарифы
@@ -561,17 +561,17 @@ export default function HomePage() {
                 dark: false, badge: null, cta: "Попробовать", href: "/generate",
               },
               {
-                name: "Риелтор", price: "799", per: "₽", credits: "50 фото", perPhoto: "16₽/фото",
+                name: "Риелтор", price: "2 490", per: "₽", credits: "50 фото", perPhoto: "50₽/фото",
                 features: ["Уборка + Новый стиль", "Высокое качество", "Виртуальная мебель", "Приоритетная очередь"],
                 dark: true, badge: "Выбирают 67%", cta: "Подключить", href: "/auth",
               },
               {
-                name: "Агентство", price: "1 990", per: "₽", credits: "150 фото", perPhoto: "13₽/фото",
+                name: "Агентство", price: "6 990", per: "₽", credits: "150 фото", perPhoto: "47₽/фото",
                 features: ["Все 4 режима", "Лучшее качество", "Виртуальная мебель", "Поддержка каждый день"],
                 dark: false, badge: null, cta: "Подключить", href: "/auth",
               },
               {
-                name: "Профи", price: "3 990", per: "₽", credits: "100 фото", perPhoto: "40₽/фото",
+                name: "Профи", price: "5 990", per: "₽", credits: "100 фото", perPhoto: "60₽/фото",
                 features: ["Точечное удаление", "Все режимы + максимальное качество", "Личная поддержка"],
                 dark: true, badge: null, cta: "Подключить", href: "/auth",
               },
@@ -606,10 +606,12 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href={plan.href}
-                  className={`mt-8 block w-full rounded-lg py-3 text-center text-base transition-all ${
-                    plan.dark
-                      ? "bg-white text-[#1E1B18] hover:bg-neutral-200"
-                      : "border border-neutral-300 text-[#1E1B18] hover:bg-[#1E1B18] hover:text-white hover:border-[#1E1B18]"
+                  className={`mt-8 block w-full text-center ${
+                    plan.dark && plan.badge
+                      ? "btn-terra-glow"
+                      : plan.dark
+                        ? "btn-white"
+                        : "btn-outline"
                   }`}
                 >
                   {plan.cta}

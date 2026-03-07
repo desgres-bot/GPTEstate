@@ -74,7 +74,7 @@ export default function DizajnInteraOnline() {
             {[
               { value: "5", label: "стилей дизайна" },
               { value: "30 сек", label: "до результата" },
-              { value: "15₽", label: "вместо 50 000₽ за дизайнера" },
+              { value: "50₽", label: "вместо 50 000₽ за дизайнера" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="heading-display text-[36px] sm:text-[48px] lg:text-[64px] text-terra-400">
@@ -102,7 +102,7 @@ export default function DizajnInteraOnline() {
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-2xl">
             Дизайнер берёт 50 000₽ и 2 недели.
             <br />
-            <span className="text-terra-500">Мы — 15₽ и 30 секунд.</span>
+            <span className="text-terra-500">Мы — 50₽ и 30 секунд.</span>
           </h2>
 
           <div className="mt-16 lg:mt-20 space-y-0">
@@ -248,7 +248,7 @@ export default function DizajnInteraOnline() {
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
-            Дизайнер: 50 000₽. <span className="text-terra-500">GPT Estate: 15₽.</span>
+            Дизайнер: 50 000₽. <span className="text-terra-500">GPT Estate: 50₽.</span>
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -282,11 +282,11 @@ export default function DizajnInteraOnline() {
               <div className="text-xs uppercase tracking-widest text-terra-500 mb-6">GPT Estate</div>
               <div className="space-y-5">
                 {[
-                  { item: "Стоимость", cost: "от 15₽ за фото" },
+                  { item: "Стоимость", cost: "от 50₽ за фото" },
                   { item: "Срок", cost: "30 секунд" },
                   { item: "Количество стилей", cost: "5" },
                   { item: "Правки", cost: "бесплатно" },
-                  { item: "Повторная визуализация", cost: "15₽" },
+                  { item: "Повторная визуализация", cost: "50₽" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">
                     <span className="text-[#6B6560]">{row.item}</span>

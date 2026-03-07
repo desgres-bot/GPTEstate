@@ -14,7 +14,7 @@ export const PLANS = [
   {
     id: "realtor",
     name: "Риелтор",
-    price: 799,
+    price: 2490,
     credits: 50,
     features: [
       "50 генераций",
@@ -28,7 +28,7 @@ export const PLANS = [
   {
     id: "agency",
     name: "Агентство",
-    price: 1990,
+    price: 6990,
     credits: 150,
     features: [
       "150 генераций",
@@ -43,7 +43,7 @@ export const PLANS = [
   {
     id: "premium_pro",
     name: "Профи",
-    price: 3990,
+    price: 5990,
     credits: 100,
     features: [
       "100 генераций",
@@ -64,6 +64,27 @@ export const STYLES = [
   { id: "loft", name: "Лофт", emoji: "🏭" },
   { id: "classic", name: "Классика", emoji: "🏛️" },
   { id: "japanese", name: "Японский", emoji: "🎋" },
+  { id: "minimalist", name: "Минимализм", emoji: "◻️" },
+  { id: "boho", name: "Бохо", emoji: "🌸" },
+  { id: "provence", name: "Прованс", emoji: "💐" },
+  { id: "artdeco", name: "Арт-деко", emoji: "✨" },
+  { id: "hightech", name: "Хай-тек", emoji: "🔲" },
+  { id: "country", name: "Кантри", emoji: "🏡" },
+  { id: "eco", name: "Эко", emoji: "🌱" },
+  { id: "industrial", name: "Индустриальный", emoji: "⚙️" },
+  { id: "mediterranean", name: "Средиземноморский", emoji: "🏖️" },
+  { id: "retro", name: "Ретро", emoji: "📻" },
+  { id: "neoclassic", name: "Неоклассика", emoji: "🏛️" },
+  { id: "midcentury", name: "Мид-сенчури", emoji: "🪑" },
+  { id: "coastal", name: "Морской", emoji: "🐚" },
+  { id: "farmhouse", name: "Фермерский", emoji: "🌾" },
+  { id: "rustic", name: "Рустик", emoji: "🪵" },
+  { id: "glam", name: "Гламур", emoji: "💎" },
+  { id: "transitional", name: "Переходный", emoji: "🔄" },
+  { id: "baroque", name: "Барокко", emoji: "👑" },
+  { id: "fusion", name: "Фьюжн", emoji: "🎨" },
+  { id: "ethnic", name: "Этника", emoji: "🌍" },
+  { id: "custom", name: "Свой стиль", emoji: "✏️" },
 ] as const;
 
 export const SKY_OPTIONS = [
@@ -71,6 +92,17 @@ export const SKY_OPTIONS = [
   { id: "sunset", name: "Закатное", emoji: "🌅" },
   { id: "dramatic", name: "Драматичное", emoji: "⛈️" },
   { id: "blue", name: "Чистое голубое", emoji: "🌤️" },
+] as const;
+
+export const RENOVATION_OPTIONS = [
+  { id: "white_walls", name: "Белые стены", emoji: "⬜" },
+  { id: "beige_walls", name: "Бежевые стены", emoji: "🟡" },
+  { id: "gray_walls", name: "Серые стены", emoji: "🔘" },
+  { id: "laminate", name: "Ламинат", emoji: "🟫" },
+  { id: "tile", name: "Плитка", emoji: "🔲" },
+  { id: "parquet", name: "Паркет", emoji: "🪵" },
+  { id: "full_light", name: "Полная (светлая)", emoji: "☀️" },
+  { id: "full_dark", name: "Полная (тёмная)", emoji: "🌑" },
 ] as const;
 
 export const PLATFORMS = [
@@ -84,6 +116,21 @@ export const TONES = [
   { id: "warm", name: "Тёплый", emoji: "🏡" },
   { id: "selling", name: "Продающий", emoji: "🔥" },
 ] as const;
+
+export const BLOG_CATEGORIES = [
+  { id: "guides", name: "Руководства", emoji: "📖" },
+  { id: "tips", name: "Советы", emoji: "💡" },
+  { id: "comparisons", name: "Сравнения", emoji: "⚖️" },
+  { id: "technology", name: "Технологии", emoji: "🤖" },
+  { id: "market", name: "Рынок", emoji: "📊" },
+] as const;
+
+export const TOUR_CONFIG = {
+  maxScenes: 20,
+  defaultHfov: 110,
+  autoRotateSpeed: 2,
+  compass: true,
+} as const;
 
 export const GALLERY_ITEMS = [
   {

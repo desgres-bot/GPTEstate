@@ -83,7 +83,7 @@ export default function GeneraciyaOpisaniyaKvartiry() {
             {[
               { value: "30 сек", label: "до готового текста" },
               { value: "3", label: "стиля на выбор" },
-              { value: "15₽", label: "вместо 500₽ за копирайтера" },
+              { value: "50₽", label: "вместо 500₽ за копирайтера" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="heading-display text-[36px] sm:text-[48px] lg:text-[64px] text-terra-400">
@@ -255,7 +255,7 @@ export default function GeneraciyaOpisaniyaKvartiry() {
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
-            Копирайтер: 500₽. <span className="text-terra-500">AI: 15₽.</span>
+            Копирайтер: 500₽. <span className="text-terra-500">AI: 50₽.</span>
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -287,7 +287,7 @@ export default function GeneraciyaOpisaniyaKvartiry() {
               <div className="text-xs uppercase tracking-widest text-terra-500 mb-6">GPT Estate</div>
               <div className="space-y-5">
                 {[
-                  { item: "Стоимость", cost: "от 15₽" },
+                  { item: "Стоимость", cost: "от 50₽" },
                   { item: "Ожидание", cost: "30 секунд" },
                   { item: "Правки", cost: "бесплатно — перегенерируйте" },
                   { item: "Знание площадки", cost: "Авито, ЦИАН, ДомКлик" },

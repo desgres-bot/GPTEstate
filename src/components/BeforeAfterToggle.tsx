@@ -29,7 +29,7 @@ export default function BeforeAfterToggle({ beforeSrc, afterSrc, label, subtitle
 
       {/* Before image — overlay with opacity transition */}
       <div
-        className="absolute inset-0 transition-opacity duration-500 ease-out"
+        className="absolute inset-0 transition-opacity duration-300 ease-spring"
         style={{
           backgroundImage: `url(${beforeSrc})`,
           backgroundSize: "cover",

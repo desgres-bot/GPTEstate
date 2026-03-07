@@ -33,7 +33,7 @@ export default function ImageUploader({ onImageSelect }: Props) {
 
   return (
     <div
-      className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 transition-colors ${
+      className={`relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed min-h-[200px] p-10 transition-colors ${
         dragActive
           ? "border-accent-500 bg-accent-50"
           : "border-gray-200 bg-gray-50 hover:border-gray-300"
@@ -64,7 +64,7 @@ export default function ImageUploader({ onImageSelect }: Props) {
       <p className="mb-4 text-sm text-gray-500">или</p>
       <button
         type="button"
-        className="btn-primary !text-sm"
+        className="btn-primary !text-sm min-h-[44px]"
         onClick={() => fileInputRef.current?.click()}
       >
         Выбрать файл

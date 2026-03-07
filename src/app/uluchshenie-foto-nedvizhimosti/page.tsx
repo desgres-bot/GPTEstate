@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://fotoestate.ru/uluchshenie-foto-nedvizhimosti" },
   openGraph: {
     title: "Улучшение фото недвижимости — GPT Estate",
-    description: "AI-обработка фото квартир и домов за 30 секунд. От 15₽.",
+    description: "AI-обработка фото квартир и домов за 30 секунд. От 50₽.",
   },
 };
 
@@ -64,7 +64,7 @@ export default function UluchshenieFotoNedvizhimosti() {
             {[
               { value: "12 847", label: "фото обработано" },
               { value: "30 сек", label: "до результата" },
-              { value: "15₽", label: "вместо 5 000₽ за фотографа" },
+              { value: "50₽", label: "вместо 5 000₽ за фотографа" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="heading-display text-[36px] sm:text-[48px] lg:text-[64px] text-terra-400">
@@ -165,7 +165,7 @@ export default function UluchshenieFotoNedvizhimosti() {
               },
               {
                 title: "Агентства",
-                desc: "Стандартизируйте качество фото по всему портфелю объектов. Единый стиль, единое качество — от 13₽ за фото на тарифе Агентство.",
+                desc: "Стандартизируйте качество фото по всему портфелю объектов. Единый стиль, единое качество — от 47₽ за фото на тарифе Агентство.",
               },
             ].map((item) => (
               <div
@@ -277,7 +277,7 @@ export default function UluchshenieFotoNedvizhimosti() {
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
-            Фотограф: 5 000₽. <span className="text-terra-500">GPT Estate: 15₽.</span>
+            Фотограф: 5 000₽. <span className="text-terra-500">GPT Estate: 50₽.</span>
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -311,7 +311,7 @@ export default function UluchshenieFotoNedvizhimosti() {
               <div className="text-xs uppercase tracking-widest text-terra-500 mb-6">GPT Estate</div>
               <div className="space-y-5">
                 {[
-                  { item: "Стоимость", cost: "от 15₽ за фото" },
+                  { item: "Стоимость", cost: "от 50₽ за фото" },
                   { item: "Ожидание", cost: "30 секунд" },
                   { item: "Уборка", cost: "не нужна — AI уберёт" },
                   { item: "10 объектов", cost: "от 150₽" },
