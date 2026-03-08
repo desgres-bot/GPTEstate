@@ -5,11 +5,12 @@ import BeforeAfterToggle from "@/components/BeforeAfterToggle";
 import CTASplitBanner from "@/components/CTASplitBanner";
 import FadeInSection from "@/components/FadeInSection";
 import { getBreadcrumbSchema } from "@/lib/jsonld";
+import AllModesGrid from "@/components/AllModesGrid";
 
 export const metadata: Metadata = {
   title: "Дизайн интерьера онлайн — AI-визуализация за 30 секунд",
   description:
-    "Визуализируйте новый дизайн интерьера онлайн с помощью AI. 5 стилей: современный, скандинавский, лофт, классика, японский. Бесплатная проба.",
+    "Визуализируйте новый дизайн интерьера онлайн с помощью AI. 5 стилей: современный, скандинавский, лофт, классика, японский. Бесплатная проба. 38 AI-сервисов — фото, которые продают дома и квартиры",
   keywords:
     "дизайн интерьера онлайн, визуализация интерьера, AI дизайн комнаты, редизайн квартиры, стили интерьера",
   alternates: { canonical: "https://fotoestate.ru/dizajn-interera-online" },
@@ -37,7 +38,7 @@ export default function DizajnInteraOnline() {
   return (
     <>
       {/* ===== ГЕРОЙ ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -90,11 +91,11 @@ export default function DizajnInteraOnline() {
       </section>
 
       {/* ===== 01 ПРОБЛЕМА ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Проблема
             </span>
           </div>
@@ -106,12 +107,12 @@ export default function DizajnInteraOnline() {
           </h2>
 
           <div className="mt-16 lg:mt-20 space-y-0">
-            <div className="stagger-child border-b border-neutral-200 py-10 lg:py-12">
+            <div className="stagger-child border-b border-white/[0.08] py-10 lg:py-12">
               <div className="flex items-start gap-6">
-                <span className="heading-display text-[24px] text-[#bfbfbf] hidden sm:block">01</span>
+                <span className="heading-display text-[24px] text-neutral-600 hidden sm:block">01</span>
                 <div>
                   <h3 className="text-[20px] sm:text-[24px] font-normal">Долго и дорого</h3>
-                  <p className="mt-3 text-[#6B6560] leading-relaxed max-w-lg">
+                  <p className="mt-3 text-neutral-400 leading-relaxed max-w-lg">
                     Дизайн-проект одной комнаты стоит от 50 000₽ и занимает
                     2-4 недели. Хотите попробовать 3 стиля? Умножайте на три.
                   </p>
@@ -119,12 +120,12 @@ export default function DizajnInteraOnline() {
               </div>
             </div>
 
-            <div className="stagger-child border-b border-neutral-200 py-10 lg:py-12">
+            <div className="stagger-child border-b border-white/[0.08] py-10 lg:py-12">
               <div className="flex items-start gap-6">
-                <span className="heading-display text-[24px] text-[#bfbfbf] hidden sm:block">02</span>
+                <span className="heading-display text-[24px] text-neutral-600 hidden sm:block">02</span>
                 <div>
                   <h3 className="text-[20px] sm:text-[24px] font-normal">Сложно представить результат</h3>
-                  <p className="mt-3 text-[#6B6560] leading-relaxed max-w-lg">
+                  <p className="mt-3 text-neutral-400 leading-relaxed max-w-lg">
                     Вы листаете Pinterest часами, но не можете понять, как стиль
                     будет смотреться именно в вашей комнате. Рендеры дизайнера
                     абстрактны и далеки от реальности.
@@ -133,12 +134,12 @@ export default function DizajnInteraOnline() {
               </div>
             </div>
 
-            <div className="stagger-child border-b border-neutral-200 py-10 lg:py-12">
+            <div className="stagger-child border-b border-white/[0.08] py-10 lg:py-12">
               <div className="flex items-start gap-6">
-                <span className="heading-display text-[24px] text-[#bfbfbf] hidden sm:block">03</span>
+                <span className="heading-display text-[24px] text-neutral-600 hidden sm:block">03</span>
                 <div>
                   <h3 className="text-[20px] sm:text-[24px] font-normal">Риск ошибки</h3>
-                  <p className="mt-3 text-[#6B6560] leading-relaxed max-w-lg">
+                  <p className="mt-3 text-neutral-400 leading-relaxed max-w-lg">
                     Заказали ремонт в стиле лофт, а получилось не то. Переделка
                     обойдётся ещё дороже. Лучше увидеть результат заранее.
                   </p>
@@ -150,11 +151,11 @@ export default function DizajnInteraOnline() {
       </FadeInSection>
 
       {/* ===== 02 РЕШЕНИЕ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">02</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">02</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Решение
             </span>
           </div>
@@ -169,11 +170,11 @@ export default function DizajnInteraOnline() {
             {STYLES.map((style) => (
               <div
                 key={style.id}
-                className="stagger-child rounded-xl border border-neutral-200 p-6 text-center"
+                className="stagger-child rounded-xl p-6 text-center" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
               >
                 <div className="text-3xl mb-3">{style.emoji}</div>
-                <h3 className="text-base font-medium text-[#1E1B18] mb-2">{style.name}</h3>
-                <p className="text-sm text-[#6B6560] leading-relaxed">
+                <h3 className="text-base font-medium text-white mb-2">{style.name}</h3>
+                <p className="text-sm text-neutral-400 leading-relaxed">
                   {STYLE_DESCRIPTIONS[style.id]}
                 </p>
               </div>
@@ -187,10 +188,10 @@ export default function DizajnInteraOnline() {
               { step: "02", title: "Выберите стиль", desc: "Современный, скандинавский, лофт, классика или японский." },
               { step: "03", title: "Получите визуализацию", desc: "Фотореалистичный результат за 30 секунд. Скачайте и сравните." },
             ].map((item) => (
-              <div key={item.step} className="stagger-child text-center p-8 rounded-xl bg-[#fbf9f5]">
-                <div className="text-xs text-[#bfbfbf] uppercase tracking-widest mb-3">{item.step}</div>
+              <div key={item.step} className="stagger-child text-center p-8 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div className="text-xs text-neutral-600 uppercase tracking-widest mb-3">{item.step}</div>
                 <h3 className="text-[20px] font-normal mb-2">{item.title}</h3>
-                <p className="text-[#6B6560] leading-relaxed">{item.desc}</p>
+                <p className="text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -238,11 +239,11 @@ export default function DizajnInteraOnline() {
       </FadeInSection>
 
       {/* ===== 04 СРАВНЕНИЕ СТОИМОСТИ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.04) 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">04</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">04</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Экономия
             </span>
           </div>
@@ -253,8 +254,8 @@ export default function DizajnInteraOnline() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Дизайнер */}
-            <div className="rounded-xl bg-white border border-neutral-200 p-8 lg:p-10">
-              <div className="text-xs uppercase tracking-widest text-[#7D756E] mb-6">Дизайнер интерьера</div>
+            <div className="rounded-xl p-8 lg:p-10" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-6">Дизайнер интерьера</div>
               <div className="space-y-5">
                 {[
                   { item: "Стоимость", cost: "50 000 – 150 000₽" },
@@ -263,9 +264,9 @@ export default function DizajnInteraOnline() {
                   { item: "Правки", cost: "от 5 000₽" },
                   { item: "Повторный визит", cost: "от 10 000₽" },
                 ].map((row) => (
-                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-neutral-100">
-                    <span className="text-[#6B6560]">{row.item}</span>
-                    <span className="text-[#1E1B18] font-medium">{row.cost}</span>
+                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-white/[0.06]">
+                    <span className="text-neutral-400">{row.item}</span>
+                    <span className="text-white font-medium">{row.cost}</span>
                   </div>
                 ))}
               </div>
@@ -289,7 +290,7 @@ export default function DizajnInteraOnline() {
                   { item: "Повторная визуализация", cost: "50₽" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">
-                    <span className="text-[#6B6560]">{row.item}</span>
+                    <span className="text-neutral-400">{row.item}</span>
                     <span className="text-terra-500 font-medium">{row.cost}</span>
                   </div>
                 ))}
@@ -308,8 +309,20 @@ export default function DizajnInteraOnline() {
         </div>
       </FadeInSection>
 
+      
+      {/* ===== ALL MODES ===== */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <AllModesGrid
+            title="Не только дизайн интерьера — ещё"
+            subtitle="37 AI-сервисов"
+            exclude={["redesign"]}
+          />
+        </div>
+      </FadeInSection>
+
       {/* ===== CTA ===== */}
-      <CTASplitBanner />
+      <CTASplitBanner fomo="38 AI-сервисов для недвижимости. Присоединяйтесь к 2 870 риелторам, которые уже экономят время и деньги" />
 
       {/* BreadcrumbList JSON-LD */}
       <script

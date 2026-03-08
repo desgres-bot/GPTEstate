@@ -5,11 +5,12 @@ import BeforeAfterToggle from "@/components/BeforeAfterToggle";
 import CTASplitBanner from "@/components/CTASplitBanner";
 import FadeInSection from "@/components/FadeInSection";
 import { getFAQSchema, getBreadcrumbSchema } from "@/lib/jsonld";
+import AllModesGrid from "@/components/AllModesGrid";
 
 export const metadata: Metadata = {
   title: "Виртуальный стейджинг квартиры — мебель за 30 секунд",
   description:
-    "Виртуальный стейджинг квартиры с помощью AI. Добавьте мебель в пустую комнату за 15 рублей вместо 50 000₽ за реальную мебель. 25 стилей интерьера.",
+    "Виртуальный стейджинг квартиры с помощью AI. Добавьте мебель в пустую комнату за 15 рублей вместо 50 000₽ за реальную мебель. 25 стилей интерьера. 38 AI-сервисов — фото, которые продают дома и квартиры",
   keywords:
     "виртуальный стейджинг, стейджинг квартиры, виртуальная меблировка, AI мебель, виртуальная мебель для фото",
   alternates: { canonical: "https://fotoestate.ru/virtualnyj-stejdzhing" },
@@ -54,7 +55,7 @@ export default function VirtualnyjStejdzhing() {
   return (
     <>
       {/* ===== ГЕРОЙ ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -107,11 +108,11 @@ export default function VirtualnyjStejdzhing() {
       </section>
 
       {/* ===== 01 ПРОБЛЕМА ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Проблема
             </span>
           </div>
@@ -122,7 +123,7 @@ export default function VirtualnyjStejdzhing() {
             <span className="text-terra-500">Вы теряете их.</span>
           </h2>
 
-          <p className="mt-8 text-[#6B6560] leading-relaxed max-w-2xl text-lg">
+          <p className="mt-8 text-neutral-400 leading-relaxed max-w-2xl text-lg">
             Пустая комната на фото выглядит маленькой, холодной и безжизненной.
             Покупатель не понимает, куда поставить диван и поместится ли кровать.
             Он закрывает объявление и переходит к следующему — с обставленными фото.
@@ -131,11 +132,11 @@ export default function VirtualnyjStejdzhing() {
       </FadeInSection>
 
       {/* ===== 02 ROI СТАТИСТИКА ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">02</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">02</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Результат
             </span>
           </div>
@@ -165,15 +166,15 @@ export default function VirtualnyjStejdzhing() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="stagger-child rounded-xl border border-neutral-200 p-8 text-center"
+                className="stagger-child rounded-xl p-8 text-center" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
               >
                 <div className="heading-display text-[40px] sm:text-[56px] text-terra-500 mb-2">
                   {stat.value}
                 </div>
-                <div className="text-xs uppercase tracking-widest text-[#7D756E] mb-4">
+                <div className="text-xs uppercase tracking-widest text-neutral-500 mb-4">
                   {stat.label}
                 </div>
-                <p className="text-[#6B6560] leading-relaxed text-sm">{stat.desc}</p>
+                <p className="text-neutral-400 leading-relaxed text-sm">{stat.desc}</p>
               </div>
             ))}
           </div>
@@ -181,11 +182,11 @@ export default function VirtualnyjStejdzhing() {
       </FadeInSection>
 
       {/* ===== 03 РЕШЕНИЕ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.04) 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">03</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">03</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Решение
             </span>
           </div>
@@ -200,7 +201,7 @@ export default function VirtualnyjStejdzhing() {
             {STYLES.map((style) => (
               <span
                 key={style.id}
-                className="rounded-lg px-5 py-3 text-sm text-[#1E1B18] font-medium"
+                className="rounded-lg px-5 py-3 text-sm text-white font-medium"
                 style={{
                   background: "rgba(212,101,75,0.08)",
                   border: "1px solid rgba(212,101,75,0.15)",
@@ -230,12 +231,12 @@ export default function VirtualnyjStejdzhing() {
                 desc: "Фотореалистичная мебель с тенями и перспективой. За 30 секунд.",
               },
             ].map((item) => (
-              <div key={item.step} className="stagger-child text-center p-8 rounded-xl bg-white">
-                <div className="text-xs text-[#bfbfbf] uppercase tracking-widest mb-3">
+              <div key={item.step} className="stagger-child text-center p-8 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div className="text-xs text-neutral-600 uppercase tracking-widest mb-3">
                   {item.step}
                 </div>
                 <h3 className="text-[20px] font-normal mb-2">{item.title}</h3>
-                <p className="text-[#6B6560] leading-relaxed">{item.desc}</p>
+                <p className="text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -284,11 +285,11 @@ export default function VirtualnyjStejdzhing() {
       </FadeInSection>
 
       {/* ===== 05 СРАВНЕНИЕ СТОИМОСТИ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">05</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">05</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Экономия
             </span>
           </div>
@@ -300,8 +301,8 @@ export default function VirtualnyjStejdzhing() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Реальная мебель */}
-            <div className="rounded-xl bg-white border border-neutral-200 p-8 lg:p-10">
-              <div className="text-xs uppercase tracking-widest text-[#7D756E] mb-6">
+            <div className="rounded-xl p-8 lg:p-10" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-6">
                 Реальный стейджинг
               </div>
               <div className="space-y-5">
@@ -312,9 +313,9 @@ export default function VirtualnyjStejdzhing() {
                   { item: "Стили", cost: "1" },
                   { item: "Срок", cost: "3-7 дней" },
                 ].map((row) => (
-                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-neutral-100">
-                    <span className="text-[#6B6560]">{row.item}</span>
-                    <span className="text-[#1E1B18] font-medium">{row.cost}</span>
+                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-white/[0.06]">
+                    <span className="text-neutral-400">{row.item}</span>
+                    <span className="text-white font-medium">{row.cost}</span>
                   </div>
                 ))}
               </div>
@@ -340,7 +341,7 @@ export default function VirtualnyjStejdzhing() {
                   { item: "Срок", cost: "30 секунд" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">
-                    <span className="text-[#6B6560]">{row.item}</span>
+                    <span className="text-neutral-400">{row.item}</span>
                     <span className="text-terra-500 font-medium">{row.cost}</span>
                   </div>
                 ))}
@@ -360,13 +361,13 @@ export default function VirtualnyjStejdzhing() {
       </FadeInSection>
 
       {/* ===== 06 FAQ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
             <div>
               <div className="section-label mb-8">
-                <span className="section-number">06</span>
-                <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+                <span className="section-number-light">06</span>
+                <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
                   Вопросы
                 </span>
               </div>
@@ -377,14 +378,14 @@ export default function VirtualnyjStejdzhing() {
 
             <div>
               {FAQ_ITEMS.map((item) => (
-                <details key={item.q} className="faq-item group">
+                <details key={item.q} className="faq-item group" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                   <summary className="flex items-center justify-between gap-4">
                     <h3 className="text-base sm:text-lg">{item.q}</h3>
-                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-[#7D756E]">
+                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-neutral-500">
                       +
                     </span>
                   </summary>
-                  <p className="pb-6 text-[#6B6560] leading-relaxed">{item.a}</p>
+                  <p className="pb-6 text-neutral-400 leading-relaxed">{item.a}</p>
                 </details>
               ))}
             </div>
@@ -392,8 +393,20 @@ export default function VirtualnyjStejdzhing() {
         </div>
       </FadeInSection>
 
+      
+      {/* ===== ALL MODES ===== */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <AllModesGrid
+            title="Не только стейджинг — ещё"
+            subtitle="37 AI-сервисов"
+            exclude={["staging"]}
+          />
+        </div>
+      </FadeInSection>
+
       {/* ===== CTA ===== */}
-      <CTASplitBanner />
+      <CTASplitBanner fomo="38 AI-сервисов для недвижимости. Присоединяйтесь к 2 870 риелторам, которые уже экономят время и деньги" />
 
       {/* BreadcrumbList JSON-LD */}
       <script

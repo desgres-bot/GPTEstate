@@ -311,34 +311,112 @@
 /* ===== Scroll-triggered fade-in — spring easing ===== */
 .fade-in-section {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(32px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* --- Variant: slide from left --- */
+.fade-in-section.fade-left {
+  transform: translateX(-48px);
+}
+
+/* --- Variant: slide from right --- */
+.fade-in-section.fade-right {
+  transform: translateX(48px);
+}
+
+/* --- Variant: scale-in with blur (premium reveal) --- */
+.fade-in-section.scale-in {
+  transform: scale(0.94) translateY(24px);
+  filter: blur(6px);
+}
+
+/* --- Variant: blur-in (soft dreamy reveal) --- */
+.fade-in-section.blur-in {
+  transform: translateY(16px);
+  filter: blur(10px);
+}
+
+/* is-visible MUST come AFTER variants so it wins by source order */
 .fade-in-section.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) translateX(0) scale(1);
+  filter: blur(0);
 }
 
-.fade-in-section.is-visible .stagger-child {
+/* --- Stagger children --- */
+.fade-in-section.is-visible .stagger-child,
+.fade-in-section.is-visible .stagger-left,
+.fade-in-section.is-visible .stagger-scale {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) translateX(0) scale(1);
+  filter: blur(0);
 }
 
 .stagger-child {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.stagger-child:nth-child(1) { transition-delay: 0.05s; }
-.stagger-child:nth-child(2) { transition-delay: 0.12s; }
-.stagger-child:nth-child(3) { transition-delay: 0.19s; }
-.stagger-child:nth-child(4) { transition-delay: 0.26s; }
-.stagger-child:nth-child(5) { transition-delay: 0.33s; }
-.stagger-child:nth-child(6) { transition-delay: 0.40s; }
+/* Stagger slide from left variant */
+.stagger-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Stagger scale-in variant (cards popping) */
+.stagger-scale {
+  opacity: 0;
+  transform: scale(0.9);
+  filter: blur(4px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stagger-child:nth-child(1),
+.stagger-left:nth-child(1),
+.stagger-scale:nth-child(1) { transition-delay: 0.05s; }
+.stagger-child:nth-child(2),
+.stagger-left:nth-child(2),
+.stagger-scale:nth-child(2) { transition-delay: 0.1s; }
+.stagger-child:nth-child(3),
+.stagger-left:nth-child(3),
+.stagger-scale:nth-child(3) { transition-delay: 0.15s; }
+.stagger-child:nth-child(4),
+.stagger-left:nth-child(4),
+.stagger-scale:nth-child(4) { transition-delay: 0.2s; }
+.stagger-child:nth-child(5),
+.stagger-left:nth-child(5),
+.stagger-scale:nth-child(5) { transition-delay: 0.25s; }
+.stagger-child:nth-child(6),
+.stagger-left:nth-child(6),
+.stagger-scale:nth-child(6) { transition-delay: 0.3s; }
+.stagger-child:nth-child(7),
+.stagger-left:nth-child(7),
+.stagger-scale:nth-child(7) { transition-delay: 0.35s; }
+.stagger-child:nth-child(8),
+.stagger-left:nth-child(8),
+.stagger-scale:nth-child(8) { transition-delay: 0.4s; }
+.stagger-child:nth-child(9),
+.stagger-left:nth-child(9),
+.stagger-scale:nth-child(9) { transition-delay: 0.45s; }
+.stagger-child:nth-child(10),
+.stagger-left:nth-child(10),
+.stagger-scale:nth-child(10) { transition-delay: 0.5s; }
+.stagger-child:nth-child(11),
+.stagger-left:nth-child(11),
+.stagger-scale:nth-child(11) { transition-delay: 0.55s; }
+.stagger-child:nth-child(12),
+.stagger-left:nth-child(12),
+.stagger-scale:nth-child(12) { transition-delay: 0.6s; }
 
 /* ===== Horizontal scroll gallery ===== */
 .scroll-gallery {

@@ -2,11 +2,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import FadeInSection from "@/components/FadeInSection";
 import CTASplitBanner from "@/components/CTASplitBanner";
+import AllModesGrid from "@/components/AllModesGrid";
 
 export const metadata: Metadata = {
   title: "GPT Estate vs BoxBrownie — сравнение AI стейджинга 2025",
   description:
-    "Сравнение GPT Estate и BoxBrownie. AI за 30 секунд и 50₽ vs живые дизайнеры за 24 часа и $5. 10 режимов vs 4. Полный обзор.",
+    "Сравнение GPT Estate и BoxBrownie. AI за 30 секунд и 50₽ vs живые дизайнеры за 24 часа и $5. 10 режимов vs 4. Полный обзор. 38 AI-сервисов — фото, которые продают дома и квартиры",
   keywords:
     "BoxBrownie альтернатива, GPT Estate vs BoxBrownie, виртуальный стейджинг сравнение, BoxBrownie аналог",
   alternates: { canonical: "https://fotoestate.ru/gptestate-vs-boxbrownie" },
@@ -40,7 +41,7 @@ export default function VsBoxBrownie() {
   return (
     <>
       {/* ===== ГЕРОЙ ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -80,11 +81,11 @@ export default function VsBoxBrownie() {
       </section>
 
       {/* ===== 01 СРАВНИТЕЛЬНАЯ ТАБЛИЦА ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Сравнение
             </span>
           </div>
@@ -95,8 +96,8 @@ export default function VsBoxBrownie() {
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl bg-white border border-neutral-200 p-8 lg:p-10">
-              <div className="text-xs uppercase tracking-widest text-[#7D756E] mb-6">BoxBrownie</div>
+            <div className="rounded-xl p-8 lg:p-10" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-6">BoxBrownie</div>
               <div className="space-y-5">
                 {[
                   { item: "Технология", cost: "Живые дизайнеры" },
@@ -110,9 +111,9 @@ export default function VsBoxBrownie() {
                   { item: "Анализ комнаты", cost: "Нет" },
                   { item: "Русский рынок", cost: "Нет" },
                 ].map((row) => (
-                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-neutral-100">
-                    <span className="text-[#6B6560]">{row.item}</span>
-                    <span className="text-[#1E1B18] font-medium text-sm">{row.cost}</span>
+                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-white/[0.06]">
+                    <span className="text-neutral-400">{row.item}</span>
+                    <span className="text-white font-medium text-sm">{row.cost}</span>
                   </div>
                 ))}
               </div>
@@ -134,7 +135,7 @@ export default function VsBoxBrownie() {
                   { item: "Русский рынок", cost: "Авито, ЦИАН, ДомКлик" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">
-                    <span className="text-[#6B6560]">{row.item}</span>
+                    <span className="text-neutral-400">{row.item}</span>
                     <span className="text-terra-500 font-medium text-sm">{row.cost}</span>
                   </div>
                 ))}
@@ -145,11 +146,11 @@ export default function VsBoxBrownie() {
       </FadeInSection>
 
       {/* ===== 02 ПРЕИМУЩЕСТВА ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">02</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">Преимущества</span>
+            <span className="section-number-light">02</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">Преимущества</span>
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-2xl mb-16">
@@ -166,9 +167,9 @@ export default function VsBoxBrownie() {
               { title: "Русский рынок", desc: "Описания для Авито, ЦИАН, ДомКлик. BoxBrownie не работает с русским рынком." },
               { title: "Пакетная обработка", desc: "До 20 фото за раз с ZIP-скачиванием. Весь объект за 5 минут." },
             ].map((item) => (
-              <div key={item.title} className="stagger-child rounded-xl border border-neutral-200 p-8">
+              <div key={item.title} className="stagger-child rounded-xl p-8" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <h3 className="text-[20px] font-normal mb-3">{item.title}</h3>
-                <p className="text-[#6B6560] leading-relaxed">{item.desc}</p>
+                <p className="text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -176,24 +177,24 @@ export default function VsBoxBrownie() {
       </FadeInSection>
 
       {/* ===== 03 FAQ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.04) 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
             <div>
               <div className="section-label mb-8">
-                <span className="section-number">03</span>
-                <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">Вопросы</span>
+                <span className="section-number-light">03</span>
+                <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">Вопросы</span>
               </div>
               <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px]">Частые вопросы</h2>
             </div>
             <div>
               {FAQ_ITEMS.map((item) => (
-                <details key={item.q} className="faq-item group">
+                <details key={item.q} className="faq-item group" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                   <summary className="flex items-center justify-between gap-4">
                     <h3 className="text-base sm:text-lg">{item.q}</h3>
-                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-[#7D756E]">+</span>
+                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-neutral-500">+</span>
                   </summary>
-                  <p className="pb-6 text-[#6B6560] leading-relaxed">{item.a}</p>
+                  <p className="pb-6 text-neutral-400 leading-relaxed">{item.a}</p>
                 </details>
               ))}
             </div>
@@ -201,7 +202,19 @@ export default function VsBoxBrownie() {
         </div>
       </FadeInSection>
 
-      <CTASplitBanner />
+      
+      {/* ===== ALL MODES ===== */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <AllModesGrid
+            title="У нас ещё"
+            subtitle="37 AI-сервисов"
+            
+          />
+        </div>
+      </FadeInSection>
+
+      <CTASplitBanner fomo="38 AI-сервисов для недвижимости. Присоединяйтесь к 2 870 риелторам, которые уже экономят время и деньги" />
     </>
   );
 }

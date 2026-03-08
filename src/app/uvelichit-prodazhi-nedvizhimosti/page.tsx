@@ -4,6 +4,7 @@ import BeforeAfterToggle from "@/components/BeforeAfterToggle";
 import CTASplitBanner from "@/components/CTASplitBanner";
 import FadeInSection from "@/components/FadeInSection";
 import { getFAQSchema, getBreadcrumbSchema } from "@/lib/jsonld";
+import AllModesGrid from "@/components/AllModesGrid";
 
 export const metadata: Metadata = {
   title: "Увеличить продажи недвижимости — AI для агентств",
@@ -53,7 +54,7 @@ export default function UvelichitProdazhiNedvizhimosti() {
   return (
     <>
       {/* ===== ГЕРОЙ ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -109,11 +110,11 @@ export default function UvelichitProdazhiNedvizhimosti() {
       </section>
 
       {/* ===== 01 ПРОБЛЕМА ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Проблема
             </span>
           </div>
@@ -145,15 +146,15 @@ export default function UvelichitProdazhiNedvizhimosti() {
             ].map((item) => (
               <div
                 key={item.num}
-                className="stagger-child rounded-xl border border-neutral-200 p-8"
+                className="stagger-child rounded-xl p-8" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <div className="text-xs text-[#bfbfbf] uppercase tracking-widest mb-3">
+                <div className="text-xs text-neutral-600 uppercase tracking-widest mb-3">
                   {item.num}
                 </div>
-                <h3 className="text-[20px] font-normal text-[#1E1B18] mb-3">
+                <h3 className="text-[20px] font-normal text-white mb-3">
                   {item.title}
                 </h3>
-                <p className="text-[#6B6560] leading-relaxed">{item.desc}</p>
+                <p className="text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -161,11 +162,11 @@ export default function UvelichitProdazhiNedvizhimosti() {
       </FadeInSection>
 
       {/* ===== 02 РЕШЕНИЕ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">02</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">02</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Решение
             </span>
           </div>
@@ -210,12 +211,12 @@ export default function UvelichitProdazhiNedvizhimosti() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="stagger-child rounded-xl border border-neutral-200 p-8"
+                className="stagger-child rounded-xl p-8" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <h3 className="text-[20px] font-normal text-[#1E1B18] mb-3">
+                <h3 className="text-[20px] font-normal text-white mb-3">
                   {item.title}
                 </h3>
-                <p className="text-[#6B6560] leading-relaxed mb-4">
+                <p className="text-neutral-400 leading-relaxed mb-4">
                   {item.desc}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -281,11 +282,11 @@ export default function UvelichitProdazhiNedvizhimosti() {
       </FadeInSection>
 
       {/* ===== 04 ЭКОНОМИЯ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.04) 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">04</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">04</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Экономия
             </span>
           </div>
@@ -297,8 +298,8 @@ export default function UvelichitProdazhiNedvizhimosti() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Традиционный подход */}
-            <div className="rounded-xl bg-white border border-neutral-200 p-8 lg:p-10">
-              <div className="text-xs uppercase tracking-widest text-[#7D756E] mb-6">
+            <div className="rounded-xl p-8 lg:p-10" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-6">
                 Традиционный подход
               </div>
               <div className="space-y-5">
@@ -310,9 +311,9 @@ export default function UvelichitProdazhiNedvizhimosti() {
                   { item: "ИТОГО за объект", cost: "от 58 000\u20BD" },
                   { item: "20 объектов/мес", cost: "1 160 000\u20BD/год" },
                 ].map((row) => (
-                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-neutral-100">
-                    <span className="text-[#6B6560]">{row.item}</span>
-                    <span className="text-[#1E1B18] font-medium">{row.cost}</span>
+                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-white/[0.06]">
+                    <span className="text-neutral-400">{row.item}</span>
+                    <span className="text-white font-medium">{row.cost}</span>
                   </div>
                 ))}
               </div>
@@ -339,7 +340,7 @@ export default function UvelichitProdazhiNedvizhimosti() {
                   { item: "20 объектов/мес", cost: "60 000\u20BD/год" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">
-                    <span className="text-[#6B6560]">{row.item}</span>
+                    <span className="text-neutral-400">{row.item}</span>
                     <span className="text-terra-500 font-medium">{row.cost}</span>
                   </div>
                 ))}
@@ -359,13 +360,13 @@ export default function UvelichitProdazhiNedvizhimosti() {
       </FadeInSection>
 
       {/* ===== 05 FAQ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
             <div>
               <div className="section-label mb-8">
-                <span className="section-number">05</span>
-                <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+                <span className="section-number-light">05</span>
+                <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
                   Вопросы
                 </span>
               </div>
@@ -376,14 +377,14 @@ export default function UvelichitProdazhiNedvizhimosti() {
 
             <div>
               {FAQ_ITEMS.map((item) => (
-                <details key={item.q} className="faq-item group">
+                <details key={item.q} className="faq-item group" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                   <summary className="flex items-center justify-between gap-4">
                     <h3 className="text-base sm:text-lg">{item.q}</h3>
-                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-[#7D756E]">
+                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-neutral-500">
                       +
                     </span>
                   </summary>
-                  <p className="pb-6 text-[#6B6560] leading-relaxed">{item.a}</p>
+                  <p className="pb-6 text-neutral-400 leading-relaxed">{item.a}</p>
                 </details>
               ))}
             </div>
@@ -391,8 +392,20 @@ export default function UvelichitProdazhiNedvizhimosti() {
         </div>
       </FadeInSection>
 
+      
+      {/* ===== ALL MODES ===== */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <AllModesGrid
+            title="Все наши"
+            subtitle="37 AI-сервисов"
+            
+          />
+        </div>
+      </FadeInSection>
+
       {/* ===== CTA ===== */}
-      <CTASplitBanner />
+      <CTASplitBanner fomo="38 AI-сервисов для недвижимости. Присоединяйтесь к 2 870 риелторам, которые уже экономят время и деньги" />
 
       {/* JSON-LD structured data */}
       <script

@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import BeforeAfterToggle from "@/components/BeforeAfterToggle";
 import CTASplitBanner from "@/components/CTASplitBanner";
-import { STYLES } from "@/lib/constants";
 import FadeInSection from "@/components/FadeInSection";
+import LiveCounter from "@/components/LiveCounter";
+import LossCalculator from "@/components/LossCalculator";
+import AllModesGrid from "@/components/AllModesGrid";
 import { getFAQSchema } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
-  title: "GPT Estate — AI-улучшение фото квартир для Авито и ЦИАН",
+  title: "GPT Estate — Фото, которые продают дома и квартиры. 38 AI-сервисов",
   description:
-    "Профессиональные фото для объявлений недвижимости за 30 секунд. AI-улучшение, виртуальный стейджинг и редизайн интерьера. От 15 рублей за фото. 2 фото бесплатно.",
+    "Фото, которые продают дома и квартиры. 38 AI-инструментов: улучшение фото, виртуальный стейджинг, ремонт, описания, аналитика. Результат за 30 секунд. 2 фото бесплатно.",
   alternates: { canonical: "https://fotoestate.ru" },
 };
 
@@ -23,6 +25,10 @@ const FAQ_ITEMS = [
     a: "От 15 рублей за фото. Первые 2 — бесплатно, без регистрации. Дешевле чашки кофе, а объявление работает на порядок лучше.",
   },
   {
+    q: "Что входит в 38 AI-сервисов?",
+    a: "Уборка, виртуальная мебель, новый стиль интерьера, удаление объектов, ремонт стен и полов, кухня, ванная, экстерьер, ландшафт, закат, небо, освещение, HD-качество, AI-описания для Авито, оценка фото, планировка и многое другое.",
+  },
+  {
     q: "Какие фото подходят?",
     a: "Любые фото с телефона. Наш сервис справляется даже с тёмными и кривыми снимками. Но чем лучше ракурс — тем эффектнее результат.",
   },
@@ -31,16 +37,20 @@ const FAQ_ITEMS = [
     a: "30 секунд. Загрузили фото — получили результат. Быстрее, чем написать сообщение хозяину с просьбой убраться.",
   },
   {
+    q: "Можно обработать много фото сразу?",
+    a: "Да, режим «Batch» позволяет загрузить до 20 фото одновременно. Все обработаются в одном стиле за минуту.",
+  },
+  {
     q: "Можно выкладывать на Авито и ЦИАН?",
     a: "Да. Никаких ограничений — публикуйте на любых площадках. Фото полностью ваше.",
   },
   {
-    q: "А если фото плохого качества?",
-    a: "Подойдут любые фото с телефона. Наш сервис справляется даже с тёмными снимками, сделанными на бегу между показами. Чем лучше ракурс — тем лучше результат, но даже из плохого фото получится хорошее.",
-  },
-  {
     q: "Это законно? Не введёт ли покупателя в заблуждение?",
     a: "Мы улучшаем фото, а не меняем квартиру. Планировка, окна, размер комнат — всё остаётся реальным. Это как сделать уборку перед показом, только быстрее.",
+  },
+  {
+    q: "Что такое AI Chat Editor?",
+    a: "Это режим диалога с AI: вы загружаете результат и просите «убери вазу слева», «добавь ковёр», «сделай стены светлее». Сервис вносит точечные правки без повторной генерации.",
   },
   {
     q: "Почему это дешевле фотографа?",
@@ -51,20 +61,24 @@ const FAQ_ITEMS = [
 export default function HomePage() {
   return (
     <>
-      {/* ===== ГЕРОЙ ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      {/* ═════════════════════════════════════════════════════════
+          ГЕРОЙ — тёмная секция с H1, BeforeAfter, LiveCounter
+          ═════════════════════════════════════════════════════════ */}
+      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
-            <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">Для риелторов, агентств и собственников недвижимости</p>
+            <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
+              Для риелторов, агентств и собственников недвижимости
+            </p>
             <h1 className="heading-display text-[40px] leading-[1.08] sm:text-[64px] lg:text-[88px]">
-              Фото, которые
+              Фото, которые продают
               <br />
-              <span className="text-terra-400">продают дома и квартиры</span>
+              <span className="text-terra-400">дома и квартиры</span>
             </h1>
             <p className="mt-6 text-base leading-relaxed text-neutral-300 sm:text-lg max-w-xl mx-auto">
-              Сервис на базе искусственного интеллекта делает продающие фото за 30 секунд.
+              38 AI-сервисов: уборка, мебель, стиль, тексты, аналитика — всё для продающего объявления.
               <br className="hidden sm:block" />
-              Без фотографа, без уборки, без ожидания.
+              Результат за 30 секунд. Первые 2 фото бесплатно.
             </p>
             <Link href="/generate" className="btn-terra-glow mt-8 inline-flex">
               Попробовать бесплатно — 2 фото без регистрации
@@ -81,42 +95,48 @@ export default function HomePage() {
             />
           </div>
 
-          {/* 4 карточки сервисов */}
-          <div className="mt-12 lg:mt-16 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          {/* LiveCounter stats */}
+          <div className="mt-12 lg:mt-16 grid grid-cols-3 gap-4 text-center">
             {[
-              { problem: "Бардак в квартире?", solution: "Уберём беспорядок с фото", href: "/generate?mode=enhance" },
-              { problem: "Пустые комнаты?", solution: "Расставим мебель виртуально", href: "/generate?mode=staging" },
-              { problem: "Старый ремонт?", solution: "Покажем современный интерьер", href: "/generate?mode=redesign" },
-              { problem: "Лишние вещи?", solution: "Удалим всё ненужное", href: "/generate?mode=remove" },
+              { end: 47832, suffix: "", label: "фото за месяц" },
+              { end: 38, suffix: "", label: "AI-сервисов" },
+              { end: 30, suffix: " сек", label: "до результата" },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <div className="heading-display text-[36px] sm:text-[48px] lg:text-[64px] text-terra-400">
+                  <LiveCounter end={stat.end} suffix={stat.suffix} />
+                </div>
+                <div className="mt-2 text-xs uppercase tracking-widest text-neutral-400">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 6 быстрых карточек популярных сервисов */}
+          <div className="mt-12 lg:mt-16 grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4 pb-8">
+            {[
+              { icon: "✨", problem: "Бардак в квартире?", solution: "Уберём за 30 секунд", href: "/generate?mode=enhance" },
+              { icon: "🛋️", problem: "Пустые комнаты?", solution: "Расставим мебель виртуально", href: "/generate?mode=staging" },
+              { icon: "🎨", problem: "Старый ремонт?", solution: "Покажем новый стиль", href: "/generate?mode=redesign" },
+              { icon: "🧹", problem: "Лишние вещи?", solution: "Удалим без следа", href: "/generate?mode=remove" },
+              { icon: "📝", problem: "Нет описания?", solution: "AI напишет текст для Авито", href: "/generate?mode=describe" },
+              { icon: "🔨", problem: "Нужен ремонт?", solution: "Покажем стены и полы", href: "/generate?mode=renovation" },
             ].map((item) => (
               <Link
                 key={item.problem}
                 href={item.href}
-                className="group rounded-2xl p-5 lg:p-6 transition-all duration-300 ease-spring hover:-translate-y-1 active:scale-[0.98]"
+                className="group rounded-2xl p-5 lg:p-6 transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(212,101,75,0.06) 50%, rgba(255,255,255,0.03) 100%)",
                   border: "1px solid rgba(255,255,255,0.08)",
+                  transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
               >
-                <h3 className="text-sm font-medium text-terra-400">{item.problem}</h3>
+                <span className="text-2xl">{item.icon}</span>
+                <h3 className="mt-2 text-sm font-medium text-terra-400">{item.problem}</h3>
                 <p className="mt-1 text-base text-white">{item.solution}</p>
               </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Статистика */}
-        <div className="mx-auto max-w-7xl px-6 py-16 lg:py-20">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            {[
-              { value: "12 847", label: "фото за месяц" },
-              { value: "30 сек", label: "до результата" },
-              { value: "50₽", label: "вместо 5 000₽ за фотографа" },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <div className="heading-display text-[36px] sm:text-[48px] lg:text-[64px] text-terra-400">{stat.value}</div>
-                <div className="mt-2 text-xs uppercase tracking-widest text-neutral-400">{stat.label}</div>
-              </div>
             ))}
           </div>
         </div>
@@ -129,7 +149,9 @@ export default function HomePage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terra-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-terra-400"></span>
               </span>
-              <span className="text-sm text-neutral-400">1 247 риелторов — <span className="text-terra-400">83 подключились на этой неделе</span></span>
+              <span className="text-sm text-neutral-400">
+                2 480 риелторов — <span className="text-terra-400">127 подключились на этой неделе</span>
+              </span>
             </div>
             <div className="flex items-center gap-3 flex-wrap justify-center">
               <span className="text-xs uppercase tracking-widest text-neutral-500">Публикуйте на</span>
@@ -143,130 +165,122 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== 01 БОЛЬ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      {/* ═════════════════════════════════════════════════════════
+          01 КАТАЛОГ — Все 38 AI-сервисов
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">Проблема</span>
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">Каталог</span>
+          </div>
+
+          <AllModesGrid
+            title="Все 38 AI-сервисов"
+            subtitle="для недвижимости"
+          />
+
+          <div className="mt-12 text-center">
+            <Link href="/generate" className="btn-terra">
+              Попробовать бесплатно
+            </Link>
+          </div>
+        </div>
+      </FadeInSection>
+
+      {/* ═════════════════════════════════════════════════════════
+          02 БОЛЬ — Проблемы + LossCalculator
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #1a1714 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="section-label mb-8">
+            <span className="section-number-light">02</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">Проблема</span>
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-2xl">
             Вы теряете деньги. Каждый день.
           </h2>
 
-          <div className="mt-16 lg:mt-20 space-y-0">
-            {/* Боль 1 — с мини before/after */}
-            <div className="stagger-child border-b border-neutral-200 py-10 lg:py-12">
-              <div className="grid gap-6 lg:grid-cols-[1fr_1fr] items-start">
-                <div className="flex items-start gap-6">
-                  <span className="heading-display text-[24px] text-[#bfbfbf] hidden sm:block">01</span>
-                  <div>
-                    <h3 className="text-[20px] sm:text-[24px] font-normal">Хозяин не убрался. Опять.</h3>
-                    <p className="mt-3 text-[#6B6560] leading-relaxed max-w-lg">Вы приехали через весь город, а в квартире гора посуды и разбросанные вещи. Снимать стыдно. Не снимать — потерять время.</p>
+          <div className="mt-16 lg:mt-20 grid gap-12 lg:grid-cols-[1fr_1fr]">
+            {/* Левая колонка — 3 боли */}
+            <div className="space-y-0">
+              {[
+                {
+                  num: "01",
+                  title: "Хозяин не убрался. Опять.",
+                  desc: "Вы приехали через весь город, а в квартире гора посуды. Снимать стыдно. Не снимать — потерять время.",
+                },
+                {
+                  num: "02",
+                  title: "Покупатель ушёл к конкуренту",
+                  desc: "На Авито у объявления 3 секунды. Покупатель видит бардак — листает дальше. А у конкурента — продающее фото.",
+                },
+                {
+                  num: "03",
+                  title: "Каждый день простоя = потерянная комиссия",
+                  desc: "Объект висит неделями. Хозяин нервничает, вы теряете деньги. А всё потому, что первое впечатление — это фото.",
+                },
+              ].map((pain) => (
+                <div key={pain.num} className="stagger-child border-b border-white/10 py-8 lg:py-10">
+                  <div className="flex items-start gap-5">
+                    <span className="heading-display text-[20px] text-neutral-600 hidden sm:block">{pain.num}</span>
+                    <div>
+                      <h3 className="text-[20px] sm:text-[24px] font-normal text-white">{pain.title}</h3>
+                      <p className="mt-3 text-neutral-400 leading-relaxed max-w-md">{pain.desc}</p>
+                    </div>
                   </div>
                 </div>
-                <div className="rounded-lg overflow-hidden">
-                  <BeforeAfterToggle
-                    beforeSrc="/demo/before-1.jpg"
-                    afterSrc="/demo/after-1.jpg"
-                    label="Решение"
-                    subtitle="30 секунд — и чисто"
-                  />
+              ))}
+
+              {/* FOMO */}
+              <div className="pt-8">
+                <div className="rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: "rgba(212,101,75,0.1)", border: "1px solid rgba(212,101,75,0.25)" }}>
+                  <p className="text-white text-base font-medium">
+                    Пока вы читаете это — ваши конкуренты уже загрузили 3 фото
+                  </p>
+                  <Link href="/generate" className="btn-terra whitespace-nowrap">
+                    Не отставать
+                  </Link>
                 </div>
               </div>
             </div>
 
-            {/* Боль 2 — сравнение объявлений */}
-            <div className="stagger-child border-b border-neutral-200 py-10 lg:py-12">
-              <div className="grid gap-6 lg:grid-cols-[1fr_1fr] items-start">
-                <div className="flex items-start gap-6">
-                  <span className="heading-display text-[24px] text-[#bfbfbf] hidden sm:block">02</span>
-                  <div>
-                    <h3 className="text-[20px] sm:text-[24px] font-normal">Покупатель ушёл к конкуренту</h3>
-                    <p className="mt-3 text-[#6B6560] leading-relaxed max-w-lg">На Авито у объявления 3 секунды. Покупатель видит бардак — листает дальше. А у конкурента — чистое фото, сделанное за 30 секунд через наш сервис.</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
-                    <div className="text-xs text-red-400 uppercase tracking-wider mb-2">Ваше объявление</div>
-                    <div className="text-[32px] leading-none mb-1">0</div>
-                    <div className="text-xs text-red-400">звонков</div>
-                  </div>
-                  <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-center">
-                    <div className="text-xs text-green-600 uppercase tracking-wider mb-2">С нашим сервисом</div>
-                    <div className="text-[32px] leading-none mb-1">x3</div>
-                    <div className="text-xs text-green-600">больше звонков</div>
-                  </div>
-                </div>
-              </div>
+            {/* Правая колонка — LossCalculator */}
+            <div className="self-start lg:sticky lg:top-28">
+              <LossCalculator />
             </div>
-
-            {/* Боль 3 — калькулятор потерь */}
-            <div className="stagger-child border-b border-neutral-200 py-10 lg:py-12">
-              <div className="grid gap-6 lg:grid-cols-[1fr_1fr] items-start">
-                <div className="flex items-start gap-6">
-                  <span className="heading-display text-[24px] text-[#bfbfbf] hidden sm:block">03</span>
-                  <div>
-                    <h3 className="text-[20px] sm:text-[24px] font-normal">Каждый день простоя = потерянная комиссия</h3>
-                    <p className="mt-3 text-[#6B6560] leading-relaxed max-w-lg">Объект висит неделями. Хозяин нервничает, вы теряете деньги. А всё потому, что первое впечатление — это фото.</p>
-                  </div>
-                </div>
-                <div className="rounded-lg bg-white border border-neutral-200 p-6">
-                  <div className="space-y-3 text-center">
-                    <div className="flex justify-between items-center py-2 border-b border-neutral-100">
-                      <span className="text-[#6B6560]">1 день простоя</span>
-                      <span className="font-medium text-[#1E1B18]">−500₽</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-neutral-100">
-                      <span className="text-[#6B6560]">30 дней</span>
-                      <span className="font-medium text-red-500">−15 000₽</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-[#6B6560]">Одно фото с нами</span>
-                      <span className="font-medium text-terra-500">50₽</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* FOMO блок */}
-          <div className="mt-12 rounded-xl bg-terra-50 border border-terra-200 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-[#1E1B18] text-base sm:text-lg font-medium">
-              Пока вы читаете это — ваши конкуренты уже загрузили 3 фото
-            </p>
-            <Link href="/generate" className="btn-terra whitespace-nowrap">
-              Не отставать
-            </Link>
           </div>
         </div>
       </FadeInSection>
 
-      {/* ===== 02 ВСЕ 4 СЕРВИСА ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      {/* ═════════════════════════════════════════════════════════
+          03 РЕЗУЛЬТАТ — 6 BeforeAfterToggle
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1E1B18 50%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">02</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">Результат</span>
+            <span className="section-number-light">03</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">Результат</span>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
             <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-lg">
               Та же квартира. Другие деньги.
             </h2>
-            <p className="text-[#6B6560] max-w-sm text-base">
+            <p className="text-neutral-400 max-w-sm text-base">
               Нажмите на фото — увидите, как было. И представьте это в вашем объявлении.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { before: "/demo/before-1.jpg", after: "/demo/after-1.jpg", label: "Уборка", subtitle: "Бардак исчезает за 30 секунд", mode: "enhance" },
               { before: "/demo/before-2.jpg", after: "/demo/after-2.jpg", label: "Мебель", subtitle: "Пустая комната стала жилой", mode: "staging" },
-              { before: "/demo/before-3.jpg", after: "/demo/after-3.jpg", label: "Новый стиль", subtitle: "Из советского ремонта — в современный", mode: "redesign" },
+              { before: "/demo/before-3.jpg", after: "/demo/after-3.jpg", label: "Новый стиль", subtitle: "Из советского — в современный", mode: "redesign" },
               { before: "/demo/before-4.jpg", after: "/demo/after-4.jpg", label: "Удаление", subtitle: "Лишнее исчезло без следа", mode: "remove" },
+              { before: "/demo/before-1.jpg", after: "/demo/after-1.jpg", label: "Ремонт", subtitle: "Новые стены и полы", mode: "renovation" },
+              { before: "/demo/before-3.jpg", after: "/demo/after-3.jpg", label: "Закат", subtitle: "День превращается в вечер", mode: "dusk" },
             ].map((item) => (
               <div key={item.label} className="stagger-child">
                 <BeforeAfterToggle
@@ -277,7 +291,7 @@ export default function HomePage() {
                 />
                 <Link
                   href={`/generate?mode=${item.mode}`}
-                  className="mt-2 inline-flex items-center gap-1 text-sm text-terra-500 hover:text-terra-600 transition-colors"
+                  className="mt-2 inline-flex items-center gap-1 text-sm text-terra-400 hover:text-terra-300 transition-colors"
                 >
                   Попробовать <span aria-hidden="true">&rarr;</span>
                 </Link>
@@ -295,16 +309,18 @@ export default function HomePage() {
         </div>
       </FadeInSection>
 
-      {/* ===== 03 КАК ЭТО РАБОТАЕТ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      {/* ═════════════════════════════════════════════════════════
+          04 ПРОЦЕСС — 3 шага + дополнительные возможности
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom right, rgba(212,101,75,0.04) 0%, #1E1B18 40%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">03</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">Процесс</span>
+            <span className="section-number-light">04</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">Процесс</span>
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
-            Быстрее, чем <span className="text-terra-500">написать хозяину</span>
+            Быстрее, чем <span className="text-terra-400">написать хозяину</span>
           </h2>
 
           <div className="grid gap-8 sm:grid-cols-3">
@@ -322,8 +338,8 @@ export default function HomePage() {
               },
               {
                 step: "02",
-                title: "Выберите режим",
-                desc: "Уборка, мебель, стиль или удаление.",
+                title: "Выберите из 38 сервисов",
+                desc: "Уборка, мебель, ремонт, текст, аналитика — всё в одном месте.",
                 icon: (
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
@@ -333,7 +349,7 @@ export default function HomePage() {
               {
                 step: "03",
                 title: "Скачайте за 30 секунд",
-                desc: "Публикуйте на Авито и ЦИАН.",
+                desc: "Публикуйте на Авито, ЦИАН, Домклик.",
                 icon: (
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -341,14 +357,64 @@ export default function HomePage() {
                 ),
               },
             ].map((item) => (
-              <div key={item.step} className="stagger-child text-center p-8 rounded-xl bg-white">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-terra-50 text-terra-500 mb-6">
+              <div key={item.step} className="stagger-child text-center p-8 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full text-terra-400 mb-6" style={{ background: "rgba(212,101,75,0.12)" }}>
                   {item.icon}
                 </div>
-                <div className="text-xs text-[#bfbfbf] uppercase tracking-widest mb-3">{item.step}</div>
-                <h3 className="text-[20px] font-normal mb-2">{item.title}</h3>
-                <p className="text-[#6B6560] leading-relaxed">{item.desc}</p>
+                <div className="text-xs text-neutral-600 uppercase tracking-widest mb-3">{item.step}</div>
+                <h3 className="text-[20px] font-normal text-white mb-2">{item.title}</h3>
+                <p className="text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
+            ))}
+          </div>
+
+          {/* Дополнительные возможности: Batch, Tour, AI Chat */}
+          <div className="mt-16 grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                icon: "📦",
+                title: "Batch-обработка",
+                desc: "До 20 фото за раз. Один стиль, одна минута.",
+                href: "/batch",
+                tag: "NEW",
+              },
+              {
+                icon: "🏠",
+                title: "Тур 360°",
+                desc: "Виртуальный обход из панорамных фото.",
+                href: "/tour",
+                tag: "NEW",
+              },
+              {
+                icon: "💬",
+                title: "AI Chat Editor",
+                desc: "Диалог с AI: «убери вазу», «добавь ковёр».",
+                href: "/generate",
+                tag: "NEW",
+              },
+            ].map((item) => (
+              <Link
+                key={item.title}
+                href={item.href}
+                className="group rounded-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-terra-400/30"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">{item.icon}</span>
+                  <span
+                    className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider"
+                    style={{ backgroundColor: "rgba(212,101,75,0.15)", color: "#e07460" }}
+                  >
+                    {item.tag}
+                  </span>
+                </div>
+                <h3 className="text-lg font-medium text-white mb-1">{item.title}</h3>
+                <p className="text-sm text-neutral-400">{item.desc}</p>
+              </Link>
             ))}
           </div>
 
@@ -360,12 +426,14 @@ export default function HomePage() {
         </div>
       </FadeInSection>
 
-      {/* ===== 04 СРАВНЕНИЕ СТОИМОСТИ ===== */}
-      <FadeInSection className="bg-[#1E1B18] py-24 lg:py-40 text-white">
+      {/* ═════════════════════════════════════════════════════════
+          05 ЭКОНОМИЯ — Таблица сравнения
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 50%, #1E1B18 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number-light">04</span>
-            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">Экономия</span>
+            <span className="section-number-light">05</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">Экономия</span>
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
@@ -382,6 +450,8 @@ export default function HomePage() {
                   { item: "Ожидание", cost: "2-3 дня" },
                   { item: "Уборка квартиры", cost: "ваше время" },
                   { item: "Мебель для стейджинга", cost: "50 000₽" },
+                  { item: "Текст для Авито", cost: "ещё 1 000₽" },
+                  { item: "38 сервисов", cost: "не существует" },
                   { item: "Результат", cost: "1 комплект фото" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-white/10">
@@ -397,10 +467,12 @@ export default function HomePage() {
               <div className="text-xs uppercase tracking-widest text-terra-400 mb-6">С нами</div>
               <div className="space-y-5">
                 {[
-                  { item: "Стоимость", cost: "50₽ за фото" },
+                  { item: "Стоимость", cost: "от 15₽ за фото" },
                   { item: "Ожидание", cost: "30 секунд" },
                   { item: "Уборка", cost: "не нужна" },
                   { item: "Мебель", cost: "виртуальная, бесплатно" },
+                  { item: "Текст для Авито", cost: "AI напишет за вас" },
+                  { item: "38 сервисов", cost: "всё включено" },
                   { item: "Результат", cost: "неограниченно" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-400/20">
@@ -423,32 +495,21 @@ export default function HomePage() {
         </div>
       </FadeInSection>
 
-      {/* ===== 05 СТЕЙДЖИНГ ===== */}
-      <FadeInSection className="bg-[#1E1B18] py-24 lg:py-32 text-white border-t border-white/[0.06]">
-        <div className="mx-auto max-w-7xl px-6">
+      {/* ═════════════════════════════════════════════════════════
+          06 СТЕЙДЖИНГ + Доп.режимы
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="fade-left" className="py-24 lg:py-32 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top left, rgba(212,101,75,0.05) 0%, #1E1B18 40%, #161311 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6 space-y-24 lg:space-y-32">
+          {/* Блок 1: Мебель */}
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
             <div>
-              <div className="section-label mb-8">
-                <span className="section-number-light">05</span>
-                <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">Мебель</span>
-              </div>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-4">Виртуальный стейджинг</div>
               <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[40px] lg:text-[56px]">
                 Пустая квартира <span className="text-terra-400">не продаётся</span>
               </h2>
               <p className="mt-6 text-neutral-300 leading-relaxed max-w-md">
-                Покупатель не может представить себя в пустых стенах. Добавьте мебель за 15 рублей вместо 50 000 за реальную обстановку.
+                Покупатель не может представить себя в пустых стенах. Добавьте мебель за 15 рублей вместо 50 000 за реальную обстановку. 26 стилей на выбор.
               </p>
-              <div className="mt-8 flex flex-wrap gap-2">
-                {STYLES.map((style) => (
-                  <span
-                    key={style.id}
-                    className="rounded-lg px-4 py-2 text-sm text-neutral-200"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.08)" }}
-                  >
-                    {style.emoji} {style.name}
-                  </span>
-                ))}
-              </div>
               <Link href="/generate?mode=staging" className="btn-terra mt-8">
                 Добавить мебель
               </Link>
@@ -462,22 +523,107 @@ export default function HomePage() {
               />
             </div>
           </div>
+
+          {/* Блок 2: Закат */}
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+            <div className="lg:order-2">
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-4">Экстерьер</div>
+              <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[40px] lg:text-[48px]">
+                Закат, небо и <span className="text-terra-400">зелёный газон</span>
+              </h2>
+              <p className="mt-6 text-neutral-300 leading-relaxed max-w-md">
+                Преобразите экстерьер: золотой закат, чистое небо, зелёный газон — даже зимой. Покупатели влюбятся с первого взгляда.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {[
+                  { icon: "🌅", label: "Закат" },
+                  { icon: "☁️", label: "Небо" },
+                  { icon: "🌿", label: "Озеленение" },
+                  { icon: "🏠", label: "Фасад" },
+                  { icon: "🌳", label: "Ландшафт" },
+                  { icon: "🍂", label: "Сезон" },
+                ].map((t) => (
+                  <span
+                    key={t.label}
+                    className="rounded-lg px-3 py-1.5 text-sm text-neutral-200"
+                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    {t.icon} {t.label}
+                  </span>
+                ))}
+              </div>
+              <Link href="/generate?mode=dusk" className="btn-terra mt-8">
+                Попробовать
+              </Link>
+            </div>
+            <div className="rounded-xl overflow-hidden lg:order-1">
+              <BeforeAfterToggle
+                beforeSrc="/demo/before-3.jpg"
+                afterSrc="/demo/after-3.jpg"
+                label="Закат"
+                subtitle="День → золотой час"
+              />
+            </div>
+          </div>
+
+          {/* Блок 3: AI-описание */}
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+            <div>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-4">Тексты</div>
+              <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[40px] lg:text-[48px]">
+                AI напишет <span className="text-terra-400">продающий текст</span>
+              </h2>
+              <p className="mt-6 text-neutral-300 leading-relaxed max-w-md">
+                Загрузите фото — AI создаст описание для Авито, ЦИАН или соцсетей. Деловой, тёплый или продающий тон. Готово за 10 секунд.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {[
+                  { icon: "📝", label: "Описание" },
+                  { icon: "📋", label: "Объявление" },
+                  { icon: "📱", label: "Соцсети" },
+                ].map((t) => (
+                  <span
+                    key={t.label}
+                    className="rounded-lg px-3 py-1.5 text-sm text-neutral-200"
+                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    {t.icon} {t.label}
+                  </span>
+                ))}
+              </div>
+              <Link href="/generate?mode=describe" className="btn-terra mt-8">
+                Создать описание
+              </Link>
+            </div>
+            <div className="rounded-xl bg-white/[0.05] border border-white/10 p-6 lg:p-8">
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-4">Пример описания</div>
+              <p className="text-neutral-200 leading-relaxed text-[15px]">
+                Уютная двушка 54 м² в тихом центре, 5 мин от метро. Свежий ремонт: светлая кухня с встроенной техникой, просторная гостиная с панорамным остеклением. Во дворе — парк и детская площадка. Идеальна для семьи или инвестиций.
+              </p>
+              <div className="mt-4 flex items-center gap-2 text-xs text-neutral-500">
+                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                Сгенерировано за 8 секунд
+              </div>
+            </div>
+          </div>
         </div>
       </FadeInSection>
 
-      {/* ===== 06 ОТЗЫВЫ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      {/* ═════════════════════════════════════════════════════════
+          07 ОТЗЫВЫ
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1E1B18 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">06</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">Отзывы</span>
+            <span className="section-number-light">07</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">Отзывы</span>
           </div>
 
           <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
-            1 247 риелторов. Вот что они говорят.
+            2 480 риелторов. Вот что они говорят.
           </h2>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 name: "Алексей Морозов",
@@ -488,7 +634,7 @@ export default function HomePage() {
               {
                 name: "Марина Соколова",
                 role: "Агентство «НовоСтрой»",
-                text: "Виртуальная мебель для новостроек — находка. Пустые бетонные стены никто не хочет смотреть. С мебелью — другая история.",
+                text: "Виртуальная мебель для новостроек — находка. Пустые стены никто не хочет смотреть. С мебелью — другая история. Используем batch-режим на 20 фото.",
                 metric: "x3 звонков",
               },
               {
@@ -500,106 +646,125 @@ export default function HomePage() {
               {
                 name: "Елена Козлова",
                 role: "Риелтор, Казань",
-                text: "Удаление лишних вещей — спасение. Хозяева не убирают, а мне нужно срочно выложить объявление. Теперь убираю всё с фото за секунды.",
+                text: "Удаление лишних вещей — спасение. Хозяева не убирают, а мне нужно срочно выложить объявление. Убираю всё с фото за секунды.",
                 metric: "−3 часа/день",
               },
-            ].map((review, i) => (
+              {
+                name: "Игорь Петров",
+                role: "Агентство «Дом», Краснодар",
+                text: "AI-описания для Авито — это просто магия. Загрузил фото, получил готовый текст. Раньше 20 минут писал, теперь 10 секунд.",
+                metric: "−20 мин/объект",
+              },
+              {
+                name: "Наталья Белова",
+                role: "Риелтор, Тюмень",
+                text: "38 сервисов за одну подписку — больше нигде такого нет. Использую ремонт стен, мебель и закат чаще всего. Клиенты в восторге.",
+                metric: "38 инструментов",
+              },
+            ].map((review) => (
               <div key={review.name} className="stagger-child">
-                <div className="inline-block rounded-lg bg-terra-50 px-3 py-1 text-sm font-medium text-terra-600 mb-4">
+                <div className="inline-block rounded-lg px-3 py-1 text-sm font-medium text-terra-400 mb-4" style={{ background: "rgba(212,101,75,0.12)" }}>
                   {review.metric}
                 </div>
-                <p className="text-[#6B6560] leading-relaxed">
+                <p className="text-neutral-300 leading-relaxed">
                   &ldquo;{review.text}&rdquo;
                 </p>
                 <div className="mt-6">
-                  <div className="text-base text-[#1E1B18]">{review.name}</div>
-                  <div className="text-sm text-[#7D756E] mt-1">{review.role}</div>
+                  <div className="text-base text-white">{review.name}</div>
+                  <div className="text-sm text-neutral-500 mt-1">{review.role}</div>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Полоса доверия */}
-          <div className="mt-16 pt-8 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#7D756E]">
+          <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-neutral-500">
             <div className="flex items-center gap-6 flex-wrap justify-center">
-              <span>Оценка: <strong className="text-[#1E1B18]">4.9/5</strong></span>
-              <span>1 247 пользователей</span>
-              <span>12 847 фото обработано</span>
+              <span>Оценка: <strong className="text-white">4.9/5</strong></span>
+              <span>2 480 пользователей</span>
+              <span>47 832 фото обработано</span>
             </div>
-            <span className="text-terra-500">~12 новых риелторов каждый день</span>
+            <span className="text-terra-400">~18 новых риелторов каждый день</span>
           </div>
         </div>
       </FadeInSection>
 
-      {/* ===== 07 ТАРИФЫ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      {/* ═════════════════════════════════════════════════════════
+          08 ТАРИФЫ
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at center, rgba(212,101,75,0.04) 0%, #1E1B18 50%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">07</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">Тарифы</span>
+            <span className="section-number-light">08</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">Тарифы</span>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
             <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl">
-              Ваши конкуренты платят 50₽ за фото. А вы?
+              38 сервисов. От&nbsp;0₽.
             </h2>
-            <Link href="/pricing" className="btn-outline self-start">
+            <Link href="/pricing" className="btn-outline-light self-start">
               Все тарифы
             </Link>
           </div>
 
           {/* Блок бесплатного старта */}
-          <div className="mb-8 rounded-xl bg-terra-50 border border-terra-200 p-5 text-center">
-            <p className="text-[#1E1B18] font-medium">Не уверены? Начните бесплатно — 2 фото без регистрации и без карты</p>
+          <div className="mb-8 rounded-xl p-5 text-center" style={{ background: "rgba(212,101,75,0.1)", border: "1px solid rgba(212,101,75,0.25)" }}>
+            <p className="text-white font-medium">Не уверены? Начните бесплатно — 2 фото без регистрации и без карты</p>
           </div>
 
-          <div className="grid gap-px sm:grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden" style={{ background: "linear-gradient(135deg, #e8e4df 0%, #d4d0cb 100%)" }}>
+          <div className="grid gap-px sm:grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
             {[
               {
                 name: "Бесплатно", price: "0", per: "", credits: "2 фото", perPhoto: "",
-                features: ["Уборка фото", "Стандартное качество", "Без регистрации"],
-                dark: false, badge: null, cta: "Попробовать", href: "/generate",
+                features: ["Уборка и улучшение", "Стандартное качество", "Без регистрации"],
+                accent: false, badge: null, cta: "Попробовать", href: "/generate",
               },
               {
                 name: "Риелтор", price: "2 490", per: "₽", credits: "50 фото", perPhoto: "50₽/фото",
-                features: ["Уборка + Новый стиль", "Высокое качество", "Виртуальная мебель", "Приоритетная очередь"],
-                dark: true, badge: "Выбирают 67%", cta: "Подключить", href: "/auth",
+                features: ["Все 38 AI-сервисов", "Виртуальная мебель и ремонт", "AI-описания объектов", "Высокое качество", "Приоритетная очередь"],
+                accent: true, badge: "Выбирают 67%", cta: "Подключить", href: "/auth",
               },
               {
                 name: "Агентство", price: "6 990", per: "₽", credits: "150 фото", perPhoto: "47₽/фото",
-                features: ["Все 4 режима", "Лучшее качество", "Виртуальная мебель", "Поддержка каждый день"],
-                dark: false, badge: null, cta: "Подключить", href: "/auth",
+                features: ["Все 38 AI-сервисов", "Batch до 20 фото", "AI-описания + соцсети", "Макс. качество", "Поддержка 24/7"],
+                accent: false, badge: null, cta: "Подключить", href: "/auth",
               },
               {
                 name: "Профи", price: "5 990", per: "₽", credits: "100 фото", perPhoto: "60₽/фото",
-                features: ["Точечное удаление", "Все режимы + максимальное качество", "Личная поддержка"],
-                dark: true, badge: null, cta: "Подключить", href: "/auth",
+                features: ["Все 38 AI-сервисов", "Точечное удаление", "AI Chat Editor", "Сравнение 4 стилей", "Персональная поддержка"],
+                accent: false, badge: null, cta: "Подключить", href: "/auth",
               },
             ].map((plan) => (
               <div
                 key={plan.name}
-                className={`stagger-child relative p-10 ${plan.dark ? "bg-[#1E1B18] text-white" : "bg-[#fbf9f5]"}`}
+                className="relative p-10 stagger-child"
+                style={{
+                  background: plan.accent
+                    ? "linear-gradient(135deg, rgba(212,101,75,0.12) 0%, #1E1B18 100%)"
+                    : "#1E1B18",
+                }}
               >
                 {plan.badge && (
                   <div className="absolute -top-3 left-10 rounded-lg bg-terra-500 px-3 py-1 text-xs font-medium text-white">
                     {plan.badge}
                   </div>
                 )}
-                <div className={`text-xs uppercase tracking-widest ${plan.dark ? "text-neutral-400" : "text-[#7D756E]"}`}>
+                <div className="text-xs uppercase tracking-widest text-neutral-500">
                   {plan.name}
                 </div>
                 <div className="mt-4 flex items-baseline gap-1">
-                  <span className="heading-display text-[40px] sm:text-[48px]">{plan.price}</span>
-                  {plan.per && <span className="text-xl opacity-60">{plan.per}</span>}
+                  <span className="heading-display text-[40px] sm:text-[48px] text-white">{plan.price}</span>
+                  {plan.per && <span className="text-xl text-neutral-500">{plan.per}</span>}
                 </div>
-                <div className={`mt-1 text-sm ${plan.dark ? "text-neutral-400" : "text-[#7D756E]"}`}>
+                <div className="mt-1 text-sm text-neutral-500">
                   {plan.credits}
-                  {plan.perPhoto && <span className="ml-2 text-terra-500 font-medium">= {plan.perPhoto}</span>}
+                  {plan.perPhoto && <span className="ml-2 text-terra-400 font-medium">= {plan.perPhoto}</span>}
                 </div>
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((f) => (
-                    <li key={f} className={`flex items-start gap-2 text-base ${plan.dark ? "text-neutral-300" : "text-[#6B6560]"}`}>
-                      <span className="mt-0.5 text-xs">+</span>
+                    <li key={f} className="flex items-start gap-2 text-base text-neutral-300">
+                      <span className="mt-0.5 text-xs text-terra-400">+</span>
                       {f}
                     </li>
                   ))}
@@ -607,11 +772,7 @@ export default function HomePage() {
                 <Link
                   href={plan.href}
                   className={`mt-8 block w-full text-center ${
-                    plan.dark && plan.badge
-                      ? "btn-terra-glow"
-                      : plan.dark
-                        ? "btn-white"
-                        : "btn-outline"
+                    plan.accent ? "btn-terra-glow" : "btn-outline-light"
                   }`}
                 >
                   {plan.cta}
@@ -621,20 +782,22 @@ export default function HomePage() {
           </div>
 
           {/* Гарантия */}
-          <p className="mt-8 text-center text-[#7D756E]">
+          <p className="mt-8 text-center text-neutral-500">
             Не понравится — вернём деньги. Без вопросов.
           </p>
         </div>
       </FadeInSection>
 
-      {/* ===== 08 ВОПРОСЫ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      {/* ═════════════════════════════════════════════════════════
+          09 ВОПРОСЫ
+          ═════════════════════════════════════════════════════════ */}
+      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1E1B18 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
             <div>
               <div className="section-label mb-8">
-                <span className="section-number">08</span>
-                <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">Вопросы</span>
+                <span className="section-number-light">09</span>
+                <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">Вопросы</span>
               </div>
               <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px]">
                 Частые вопросы
@@ -643,12 +806,12 @@ export default function HomePage() {
 
             <div>
               {FAQ_ITEMS.map((item) => (
-                <details key={item.q} className="faq-item group">
+                <details key={item.q} className="faq-item group" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                   <summary className="flex items-center justify-between gap-4">
-                    <h3 className="text-base sm:text-lg">{item.q}</h3>
-                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-[#7D756E]">+</span>
+                    <h3 className="text-base sm:text-lg text-white">{item.q}</h3>
+                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-neutral-500">+</span>
                   </summary>
-                  <p className="pb-6 text-[#6B6560] leading-relaxed">{item.a}</p>
+                  <p className="pb-6 text-neutral-400 leading-relaxed">{item.a}</p>
                 </details>
               ))}
             </div>
@@ -656,10 +819,18 @@ export default function HomePage() {
         </div>
       </FadeInSection>
 
-      {/* ===== CTA ===== */}
-      <CTASplitBanner />
+      {/* ═════════════════════════════════════════════════════════
+          CTA BANNER
+          ═════════════════════════════════════════════════════════ */}
+      <CTASplitBanner
+        heading1={"Фото, которые продают.\n2 бесплатно."}
+        heading2={"38 AI-сервисов.\nОдна подписка."}
+        cta2="Выбрать тариф"
+        cta2Href="/pricing"
+        fomo="Присоединяйтесь к 2 480 риелторам — фото, которые продают дома и квартиры"
+      />
 
-      {/* FAQ structured data for Google rich snippets — static data from our own FAQ_ITEMS array */}
+      {/* FAQ structured data for Google rich snippets */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

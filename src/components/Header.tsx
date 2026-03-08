@@ -8,7 +8,9 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const hasDarkHero = pathname === "/" || pathname === "/en" || pathname.startsWith("/blog") || pathname === "/tour" || pathname === "/api-docs";
+  // Все страницы теперь с тёмным фоном (dark theme everywhere)
+  const lightPages = ["/generate", "/auth", "/batch"];
+  const hasDarkHero = !lightPages.includes(pathname);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);

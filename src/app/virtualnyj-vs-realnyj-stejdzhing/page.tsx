@@ -3,11 +3,12 @@ import type { Metadata } from "next";
 import BeforeAfterToggle from "@/components/BeforeAfterToggle";
 import FadeInSection from "@/components/FadeInSection";
 import CTASplitBanner from "@/components/CTASplitBanner";
+import AllModesGrid from "@/components/AllModesGrid";
 
 export const metadata: Metadata = {
   title: "Виртуальный стейджинг vs реальный — сравнение стоимости 2025",
   description:
-    "Что выгоднее: виртуальный или реальный стейджинг квартиры? Сравнение цены, сроков и результата. Виртуальный — от 50₽, реальный — от 50 000₽.",
+    "Что выгоднее: виртуальный или реальный стейджинг квартиры? Сравнение цены, сроков и результата. Виртуальный — от 50₽, реальный — от 50 000₽. 38 AI-сервисов — фото, которые продают дома и квартиры",
   keywords:
     "виртуальный стейджинг, реальный стейджинг, стейджинг квартиры сравнение, виртуальная меблировка, home staging",
   alternates: { canonical: "https://fotoestate.ru/virtualnyj-vs-realnyj-stejdzhing" },
@@ -45,7 +46,7 @@ export default function VirtualVsRealStaging() {
   return (
     <>
       {/* ===== ГЕРОЙ ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -96,11 +97,11 @@ export default function VirtualVsRealStaging() {
       </section>
 
       {/* ===== 01 СРАВНЕНИЕ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Сравнение
             </span>
           </div>
@@ -111,8 +112,8 @@ export default function VirtualVsRealStaging() {
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl bg-white border border-neutral-200 p-8 lg:p-10">
-              <div className="text-xs uppercase tracking-widest text-[#7D756E] mb-6">
+            <div className="rounded-xl p-8 lg:p-10" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-6">
                 Реальный стейджинг
               </div>
               <div className="space-y-5">
@@ -126,9 +127,9 @@ export default function VirtualVsRealStaging() {
                   { item: "Количество объектов", cost: "1 за раз" },
                   { item: "Эффект на продажи", cost: "+73% скорость" },
                 ].map((row) => (
-                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-neutral-100">
-                    <span className="text-[#6B6560]">{row.item}</span>
-                    <span className="text-[#1E1B18] font-medium">{row.cost}</span>
+                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-white/[0.06]">
+                    <span className="text-neutral-400">{row.item}</span>
+                    <span className="text-white font-medium">{row.cost}</span>
                   </div>
                 ))}
               </div>
@@ -156,7 +157,7 @@ export default function VirtualVsRealStaging() {
                   { item: "Эффект на продажи", cost: "+73% скорость" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">
-                    <span className="text-[#6B6560]">{row.item}</span>
+                    <span className="text-neutral-400">{row.item}</span>
                     <span className="text-terra-500 font-medium">{row.cost}</span>
                   </div>
                 ))}
@@ -206,11 +207,11 @@ export default function VirtualVsRealStaging() {
       </FadeInSection>
 
       {/* ===== 03 ПЛЮСЫ И МИНУСЫ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">03</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">03</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Объективно
             </span>
           </div>
@@ -221,16 +222,16 @@ export default function VirtualVsRealStaging() {
           </h2>
 
           <div className="grid gap-8 sm:grid-cols-2">
-            <div className="stagger-child rounded-xl border border-neutral-200 p-8">
+            <div className="stagger-child rounded-xl p-8" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <h3 className="text-[20px] font-normal mb-2">Реальный стейджинг</h3>
               <p className="text-sm text-green-600 mb-4">Плюсы:</p>
-              <ul className="space-y-2 text-[#6B6560] mb-6">
+              <ul className="space-y-2 text-neutral-400 mb-6">
                 <li>+ Покупатель видит мебель вживую</li>
                 <li>+ Тактильные ощущения при показе</li>
                 <li>+ Подходит для элитных объектов</li>
               </ul>
               <p className="text-sm text-red-500 mb-4">Минусы:</p>
-              <ul className="space-y-2 text-[#6B6560]">
+              <ul className="space-y-2 text-neutral-400">
                 <li>- Дорого: от 50 000₽</li>
                 <li>- Долго: 3-7 дней на подготовку</li>
                 <li>- Один стиль — нельзя поменять</li>
@@ -241,7 +242,7 @@ export default function VirtualVsRealStaging() {
             <div className="stagger-child rounded-xl border border-terra-200 p-8" style={{ background: "rgba(212,101,75,0.03)" }}>
               <h3 className="text-[20px] font-normal mb-2">Виртуальный стейджинг</h3>
               <p className="text-sm text-green-600 mb-4">Плюсы:</p>
-              <ul className="space-y-2 text-[#6B6560] mb-6">
+              <ul className="space-y-2 text-neutral-400 mb-6">
                 <li>+ Дёшево: от 50₽</li>
                 <li>+ Быстро: 30 секунд</li>
                 <li>+ 25 стилей — меняйте одним кликом</li>
@@ -249,7 +250,7 @@ export default function VirtualVsRealStaging() {
                 <li>+ Не нужна логистика</li>
               </ul>
               <p className="text-sm text-red-500 mb-4">Минусы:</p>
-              <ul className="space-y-2 text-[#6B6560]">
+              <ul className="space-y-2 text-neutral-400">
                 <li>- Мебель только на фото</li>
                 <li>- Нужно указать в объявлении</li>
               </ul>
@@ -259,13 +260,13 @@ export default function VirtualVsRealStaging() {
       </FadeInSection>
 
       {/* ===== 04 FAQ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.04) 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
             <div>
               <div className="section-label mb-8">
-                <span className="section-number">04</span>
-                <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+                <span className="section-number-light">04</span>
+                <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
                   Вопросы
                 </span>
               </div>
@@ -276,12 +277,12 @@ export default function VirtualVsRealStaging() {
 
             <div>
               {FAQ_ITEMS.map((item) => (
-                <details key={item.q} className="faq-item group">
+                <details key={item.q} className="faq-item group" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                   <summary className="flex items-center justify-between gap-4">
                     <h3 className="text-base sm:text-lg">{item.q}</h3>
-                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-[#7D756E]">+</span>
+                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-neutral-500">+</span>
                   </summary>
-                  <p className="pb-6 text-[#6B6560] leading-relaxed">{item.a}</p>
+                  <p className="pb-6 text-neutral-400 leading-relaxed">{item.a}</p>
                 </details>
               ))}
             </div>
@@ -289,7 +290,19 @@ export default function VirtualVsRealStaging() {
         </div>
       </FadeInSection>
 
-      <CTASplitBanner />
+      
+      {/* ===== ALL MODES ===== */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <AllModesGrid
+            title="Не только стейджинг — ещё"
+            subtitle="37 AI-сервисов"
+            exclude={["staging"]}
+          />
+        </div>
+      </FadeInSection>
+
+      <CTASplitBanner fomo="38 AI-сервисов для недвижимости. Присоединяйтесь к 2 870 риелторам, которые уже экономят время и деньги" />
     </>
   );
 }

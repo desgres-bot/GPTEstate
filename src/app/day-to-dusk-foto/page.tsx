@@ -3,11 +3,12 @@ import type { Metadata } from "next";
 import CTASplitBanner from "@/components/CTASplitBanner";
 import FadeInSection from "@/components/FadeInSection";
 import { getBreadcrumbSchema, getFAQSchema } from "@/lib/jsonld";
+import AllModesGrid from "@/components/AllModesGrid";
 
 export const metadata: Metadata = {
   title: "Day to Dusk фото недвижимости — AI-обработка за 30 секунд",
   description:
-    "Превратите дневное фото фасада в закатное. AI добавит тёплое освещение окон, закатное небо и ландшафтную подсветку. В 20 раз дешевле BoxBrownie.",
+    "Превратите дневное фото фасада в закатное. AI добавит тёплое освещение окон, закатное небо и ландшафтную подсветку. В 20 раз дешевле BoxBrownie. 38 AI-сервисов — фото, которые продают дома и квартиры",
   keywords:
     "day to dusk фото, закатное фото дома, twilight фото недвижимости, обработка фото фасада, вечернее фото дома",
   alternates: { canonical: "https://fotoestate.ru/day-to-dusk-foto" },
@@ -52,7 +53,7 @@ export default function DayToDuskFoto() {
   return (
     <>
       {/* ===== ГЕРОЙ ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -95,11 +96,11 @@ export default function DayToDuskFoto() {
       </section>
 
       {/* ===== 01 ЗАЧЕМ ЭТО НУЖНО ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Зачем
             </span>
           </div>
@@ -127,12 +128,12 @@ export default function DayToDuskFoto() {
                 desc: "Twilight-фотография ассоциируется с элитной недвижимостью. Даже обычный дом выглядит дороже при закатном освещении.",
               },
             ].map((item) => (
-              <div key={item.num} className="stagger-child border-b border-neutral-200 py-10 lg:py-12">
+              <div key={item.num} className="stagger-child border-b border-white/[0.08] py-10 lg:py-12">
                 <div className="flex items-start gap-6">
-                  <span className="heading-display text-[24px] text-[#bfbfbf] hidden sm:block">{item.num}</span>
+                  <span className="heading-display text-[24px] text-neutral-600 hidden sm:block">{item.num}</span>
                   <div>
                     <h3 className="text-[20px] sm:text-[24px] font-normal">{item.title}</h3>
-                    <p className="mt-3 text-[#6B6560] leading-relaxed max-w-lg">{item.desc}</p>
+                    <p className="mt-3 text-neutral-400 leading-relaxed max-w-lg">{item.desc}</p>
                   </div>
                 </div>
               </div>
@@ -142,11 +143,11 @@ export default function DayToDuskFoto() {
       </FadeInSection>
 
       {/* ===== 02 ЧТО AI ДЕЛАЕТ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">02</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">02</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Как работает
             </span>
           </div>
@@ -175,9 +176,9 @@ export default function DayToDuskFoto() {
                 desc: "Все архитектурные детали сохраняются идеально.",
               },
             ].map((item) => (
-              <div key={item.title} className="stagger-child rounded-xl border border-neutral-200 p-6">
-                <h3 className="text-[18px] font-normal text-[#1E1B18] mb-3">{item.title}</h3>
-                <p className="text-sm text-[#6B6560] leading-relaxed">{item.desc}</p>
+              <div key={item.title} className="stagger-child rounded-xl p-6" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <h3 className="text-[18px] font-normal text-white mb-3">{item.title}</h3>
+                <p className="text-sm text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -191,11 +192,11 @@ export default function DayToDuskFoto() {
       </FadeInSection>
 
       {/* ===== 03 СРАВНЕНИЕ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.04) 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">03</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">03</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Экономия
             </span>
           </div>
@@ -205,8 +206,8 @@ export default function DayToDuskFoto() {
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl bg-white border border-neutral-200 p-8 lg:p-10">
-              <div className="text-xs uppercase tracking-widest text-[#7D756E] mb-6">Конкуренты</div>
+            <div className="rounded-xl p-8 lg:p-10" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-6">Конкуренты</div>
               <div className="space-y-5">
                 {[
                   { item: "BoxBrownie", cost: "$4-5 за фото" },
@@ -214,9 +215,9 @@ export default function DayToDuskFoto() {
                   { item: "Фотограф (twilight)", cost: "$100-300" },
                   { item: "Ожидание", cost: "24 часа" },
                 ].map((row) => (
-                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-neutral-100">
-                    <span className="text-[#6B6560]">{row.item}</span>
-                    <span className="text-[#1E1B18] font-medium">{row.cost}</span>
+                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-white/[0.06]">
+                    <span className="text-neutral-400">{row.item}</span>
+                    <span className="text-white font-medium">{row.cost}</span>
                   </div>
                 ))}
               </div>
@@ -238,7 +239,7 @@ export default function DayToDuskFoto() {
                   { item: "Ожидание", cost: "мгновенно" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">
-                    <span className="text-[#6B6560]">{row.item}</span>
+                    <span className="text-neutral-400">{row.item}</span>
                     <span className="text-terra-500 font-medium">{row.cost}</span>
                   </div>
                 ))}
@@ -258,11 +259,11 @@ export default function DayToDuskFoto() {
       </FadeInSection>
 
       {/* ===== 04 FAQ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">04</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">04</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               FAQ
             </span>
           </div>
@@ -273,20 +274,32 @@ export default function DayToDuskFoto() {
 
           <div className="mx-auto max-w-3xl space-y-0">
             {FAQ_ITEMS.map((item) => (
-              <details key={item.q} className="faq-item stagger-child group border-b border-neutral-200 py-6">
-                <summary className="flex cursor-pointer items-center justify-between text-lg font-normal text-[#1E1B18] hover:text-terra-500 transition-colors">
+              <details key={item.q} className="faq-item stagger-child group border-b border-white/[0.08] py-6">
+                <summary className="flex cursor-pointer items-center justify-between text-lg font-normal text-white hover:text-terra-500 transition-colors">
                   {item.q}
                   <span className="text-neutral-400 group-open:rotate-45 transition-transform text-2xl leading-none">+</span>
                 </summary>
-                <p className="mt-4 text-[#6B6560] leading-relaxed">{item.a}</p>
+                <p className="mt-4 text-neutral-400 leading-relaxed">{item.a}</p>
               </details>
             ))}
           </div>
         </div>
       </FadeInSection>
 
+      
+      {/* ===== ALL MODES ===== */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <AllModesGrid
+            title="Не только Day-to-Dusk — ещё"
+            subtitle="37 AI-сервисов"
+            exclude={["dusk"]}
+          />
+        </div>
+      </FadeInSection>
+
       {/* ===== CTA ===== */}
-      <CTASplitBanner />
+      <CTASplitBanner fomo="38 AI-сервисов для недвижимости. Присоединяйтесь к 2 870 риелторам, которые уже экономят время и деньги" />
 
       {/* JSON-LD: pre-serialized static data from our own codebase */}
       <script type="application/ld+json" suppressHydrationWarning>{breadcrumbJson}</script>

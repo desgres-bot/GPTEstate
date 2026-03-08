@@ -5,7 +5,10 @@ export default function Footer() {
     <footer className="bg-[#1E1B18] text-white">
       <div className="mx-auto max-w-7xl px-6 pt-20 pb-24 md:pb-8 lg:pt-28">
         <p className="heading-display text-[28px] sm:text-[32px] lg:text-[40px] leading-tight max-w-md">
-          Фото, которые продают квартиры
+          Фото, которые продают дома и квартиры
+        </p>
+        <p className="mt-3 text-sm text-neutral-500">
+          38 AI-сервисов для недвижимости
         </p>
 
         <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
@@ -92,7 +95,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} GPT Estate
           </span>
           <span className="text-sm text-neutral-500">
-            Сервис для недвижимости
+            Фото, которые продают дома и квартиры
           </span>
         </div>
       </div>

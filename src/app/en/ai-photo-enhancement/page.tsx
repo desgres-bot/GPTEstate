@@ -3,11 +3,12 @@ import Link from "next/link";
 import BeforeAfterToggle from "@/components/BeforeAfterToggle";
 import CTASplitBanner from "@/components/CTASplitBanner";
 import FadeInSection from "@/components/FadeInSection";
+import AllModesGrid from "@/components/AllModesGrid";
 
 export const metadata: Metadata = {
-  title: "AI Photo Enhancement for Real Estate | GPT Estate",
+  title: "AI Photo Enhancement for Real Estate — Photos That Sell Homes | GPT Estate",
   description:
-    "Professional real estate photo editing powered by AI. Remove clutter, fix lighting, enhance colors in 30 seconds. From $0.50 per photo. Try 2 photos free.",
+    "Professional real estate photo editing powered by AI. 38 AI services. Photos that sell homes. Remove clutter, fix lighting, enhance colors in 30 seconds. From $0.50 per photo. Try 2 photos free.",
   keywords:
     "real estate photo enhancement, AI photo editing, property photo improvement, real estate photography AI",
   alternates: {
@@ -15,8 +16,8 @@ export const metadata: Metadata = {
     languages: { ru: "https://fotoestate.ru/uluchshenie-foto-nedvizhimosti", en: "https://fotoestate.ru/en/ai-photo-enhancement" },
   },
   openGraph: {
-    title: "AI Photo Enhancement for Real Estate — GPT Estate",
-    description: "Turn any phone photo into a professional listing image in 30 seconds.",
+    title: "AI Photo Enhancement — Photos That Sell Homes | GPT Estate",
+    description: "Turn any phone photo into a professional listing image in 30 seconds. 38 AI services.",
     locale: "en_US",
   },
 };
@@ -33,7 +34,10 @@ export default function EnPhotoEnhancementPage() {
   return (
     <>
       {/* ===== HERO ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      <section
+        className="text-white"
+        style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}
+      >
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -74,7 +78,7 @@ export default function EnPhotoEnhancementPage() {
                 <div className="heading-display text-[36px] sm:text-[48px] lg:text-[64px] text-terra-400">
                   {stat.value}
                 </div>
-                <div className="mt-2 text-xs uppercase tracking-widest text-neutral-400">
+                <div className="mt-2 text-xs uppercase tracking-widest text-neutral-500">
                   {stat.label}
                 </div>
               </div>
@@ -84,17 +88,21 @@ export default function EnPhotoEnhancementPage() {
       </section>
 
       {/* ===== 01 WHO IS IT FOR ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection
+        variant="scale-in"
+        className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
+        style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}
+      >
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">
               Who It&apos;s For
             </span>
           </div>
-          <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-2xl mb-16">
+          <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-2xl mb-16 text-white">
             For agents.{" "}
-            <span className="text-terra-500">For owners. For agencies.</span>
+            <span className="text-terra-400">For owners. For agencies.</span>
           </h2>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
@@ -102,9 +110,13 @@ export default function EnPhotoEnhancementPage() {
               { title: "Property Owners", desc: "Selling your home? Make it look its best without hiring professionals. 2 photos free." },
               { title: "Agencies & Brokerages", desc: "150 photos for $20/month. Standardize listing quality across your entire team." },
             ].map((item) => (
-              <div key={item.title} className="stagger-child rounded-xl bg-white border border-neutral-200 p-8">
-                <h3 className="text-[20px] font-normal mb-3">{item.title}</h3>
-                <p className="text-[#6B6560] leading-relaxed">{item.desc}</p>
+              <div
+                key={item.title}
+                className="stagger-child rounded-xl p-8"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <h3 className="text-[20px] font-normal mb-3 text-white">{item.title}</h3>
+                <p className="text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -112,17 +124,21 @@ export default function EnPhotoEnhancementPage() {
       </FadeInSection>
 
       {/* ===== 02 WHAT AI CAN DO ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection
+        variant="fade-left"
+        className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
+        style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 50%, #1E1B18 100%)" }}
+      >
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">02</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">02</span>
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">
               Capabilities
             </span>
           </div>
-          <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
-            10 AI modes.{" "}
-            <span className="text-terra-500">One upload.</span>
+          <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16 text-white">
+            38 AI services.{" "}
+            <span className="text-terra-400">One upload.</span>
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {[
@@ -130,8 +146,12 @@ export default function EnPhotoEnhancementPage() {
               "Object Removal", "Listing Text", "Day-to-Dusk",
               "Sky Replacement", "Photo Scoring", "Room Analysis", "Virtual Renovation",
             ].map((mode) => (
-              <div key={mode} className="stagger-child rounded-xl bg-[#fbf9f5] border border-neutral-200 p-5 text-center">
-                <span className="text-sm text-[#6B6560]">{mode}</span>
+              <div
+                key={mode}
+                className="stagger-child rounded-xl p-5 text-center"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <span className="text-sm text-neutral-300">{mode}</span>
               </div>
             ))}
           </div>
@@ -139,15 +159,19 @@ export default function EnPhotoEnhancementPage() {
       </FadeInSection>
 
       {/* ===== 03 EXAMPLES ===== */}
-      <FadeInSection className="bg-[#1E1B18] py-24 lg:py-40 text-white">
+      <FadeInSection
+        variant="blur-in"
+        className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
+        style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}
+      >
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">03</span>
-            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
+            <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">
               Results
             </span>
           </div>
-          <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16">
+          <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] max-w-xl mb-16 text-white">
             Before.{" "}
             <span className="text-terra-400">After.</span>
           </h2>
@@ -165,14 +189,18 @@ export default function EnPhotoEnhancementPage() {
       </FadeInSection>
 
       {/* ===== 04 COST ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection
+        variant="fade-right"
+        className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
+        style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.05) 0%, #161311 50%, #1a1714 100%)" }}
+      >
         <div className="mx-auto max-w-7xl px-6 text-center">
           <div className="mx-auto max-w-2xl">
-            <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] mb-6">
+            <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] mb-6 text-white">
               Photographer: $150.{" "}
-              <span className="text-terra-500">GPT Estate: $0.50.</span>
+              <span className="text-terra-400">GPT Estate: $0.50.</span>
             </h2>
-            <p className="text-[#6B6560] leading-relaxed text-lg mb-8">
+            <p className="text-neutral-300 leading-relaxed text-lg mb-8">
               Same professional result. 333x cheaper. 30 seconds instead of 3 days.
               And you can process unlimited properties.
             </p>
@@ -184,32 +212,47 @@ export default function EnPhotoEnhancementPage() {
       </FadeInSection>
 
       {/* ===== 05 FAQ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection
+        variant="scale-in"
+        className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
+        style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 50%, #1E1B18 100%)" }}
+      >
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
             <div>
               <div className="section-label mb-8">
-                <span className="section-number">05</span>
-                <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+                <span className="section-number-light">05</span>
+                <span className="text-base uppercase tracking-widest text-neutral-500 self-end mb-2">
                   FAQ
                 </span>
               </div>
-              <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px]">
+              <h2 className="heading-display text-[32px] leading-[1.1] sm:text-[48px] lg:text-[64px] text-white">
                 Common questions
               </h2>
             </div>
             <div>
               {FAQ_ITEMS.map((item) => (
-                <details key={item.q} className="faq-item group">
+                <details key={item.q} className="faq-item group" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
                   <summary className="flex items-center justify-between gap-4">
-                    <h3 className="text-base sm:text-lg">{item.q}</h3>
-                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-[#7D756E]">+</span>
+                    <h3 className="text-base sm:text-lg text-white">{item.q}</h3>
+                    <span className="faq-icon flex-shrink-0 text-2xl leading-none text-neutral-500">+</span>
                   </summary>
-                  <p className="pb-6 text-[#6B6560] leading-relaxed">{item.a}</p>
+                  <p className="pb-6 text-neutral-400 leading-relaxed">{item.a}</p>
                 </details>
               ))}
             </div>
           </div>
+        </div>
+      </FadeInSection>
+
+      {/* ===== ALL MODES GRID ===== */}
+      <FadeInSection
+        variant="scale-in"
+        className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
+        style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}
+      >
+        <div className="mx-auto max-w-7xl px-6">
+          <AllModesGrid title="Not just enhancement — also" subtitle="37 more AI services" />
         </div>
       </FadeInSection>
 
@@ -218,7 +261,7 @@ export default function EnPhotoEnhancementPage() {
         cta1="Enhance your photos"
         heading2={"Need bulk processing?\nWe'll find your plan."}
         cta2="Contact us"
-        fomo="Join 1,247 agents already using AI enhancement"
+        fomo="Join 47,832 agents already using AI enhancement"
       />
     </>
   );

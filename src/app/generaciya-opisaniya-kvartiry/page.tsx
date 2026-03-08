@@ -3,11 +3,12 @@ import type { Metadata } from "next";
 import CTASplitBanner from "@/components/CTASplitBanner";
 import FadeInSection from "@/components/FadeInSection";
 import { getBreadcrumbSchema, getFAQSchema } from "@/lib/jsonld";
+import AllModesGrid from "@/components/AllModesGrid";
 
 export const metadata: Metadata = {
   title: "AI-генерация описания квартиры для Авито и ЦИАН — GPT Estate",
   description:
-    "Загрузите фото квартиры — AI напишет продающее описание для Авито, ЦИАН или ДомКлик за 30 секунд. Три стиля текста: деловой, тёплый, продающий. 2 фото бесплатно.",
+    "Загрузите фото квартиры — AI напишет продающее описание для Авито, ЦИАН или ДомКлик за 30 секунд. Три стиля текста: деловой, тёплый, продающий. 2 фото бесплатно. 38 AI-сервисов — фото, которые продают дома и квартиры",
   keywords:
     "описание квартиры для авито, текст объявления авито, ai генерация описания, описание для циан, продающий текст недвижимость",
   alternates: { canonical: "https://fotoestate.ru/generaciya-opisaniya-kvartiry" },
@@ -56,7 +57,7 @@ export default function GeneraciyaOpisaniyaKvartiry() {
   return (
     <>
       {/* ===== ГЕРОЙ ===== */}
-      <section className="bg-[#1E1B18] text-white">
+      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -99,11 +100,11 @@ export default function GeneraciyaOpisaniyaKvartiry() {
       </section>
 
       {/* ===== 01 ПРОБЛЕМА ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">01</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">01</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Проблема
             </span>
           </div>
@@ -131,12 +132,12 @@ export default function GeneraciyaOpisaniyaKvartiry() {
                 desc: "У риелтора 10-20 объектов. Писать уникальное описание для каждого — час работы. AI делает это за 30 секунд.",
               },
             ].map((item) => (
-              <div key={item.num} className="stagger-child border-b border-neutral-200 py-10 lg:py-12">
+              <div key={item.num} className="stagger-child border-b border-white/[0.08] py-10 lg:py-12">
                 <div className="flex items-start gap-6">
-                  <span className="heading-display text-[24px] text-[#bfbfbf] hidden sm:block">{item.num}</span>
+                  <span className="heading-display text-[24px] text-neutral-600 hidden sm:block">{item.num}</span>
                   <div>
                     <h3 className="text-[20px] sm:text-[24px] font-normal">{item.title}</h3>
-                    <p className="mt-3 text-[#6B6560] leading-relaxed max-w-lg">{item.desc}</p>
+                    <p className="mt-3 text-neutral-400 leading-relaxed max-w-lg">{item.desc}</p>
                   </div>
                 </div>
               </div>
@@ -146,11 +147,11 @@ export default function GeneraciyaOpisaniyaKvartiry() {
       </FadeInSection>
 
       {/* ===== 02 КАК ЭТО РАБОТАЕТ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">02</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">02</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Как работает
             </span>
           </div>
@@ -178,10 +179,10 @@ export default function GeneraciyaOpisaniyaKvartiry() {
                 desc: "Готовое описание одним кликом копируется в буфер. Вставьте в Авито, ЦИАН или ДомКлик.",
               },
             ].map((item) => (
-              <div key={item.step} className="stagger-child rounded-xl border border-neutral-200 p-8">
+              <div key={item.step} className="stagger-child rounded-xl p-8" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <span className="heading-display text-[36px] text-terra-400/30">{item.step}</span>
-                <h3 className="text-[20px] font-normal text-[#1E1B18] mt-4 mb-3">{item.title}</h3>
-                <p className="text-[#6B6560] leading-relaxed">{item.desc}</p>
+                <h3 className="text-[20px] font-normal text-white mt-4 mb-3">{item.title}</h3>
+                <p className="text-neutral-400 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -245,11 +246,11 @@ export default function GeneraciyaOpisaniyaKvartiry() {
       </FadeInSection>
 
       {/* ===== 04 СРАВНЕНИЕ СТОИМОСТИ ===== */}
-      <FadeInSection className="bg-[#fbf9f5] py-24 lg:py-40">
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.04) 0%, #161311 60%, #1a1714 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">04</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">04</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               Экономия
             </span>
           </div>
@@ -259,8 +260,8 @@ export default function GeneraciyaOpisaniyaKvartiry() {
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl bg-white border border-neutral-200 p-8 lg:p-10">
-              <div className="text-xs uppercase tracking-widest text-[#7D756E] mb-6">Копирайтер</div>
+            <div className="rounded-xl p-8 lg:p-10" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="text-xs uppercase tracking-widest text-neutral-500 mb-6">Копирайтер</div>
               <div className="space-y-5">
                 {[
                   { item: "Стоимость", cost: "500 – 1 500₽" },
@@ -269,9 +270,9 @@ export default function GeneraciyaOpisaniyaKvartiry() {
                   { item: "Знание площадки", cost: "не всегда" },
                   { item: "Скорость", cost: "1-2 часа" },
                 ].map((row) => (
-                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-neutral-100">
-                    <span className="text-[#6B6560]">{row.item}</span>
-                    <span className="text-[#1E1B18] font-medium">{row.cost}</span>
+                  <div key={row.item} className="flex justify-between items-center py-2 border-b border-white/[0.06]">
+                    <span className="text-neutral-400">{row.item}</span>
+                    <span className="text-white font-medium">{row.cost}</span>
                   </div>
                 ))}
               </div>
@@ -294,7 +295,7 @@ export default function GeneraciyaOpisaniyaKvartiry() {
                   { item: "Скорость", cost: "мгновенно" },
                 ].map((row) => (
                   <div key={row.item} className="flex justify-between items-center py-2 border-b border-terra-200/40">
-                    <span className="text-[#6B6560]">{row.item}</span>
+                    <span className="text-neutral-400">{row.item}</span>
                     <span className="text-terra-500 font-medium">{row.cost}</span>
                   </div>
                 ))}
@@ -311,11 +312,11 @@ export default function GeneraciyaOpisaniyaKvartiry() {
       </FadeInSection>
 
       {/* ===== 05 FAQ ===== */}
-      <FadeInSection className="bg-white py-24 lg:py-40">
+      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 100%)" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
-            <span className="section-number">05</span>
-            <span className="text-base uppercase tracking-widest text-[#6B6560] self-end mb-2">
+            <span className="section-number-light">05</span>
+            <span className="text-base uppercase tracking-widest text-neutral-400 self-end mb-2">
               FAQ
             </span>
           </div>
@@ -326,20 +327,32 @@ export default function GeneraciyaOpisaniyaKvartiry() {
 
           <div className="mx-auto max-w-3xl space-y-0">
             {FAQ_ITEMS.map((item) => (
-              <details key={item.q} className="faq-item stagger-child group border-b border-neutral-200 py-6">
-                <summary className="flex cursor-pointer items-center justify-between text-lg font-normal text-[#1E1B18] hover:text-terra-500 transition-colors">
+              <details key={item.q} className="faq-item stagger-child group border-b border-white/[0.08] py-6">
+                <summary className="flex cursor-pointer items-center justify-between text-lg font-normal text-white hover:text-terra-500 transition-colors">
                   {item.q}
                   <span className="text-neutral-400 group-open:rotate-45 transition-transform text-2xl leading-none">+</span>
                 </summary>
-                <p className="mt-4 text-[#6B6560] leading-relaxed">{item.a}</p>
+                <p className="mt-4 text-neutral-400 leading-relaxed">{item.a}</p>
               </details>
             ))}
           </div>
         </div>
       </FadeInSection>
 
+      
+      {/* ===== ALL MODES ===== */}
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+        <div className="mx-auto max-w-7xl px-6">
+          <AllModesGrid
+            title="Не только описания — ещё"
+            subtitle="37 AI-сервисов"
+            exclude={["describe"]}
+          />
+        </div>
+      </FadeInSection>
+
       {/* ===== CTA ===== */}
-      <CTASplitBanner />
+      <CTASplitBanner fomo="38 AI-сервисов для недвижимости. Присоединяйтесь к 2 870 риелторам, которые уже экономят время и деньги" />
 
       {/* JSON-LD: static data from our own codebase, safe to serialize */}
       <script
