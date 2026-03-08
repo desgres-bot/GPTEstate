@@ -430,7 +430,7 @@ export async function describePhoto(
       {
         role: "user",
         content: [
-          { type: "image_url", image_url: { url: imgSrc, detail: "high" } },
+          { type: "image_url", image_url: { url: imgSrc, detail: "low" } },
           {
             type: "text",
             text: `Ты — эксперт по недвижимости и копирайтер. Проанализируй это фото квартиры/дома и напиши объявление для площадки ${platformName}.
@@ -546,7 +546,7 @@ export async function scorePhoto(imageBase64: string): Promise<string> {
       {
         role: "user",
         content: [
-          { type: "image_url", image_url: { url: imgSrc, detail: "high" } },
+          { type: "image_url", image_url: { url: imgSrc, detail: "low" } },
           {
             type: "text",
             text: `Ты — эксперт по фотографии недвижимости. Оцени это фото квартиры/дома по шкале от 1 до 10.
@@ -605,7 +605,7 @@ export async function analyzeRoom(imageBase64: string): Promise<string> {
       {
         role: "user",
         content: [
-          { type: "image_url", image_url: { url: imgSrc, detail: "high" } },
+          { type: "image_url", image_url: { url: imgSrc, detail: "low" } },
           {
             type: "text",
             text: `Ты — эксперт по недвижимости. Проанализируй это фото и определи все характеристики помещения.
