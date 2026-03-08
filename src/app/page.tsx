@@ -6,6 +6,7 @@ import FadeInSection from "@/components/FadeInSection";
 import LiveCounter from "@/components/LiveCounter";
 import AllModesGrid from "@/components/AllModesGrid";
 import { getFAQSchema } from "@/lib/jsonld";
+import { SERVICES, SERVICE_CATEGORIES } from "@/app/generate/_data/services";
 
 export const metadata: Metadata = {
   title: "GPT Estate — Фото, которые продают дома и квартиры. 38 возможностей для риелторов",
@@ -44,7 +45,7 @@ const FAQ_ITEMS = [
     a: "Мы улучшаем фото, а не меняем квартиру. Планировка, окна, размер комнат — всё остаётся реальным. Это как сделать уборку перед показом, только быстрее.",
   },
   {
-    q: "Что такое правки голосом?",
+    q: "Что такое точечные правки?",
     a: "Вы загружаете результат и пишете: «убери вазу слева», «добавь ковёр», «сделай стены светлее». Сервис вносит точечные правки без повторной обработки.",
   },
   {
@@ -143,7 +144,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════
-          01 РЕЗУЛЬТАТ — 6 до/после
+          01 РЕЗУЛЬТАТ — все 38 сервисов с примерами
           ═══════════════════════════════════════════ */}
       <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
@@ -157,35 +158,121 @@ export default function HomePage() {
               Одна и та же квартира. <span className="text-terra-400">Другие деньги.</span>
             </h2>
             <p className="text-neutral-400 max-w-sm text-base">
-              Покупатель решает за 3 секунды. Вот что он видит — до и после.
+              Покупатель решает за 3 секунды. Вот что он видит — до и после. Все 38 возможностей.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { before: "/demo/before-1.jpg", after: "/demo/after-1.jpg", label: "Готово к показу", subtitle: "Было: хлам хозяев. Стало: продающее фото", mode: "enhance" },
-              { before: "/demo/before-2.jpg", after: "/demo/after-2.jpg", label: "Уютный дом", subtitle: "Было: пустые стены. Стало: покупатель хочет жить тут", mode: "staging" },
-              { before: "/demo/before-3.jpg", after: "/demo/after-3.jpg", label: "Квартира мечты", subtitle: "Было: советский ремонт. Стало: современный интерьер", mode: "redesign" },
-              { before: "/demo/before-4.jpg", after: "/demo/after-4.jpg", label: "Чистое фото", subtitle: "Было: лишние вещи. Стало: только пространство", mode: "remove" },
-              { before: "/demo/before-1.jpg", after: "/demo/after-1.jpg", label: "Свежий ремонт", subtitle: "Было: обшарпанные стены. Стало: как после ремонта", mode: "renovation" },
-              { before: "/demo/before-3.jpg", after: "/demo/after-3.jpg", label: "Золотой час", subtitle: "Было: серый день. Стало: покупатель влюбляется", mode: "dusk" },
-            ].map((item) => (
-              <div key={item.label} className="stagger-child">
-                <BeforeAfterToggle
-                  beforeSrc={item.before}
-                  afterSrc={item.after}
-                  label={item.label}
-                  subtitle={item.subtitle}
-                />
-                <Link
-                  href={`/generate?mode=${item.mode}`}
-                  className="mt-2 inline-flex items-center gap-1 text-sm text-terra-400 hover:text-terra-300 transition-colors"
-                >
-                  Попробовать <span aria-hidden="true">&rarr;</span>
-                </Link>
+          {/* ── Все 38 сервисов по категориям ── */}
+          {(() => {
+            const DEMO_PHOTOS: Record<string, { before: string; after: string; label: string; subtitle: string }> = {
+              enhance:    { before: "/demo/before-1.jpg", after: "/demo/after-1.jpg", label: "Готово к показу", subtitle: "Было: хлам хозяев. Стало: продающее фото" },
+              staging:    { before: "/demo/before-2.jpg", after: "/demo/after-2.jpg", label: "Уютный дом", subtitle: "Было: пустые стены. Стало: покупатель хочет жить тут" },
+              redesign:   { before: "/demo/before-3.jpg", after: "/demo/after-3.jpg", label: "Квартира мечты", subtitle: "Было: советский ремонт. Стало: современный интерьер" },
+              remove:     { before: "/demo/before-4.jpg", after: "/demo/after-4.jpg", label: "Чистое фото", subtitle: "Было: лишние вещи. Стало: только пространство" },
+              renovation: { before: "/demo/before-1.jpg", after: "/demo/after-1.jpg", label: "Свежий ремонт", subtitle: "Было: обшарпанные стены. Стало: как после ремонта" },
+              dusk:       { before: "/demo/before-3.jpg", after: "/demo/after-3.jpg", label: "Золотой час", subtitle: "Было: серый день. Стало: покупатель влюбляется" },
+            };
+            const PLACEHOLDER_DESC: Record<string, string> = {
+              vacant: "Комната с мебелью → пустое чистое пространство",
+              declutter: "Захламлённая комната → чистая и аккуратная",
+              wallcolor: "Старые жёлтые стены → свежий белый цвет",
+              flooring: "Потёртый линолеум → новый ламинат",
+              kitchen: "Старая кухня → новые фасады и столешница",
+              bathroom: "Ванная с плесенью → свежий кафель и сантехника",
+              furnish: "Старый диван → новый современный",
+              additem: "Пустой угол → камин и книжная полка",
+              commercial: "Пустое помещение → готовый офис или кафе",
+              exterior: "Обшарпанный фасад → обновлённый дом",
+              landscape: "Голый участок → сад с газоном и дорожками",
+              greenify: "Жёлтый газон → сочная зелень",
+              season: "Зимний двор → летний с зеленью и солнцем",
+              decor: "Обычный дом → новогодний с ёлкой и гирляндами",
+              sky: "Серое пасмурное небо → голубое с облаками",
+              lighting: "Тёмное фото → светлое и яркое",
+              perspective: "Кривые стены → ровные вертикали",
+              upscale: "Размытое фото → чёткое в 4× разрешении",
+              watermark: "Логотип агентства на фото → чистое фото",
+              describe: "Пустое поле → готовый текст для Авито",
+              listing: "Фото квартиры → три заголовка + описание + хештеги",
+              social: "Фото → готовый пост для ВК с эмодзи",
+              score: "Фото → оценка 4/5 и рекомендации",
+              analyze: "Фото → тип комнаты, площадь, состояние ремонта",
+              checklist: "Фото → список: покрасить, убрать, починить",
+              floorplan: "Фото комнаты → схема с примерными размерами",
+              compliance: "Фото → ✅ Готово к Авито / ❌ Нужна доработка",
+              repaircost: "Фото → бюджет ремонта: 85 000 ₽",
+              compare: "Одна комната → 4 стиля на выбор",
+              textrender: "Описание мечты → визуализация интерьера",
+              batch: "20 фото → 20 результатов за минуту",
+              tour: "Обычные фото → панорама квартиры",
+            };
+
+            const CAT_LABELS: Record<string, string> = {
+              photo: "Фото",
+              text: "Тексты",
+              expert: "Экспертиза",
+              advanced: "Продвинутое",
+            };
+
+            return (
+              <div className="space-y-12 lg:space-y-16">
+                {SERVICE_CATEGORIES.map((cat) => {
+                  const items = SERVICES.filter((s) => s.category === cat.id);
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={cat.id}>
+                      <div className="flex items-center gap-2 mb-6">
+                        <span className="text-xl">{cat.icon}</span>
+                        <h3 className="text-lg font-semibold text-white">{CAT_LABELS[cat.id] || cat.label}</h3>
+                        <span className="text-xs text-neutral-500">{items.length}</span>
+                      </div>
+                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                        {items.map((svc) => {
+                          const demo = DEMO_PHOTOS[svc.id];
+                          const placeholder = PLACEHOLDER_DESC[svc.id];
+                          const href = svc.isLink && svc.href ? svc.href : `/generate?mode=${svc.id}`;
+                          return (
+                            <div key={svc.id} className="stagger-child">
+                              {demo ? (
+                                <BeforeAfterToggle
+                                  beforeSrc={demo.before}
+                                  afterSrc={demo.after}
+                                  label={demo.label}
+                                  subtitle={demo.subtitle}
+                                />
+                              ) : (
+                                <div className="rounded-xl border-2 border-dashed border-white/10 aspect-[4/3] flex flex-col items-center justify-center p-4 text-center">
+                                  <span className="text-2xl mb-2">{svc.icon}</span>
+                                  <p className="text-neutral-500 text-xs leading-relaxed">
+                                    {placeholder || `${svc.label}: ${svc.desc}`}
+                                  </p>
+                                </div>
+                              )}
+                              <div className="mt-2 flex items-center gap-2">
+                                <span className="text-sm text-white font-medium truncate">{svc.label}</span>
+                                {svc.isNew && (
+                                  <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider" style={{ backgroundColor: "rgba(212,101,75,0.15)", color: "#e07460" }}>
+                                    Новое
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-neutral-500 mt-0.5">{svc.desc}</p>
+                              <Link
+                                href={href}
+                                className="mt-1 inline-flex items-center gap-1 text-xs text-terra-400 hover:text-terra-300 transition-colors"
+                              >
+                                Попробовать <span aria-hidden="true">&rarr;</span>
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* Баннер */}
           <div className="mt-16 rounded-xl bg-terra-500 p-8 sm:p-10 text-center text-white">
@@ -392,8 +479,8 @@ export default function HomePage() {
               },
               {
                 icon: "💬",
-                title: "Правки голосом",
-                desc: "Скажите: «убери вазу», «добавь ковёр» — сервис сделает.",
+                title: "Точечные правки",
+                desc: "Напишите: «убери вазу», «добавь ковёр» — сервис сделает.",
                 href: "/generate",
                 tag: "Новое",
               },
@@ -748,7 +835,7 @@ export default function HomePage() {
               },
               {
                 name: "Профи", price: "5 990", per: "₽", credits: "100 фото", perPhoto: "60₽/фото",
-                features: ["Все 38 возможностей", "Точечное удаление", "Правки голосом", "Сравнение 4 стилей", "Персональная поддержка"],
+                features: ["Все 38 возможностей", "Точечное удаление", "Точечные правки", "Сравнение 4 стилей", "Персональная поддержка"],
                 accent: false, badge: null, cta: "Подключить", href: "/auth",
               },
             ].map((plan) => (
