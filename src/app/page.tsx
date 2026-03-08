@@ -146,7 +146,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           01 РЕЗУЛЬТАТ — все 38 сервисов с примерами
           ═══════════════════════════════════════════ */}
-      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
+      <section className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">01</span>
@@ -289,7 +289,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-      </FadeInSection>
+      </section>
 
       {/* ═══════════════════════════════════════════
           ДОВЕРИЕ — площадки + метрики (без номера)
