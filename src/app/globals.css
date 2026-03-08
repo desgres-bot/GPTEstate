@@ -443,6 +443,15 @@ html {
   }
 }
 
+/* Hide scrollbar utility for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Touch feedback for cards and tappable elements */
 .touch-feedback {
   -webkit-tap-highlight-color: transparent;

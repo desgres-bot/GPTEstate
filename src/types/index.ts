@@ -1,7 +1,24 @@
 export type Mode =
   | "enhance" | "staging" | "redesign" | "remove"
   | "describe" | "dusk" | "sky"
-  | "score" | "analyze" | "renovation";
+  | "score" | "analyze" | "renovation"
+  | "checklist" | "listing" | "compare"
+  | "exterior" | "landscape" | "wallcolor" | "lighting"
+  | "perspective" | "upscale" | "watermark" | "furnish"
+  | "social" | "floorplan"
+  | "flooring" | "kitchen" | "season" | "decor"
+  | "commercial" | "compliance" | "textrender" | "repaircost"
+  | "vacant" | "declutter"
+  | "bathroom" | "additem" | "greenify"
+  | "refine";
+
+export type FlooringType = "laminate" | "parquet" | "tile" | "marble" | "vinyl" | "concrete" | "carpet" | "custom";
+export type KitchenStyle = "modern_white" | "modern_dark" | "classic_wood" | "scandinavian" | "industrial" | "shaker" | "custom";
+export type SeasonType = "spring" | "summer" | "autumn" | "winter";
+export type DecorType = "newyear" | "christmas" | "halloween" | "easter" | "birthday" | "romantic";
+export type CommercialType = "office" | "restaurant" | "cafe" | "retail" | "hotel" | "coworking" | "gym" | "salon";
+
+export type BathroomStyle = "modern_white" | "marble" | "industrial" | "wood" | "minimalist" | "classic" | "custom";
 
 export type Style =
   | "modern" | "scandinavian" | "loft" | "classic" | "japanese"
@@ -14,6 +31,14 @@ export type Style =
 export type SkyType = "sunny" | "sunset" | "dramatic" | "blue";
 
 export type RenovationType = "white_walls" | "beige_walls" | "gray_walls" | "laminate" | "tile" | "parquet" | "full_light" | "full_dark";
+
+export type ExteriorStyle = "modern" | "classic" | "minimalist" | "scandinavian" | "mediterranean" | "craftsman" | "colonial" | "custom";
+
+export type LandscapeType = "garden" | "lawn" | "patio" | "pool" | "lights" | "full";
+
+export type WallColor = "white" | "beige" | "gray" | "blue" | "green" | "terracotta" | "lavender" | "sage" | "navy" | "custom";
+
+export type SocialPlatform = "instagram" | "vk" | "telegram" | "facebook";
 
 export type Platform = "avito" | "cian" | "domclick";
 

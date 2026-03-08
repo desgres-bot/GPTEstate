@@ -14,8 +14,8 @@ export default function Footer() {
               Сервис
             </h4>
             <nav className="flex flex-col gap-3 text-base">
-              <Link href="/generate" className="text-white transition-colors hover:text-neutral-300">Улучшить фото</Link>
-              <Link href="/batch" className="text-white transition-colors hover:text-neutral-300">Пакетная обработка</Link>
+              <Link href="/generate" className="text-white transition-colors hover:text-neutral-300">Все сервисы</Link>
+              <Link href="/batch" className="text-white transition-colors hover:text-neutral-300">Много фото сразу</Link>
               <Link href="/pricing" className="text-white transition-colors hover:text-neutral-300">Тарифы</Link>
               <Link href="/gallery" className="text-white transition-colors hover:text-neutral-300">Примеры</Link>
             </nav>

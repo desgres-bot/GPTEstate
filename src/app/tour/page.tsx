@@ -189,8 +189,41 @@ export default function TourPage() {
             Виртуальный тур 360°
           </h1>
           <p className="mt-4 text-lg text-neutral-400 max-w-xl">
-            Загрузите панорамные фото комнат — создайте интерактивный тур
+            Загрузите панорамные фото комнат — создайте интерактивный тур для объявления
           </p>
+
+          {/* How it works — step by step */}
+          {scenes.length === 0 && (
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="rounded-xl bg-white/[0.05] border border-white/[0.08] p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-terra-500/20 text-terra-400 text-sm font-bold">1</span>
+                  <h3 className="text-base font-medium text-white">Загрузите фото</h3>
+                </div>
+                <p className="text-sm text-neutral-400 leading-relaxed">
+                  Загрузите панорамные фото (360°) каждой комнаты. Снимайте на телефон в режиме панорамы или используйте 360-камеру.
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/[0.05] border border-white/[0.08] p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-terra-500/20 text-terra-400 text-sm font-bold">2</span>
+                  <h3 className="text-base font-medium text-white">Свяжите комнаты</h3>
+                </div>
+                <p className="text-sm text-neutral-400 leading-relaxed">
+                  Добавьте переходы между комнатами — укажите координаты точки и целевую комнату. Покупатель сможет ходить по квартире.
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/[0.05] border border-white/[0.08] p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-terra-500/20 text-terra-400 text-sm font-bold">3</span>
+                  <h3 className="text-base font-medium text-white">Получите код</h3>
+                </div>
+                <p className="text-sm text-neutral-400 leading-relaxed">
+                  Скопируйте embed-код и вставьте на сайт или в объявление. Покупатели смогут осмотреть квартиру онлайн.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main layout */}
@@ -325,6 +358,23 @@ export default function TourPage() {
                     Нет загруженных комнат
                   </p>
                 )}
+
+                {/* Tip for users with few scenes */}
+                {scenes.length === 1 && (
+                  <div className="mt-3 rounded-lg bg-terra-500/10 border border-terra-500/20 p-3">
+                    <p className="text-xs text-terra-300 leading-relaxed">
+                      Загрузите ещё комнаты, чтобы создать переходы между ними. Для полноценного тура нужно минимум 2 комнаты.
+                    </p>
+                  </div>
+                )}
+
+                {scenes.length >= 2 && scenes.every(s => s.hotspots.length === 0) && (
+                  <div className="mt-3 rounded-lg bg-white/[0.04] border border-white/[0.08] p-3">
+                    <p className="text-xs text-neutral-400 leading-relaxed">
+                      Теперь добавьте переходы: выберите комнату, нажмите «Добавить переход» и укажите координаты точки перехода.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -350,10 +400,13 @@ export default function TourPage() {
                     />
                   </svg>
                   <p className="text-xl text-neutral-300 mb-2">
-                    Загрузите панорамные фото
+                    Загрузите панорамные фото комнат
                   </p>
-                  <p className="text-sm text-neutral-500 mb-6">
+                  <p className="text-sm text-neutral-500 mb-2">
                     Перетащите или нажмите для выбора. JPG, PNG до 20 МБ.
+                  </p>
+                  <p className="text-xs text-neutral-600 mb-6 max-w-sm">
+                    Подсказка: снимите панораму на телефон (iPhone: камера → Панорама, Android: Google Камера → Фотосфера) или используйте 360-камеру
                   </p>
                   <span className="btn-terra text-sm">
                     Выбрать файлы

@@ -31,7 +31,7 @@ const tabs = [
   },
   {
     href: "/generate",
-    label: "Улучшить",
+    label: "Сервисы",
     icon: (active: boolean) => (
       <svg
         xmlns="http://www.w3.org/2000/svg"

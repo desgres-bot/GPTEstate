@@ -30,10 +30,9 @@ export default function Header() {
       ]
     : [
         { href: "/", label: "Главная" },
-        { href: "/generate", label: "Улучшить" },
+        { href: "/generate", label: "Сервисы" },
         { href: "/pricing", label: "Тарифы" },
         { href: "/blog", label: "Блог" },
-        { href: "/tour", label: "Тур 360°" },
       ];
 
   return (

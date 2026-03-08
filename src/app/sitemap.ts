@@ -25,6 +25,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/virtualnyj-stejdzhing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/generaciya-opisaniya-kvartiry`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/day-to-dusk-foto`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
+    // New SEO landing pages (high-frequency keywords)
+    { url: `${baseUrl}/kak-prodat-kvartiru-bystro`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/homestaging`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/podgotovka-kvartiry-k-prodazhe`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/obrabotka-foto-nedvizhimosti`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/dizajn-kvartiry-nejroset`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/virtualnaya-meblirovka`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/foto-dlya-cian`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/uvelichit-prodazhi-nedvizhimosti`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     // Comparison pages
     { url: `${baseUrl}/gptestate-vs-fotograf`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/virtualnyj-vs-realnyj-stejdzhing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },

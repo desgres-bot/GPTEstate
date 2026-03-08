@@ -36,6 +36,15 @@ export default function BatchPage() {
     { id: "sky" as Mode, label: "Небо", desc: "Заменить небо" },
   ];
 
+  const batchModeHint: Record<string, string> = {
+    enhance: "Загрузите фото комнат с беспорядком — AI уберёт лишние вещи на всех фото разом.",
+    staging: "Загрузите фото пустых комнат — AI расставит мебель в выбранном стиле.",
+    redesign: "Загрузите фото комнат — AI изменит стиль интерьера на всех фото одинаково.",
+    renovation: "Загрузите фото комнат с устаревшим ремонтом — AI покажет обновлённый вариант.",
+    dusk: "Загрузите фото фасадов зданий — AI превратит их в атмосферные вечерние снимки.",
+    sky: "Загрузите фото зданий с небом — AI заменит пасмурное небо на солнечное.",
+  };
+
   const handleFiles = useCallback((selectedFiles: FileList | File[]) => {
     const newFiles: BatchFile[] = Array.from(selectedFiles)
       .filter((f) => f.type.startsWith("image/"))
@@ -271,6 +280,18 @@ export default function BatchPage() {
                 {r.emoji} {r.name}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* Mode description hint */}
+        {files.length === 0 && (
+          <div className="mt-6 rounded-xl bg-white/[0.04] border border-white/[0.08] p-4">
+            <p className="text-[15px] text-white/80 leading-relaxed">
+              {batchModeHint[mode] || batchModeHint.enhance}
+            </p>
+            <p className="text-xs text-white/40 mt-2">
+              Все фото обработаются одинаково — один режим, один стиль. Результаты скачайте ZIP-архивом.
+            </p>
           </div>
         )}
 
@@ -521,12 +542,22 @@ export default function BatchPage() {
             <h3 className="text-base text-neutral-400">
               Как работает пакетная обработка
             </h3>
-            <ul className="mt-4 space-y-3 text-base text-neutral-400">
-              <li>— Загрузите до 20 фото одного объекта</li>
-              <li>— Выберите режим и стиль</li>
-              <li>— Все фото обработаются автоматически</li>
-              <li>— Скачайте результаты одним ZIP-архивом</li>
-            </ul>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { step: "1", title: "Выберите режим", text: "Выберите что нужно сделать: уборка, мебель, новый стиль или другой режим" },
+                { step: "2", title: "Загрузите фото", text: "Перетащите до 20 фото или нажмите на область загрузки" },
+                { step: "3", title: "Обработка", text: "AI обработает все фото автоматически. Каждое фото — около 30 секунд" },
+                { step: "4", title: "Скачайте ZIP", text: "Скачайте все результаты одним архивом или создайте слайдшоу" },
+              ].map((item) => (
+                <div key={item.step} className="rounded-lg bg-white/[0.04] border border-white/[0.08] p-4">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-terra-500/20 text-terra-400 text-xs font-bold">{item.step}</span>
+                    <span className="text-sm font-medium text-white/90">{item.title}</span>
+                  </div>
+                  <p className="text-xs text-neutral-500 leading-relaxed">{item.text}</p>
+                </div>
+              ))}
+            </div>
 
             <div className="mt-8 rounded-xl bg-white/[0.04] border border-white/10 p-4 flex items-center gap-3">
               <span className="relative flex h-2 w-2">
