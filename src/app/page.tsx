@@ -237,7 +237,7 @@ export default function HomePage() {
                           const placeholder = PLACEHOLDER_DESC[svc.id];
                           const href = svc.isLink && svc.href ? svc.href : `/generate?mode=${svc.id}`;
                           return (
-                            <div key={svc.id} className="stagger-child">
+                            <div key={svc.id}>
                               {demo ? (
                                 <BeforeAfterToggle
                                   beforeSrc={demo.before}
