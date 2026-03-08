@@ -19,8 +19,8 @@ const TOTAL_SERVICES = 38;
 
 export default function AllModesGrid({
   exclude,
-  title = "Все 38 AI-сервисов",
-  subtitle = "для недвижимости",
+  title = "38 возможностей",
+  subtitle = "в одной подписке",
   dark = true,
 }: Props) {
   const filtered = useMemo(() => {
@@ -121,7 +121,7 @@ export default function AllModesGrid({
                                 color: dark ? "#e07460" : "#b8503a",
                               }}
                             >
-                              NEW
+                              Новое
                             </span>
                           )}
                         </div>
@@ -148,7 +148,7 @@ export default function AllModesGrid({
 
       {/* Footer count */}
       <p className="text-xs text-neutral-500 mt-8 text-center">
-        Показано {filtered.length} из {TOTAL_SERVICES} сервисов
+        Показано {filtered.length} из {TOTAL_SERVICES} возможностей
       </p>
     </div>
   );
