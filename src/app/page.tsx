@@ -64,7 +64,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           ГЕРОЙ — тёмная секция с H1, BeforeAfter, LiveCounter
           ═════════════════════════════════════════════════════════ */}
-      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
+      <section className="text-white" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -168,7 +168,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           01 КАТАЛОГ — Все 38 AI-сервисов
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">01</span>
@@ -191,7 +191,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           02 БОЛЬ — Проблемы + LossCalculator
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #1a1714 100%)" }}>
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">02</span>
@@ -257,7 +257,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           03 РЕЗУЛЬТАТ — 6 BeforeAfterToggle
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1E1B18 50%, #1a1714 100%)" }}>
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">03</span>
@@ -312,7 +312,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           04 ПРОЦЕСС — 3 шага + дополнительные возможности
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom right, rgba(212,101,75,0.04) 0%, #1E1B18 40%, #161311 100%)" }}>
+      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">04</span>
@@ -429,7 +429,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           05 ЭКОНОМИЯ — Таблица сравнения
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 50%, #1E1B18 100%)" }}>
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">05</span>
@@ -498,7 +498,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           06 СТЕЙДЖИНГ + Доп.режимы
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="fade-left" className="py-24 lg:py-32 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top left, rgba(212,101,75,0.05) 0%, #1E1B18 40%, #161311 100%)" }}>
+      <FadeInSection variant="fade-left" className="py-24 lg:py-32 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6 space-y-24 lg:space-y-32">
           {/* Блок 1: Мебель */}
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
@@ -612,7 +612,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           07 ОТЗЫВЫ
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1E1B18 100%)" }}>
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">07</span>
@@ -692,7 +692,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           08 ТАРИФЫ
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at center, rgba(212,101,75,0.04) 0%, #1E1B18 50%, #1a1714 100%)" }}>
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">08</span>
@@ -791,7 +791,7 @@ export default function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           09 ВОПРОСЫ
           ═════════════════════════════════════════════════════════ */}
-      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1E1B18 100%)" }}>
+      <FadeInSection variant="fade-right" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
             <div>

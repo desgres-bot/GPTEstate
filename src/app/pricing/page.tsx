@@ -154,7 +154,7 @@ export default function PricingPage() {
       {/* ===== ГЕРОЙ ===== */}
       <section
         className="text-white pt-32 pb-20 lg:pt-44 lg:pb-28"
-        style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="max-w-3xl">
@@ -221,7 +221,7 @@ export default function PricingPage() {
       <FadeInSection
         variant="scale-in"
         className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
-        style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           {/* Free trial banner */}
@@ -312,7 +312,7 @@ export default function PricingPage() {
       <FadeInSection
         variant="fade-left"
         className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
-        style={{ background: "linear-gradient(180deg, #1E1B18 0%, #1a1714 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
@@ -365,7 +365,7 @@ export default function PricingPage() {
       <FadeInSection
         variant="blur-in"
         className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
-        style={{ background: "radial-gradient(ellipse at bottom right, rgba(212,101,75,0.05) 0%, #161311 50%, #1E1B18 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20 items-start">
@@ -419,7 +419,7 @@ export default function PricingPage() {
       <FadeInSection
         variant="scale-in"
         className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
-        style={{ background: "linear-gradient(180deg, #161311 0%, #1E1B18 50%, #1a1714 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6 text-center">
           <div className="section-label mb-8 justify-center">
@@ -462,7 +462,7 @@ export default function PricingPage() {
       <FadeInSection
         variant="default"
         className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
-        style={{ background: "radial-gradient(ellipse at top left, rgba(212,101,75,0.04) 0%, #1E1B18 40%, #161311 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
@@ -489,7 +489,7 @@ export default function PricingPage() {
       <FadeInSection
         variant="fade-right"
         className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
-        style={{ background: "linear-gradient(180deg, #161311 0%, #1E1B18 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">

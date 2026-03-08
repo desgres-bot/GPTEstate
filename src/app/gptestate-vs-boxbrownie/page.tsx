@@ -41,7 +41,7 @@ export default function VsBoxBrownie() {
   return (
     <>
       {/* ===== ГЕРОЙ ===== */}
-      <section className="text-white" style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}>
+      <section className="text-white" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6 pt-28 pb-0 lg:pt-36">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-terra-400 text-sm uppercase tracking-widest font-medium mb-6">
@@ -81,7 +81,7 @@ export default function VsBoxBrownie() {
       </section>
 
       {/* ===== 01 СРАВНИТЕЛЬНАЯ ТАБЛИЦА ===== */}
-      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 100%)" }}>
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">01</span>
@@ -146,7 +146,7 @@ export default function VsBoxBrownie() {
       </FadeInSection>
 
       {/* ===== 02 ПРЕИМУЩЕСТВА ===== */}
-      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "linear-gradient(180deg, #1a1714 0%, #161311 100%)" }}>
+      <FadeInSection variant="fade-left" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
             <span className="section-number-light">02</span>
@@ -177,7 +177,7 @@ export default function VsBoxBrownie() {
       </FadeInSection>
 
       {/* ===== 03 FAQ ===== */}
-      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at bottom center, rgba(212,101,75,0.04) 0%, #161311 60%, #1a1714 100%)" }}>
+      <FadeInSection variant="blur-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-20">
             <div>
@@ -204,7 +204,7 @@ export default function VsBoxBrownie() {
 
       
       {/* ===== ALL MODES ===== */}
-      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "radial-gradient(ellipse at top center, rgba(212,101,75,0.06) 0%, #161311 50%, #1a1714 100%)" }}>
+      <FadeInSection variant="scale-in" className="py-24 lg:py-40 text-white border-t border-white/[0.06]" style={{ background: "#161311" }}>
         <div className="mx-auto max-w-7xl px-6">
           <AllModesGrid
             title="У нас ещё"

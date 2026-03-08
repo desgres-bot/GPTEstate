@@ -181,7 +181,7 @@ export default function GalleryPage() {
       {/* ===== ГЕРОЙ ===== */}
       <section
         className="text-white pt-28 pb-16 lg:pt-36 lg:pb-24"
-        style={{ background: "linear-gradient(180deg, #1E1B18 0%, #161311 60%, #1a1714 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
@@ -411,7 +411,7 @@ export default function GalleryPage() {
       <FadeInSection
         variant="scale-in"
         className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
-        style={{ background: "radial-gradient(ellipse at center, rgba(212,101,75,0.05) 0%, #1E1B18 50%, #161311 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
@@ -451,7 +451,7 @@ export default function GalleryPage() {
       <FadeInSection
         variant="fade-left"
         className="py-24 lg:py-40 text-white border-t border-white/[0.06]"
-        style={{ background: "linear-gradient(180deg, #161311 0%, #1a1714 50%, #1E1B18 100%)" }}
+        style={{ background: "#161311" }}
       >
         <div className="mx-auto max-w-7xl px-6">
           <div className="section-label mb-8">
