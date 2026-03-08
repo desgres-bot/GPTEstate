@@ -67,108 +67,108 @@ function extractUrl(output: unknown): string {
 /** Shared style prompts for staging and redesign modes (25 styles + custom). */
 const STYLE_PROMPTS_STAGE: Record<string, string> = {
   modern:
-    "Add modern minimalist furniture: a stylish sofa, coffee table, sleek shelving, pendant lights. Neutral colors with accent pieces, clean lines, contemporary feel.",
+    "Add a light gray linen sectional sofa against the main wall, a round walnut coffee table with a stack of architecture books, two cream armchairs. A wool throw draped over the armrest, a potted fiddle leaf fig in the corner. Warm pendant lighting.",
   scandinavian:
-    "Add Scandinavian style furniture: light wood pieces, white and beige textiles, cozy throws, plants. Warm minimal aesthetic, hygge feeling.",
+    "Add a cream boucle sofa with oak legs against the main wall, a light birch coffee table, two linen cushions. A sheepskin throw, a ceramic vase with dried pampas grass, a woven jute rug. Soft natural light.",
   loft:
-    "Add industrial loft furniture: vintage leather sofa, metal shelving, Edison bulb lighting. Dark wood and metal accents, raw aesthetic.",
+    "Add a cognac leather Chesterfield sofa, a reclaimed wood coffee table on iron hairpin legs, an industrial floor lamp with Edison bulb. A vintage area rug, exposed-style metal bookshelf with books and plants.",
   classic:
-    "Add classic elegant furniture: traditional pieces with curved lines, rich fabrics, warm wood. Elegant curtains, chandelier lighting, refined atmosphere.",
+    "Add an ivory tufted sofa with rolled arms, a mahogany coffee table with curved legs, two wingback chairs in sage green velvet. Silk curtains, a crystal chandelier, a Persian area rug.",
   japanese:
-    "Add Japanese minimalist furniture: low bed/sofa, tatami elements, shoji screens, bonsai plants. Natural materials, zen simplicity, clean open space.",
+    "Add a low walnut platform sofa with linen cushions, a round stone coffee table, a floor tatami mat. A bonsai tree on a wooden stand, rice paper floor lamp, minimal ceramics on a floating shelf.",
   minimalist:
-    "Add ultra-minimalist furniture: very few pieces, clean surfaces, monochrome palette. Simple bed or sofa, one accent piece, nothing extra.",
+    "Add a single white linen sofa, a slim black metal side table, one large ceramic floor vase. Nothing else — clean open space, monochrome palette, intentional emptiness.",
   boho:
-    "Add bohemian furniture: eclectic mix of patterns, macrame wall hangings, floor cushions, many plants. Warm colors, layered textiles, relaxed vibe.",
+    "Add a rust-colored velvet sofa with mixed-pattern cushions, a round rattan coffee table, macrame wall hanging. Layered kilim rugs, trailing pothos plants, brass moroccan lantern.",
   provence:
-    "Add Provence-style furniture: whitewashed wood, lavender accents, floral textiles. Vintage charm, soft pastels, French countryside atmosphere.",
+    "Add a whitewashed oak dining table with four ladder-back chairs, linen seat cushions in lavender. A ceramic jug with dried lavender, distressed white sideboard, floral curtains in soft blue.",
   artdeco:
-    "Add Art Deco furniture: geometric patterns, gold and black accents, velvet upholstery. Glamorous mirrors, luxury materials, 1920s elegance.",
+    "Add an emerald green velvet sofa with gold legs, a mirrored geometric coffee table, two brass table lamps. A black and gold area rug, sunburst mirror on the wall, crystal decanter on a bar cart.",
   hightech:
-    "Add high-tech modern furniture: chrome and glass pieces, LED lighting accents, sleek black surfaces. Futuristic, technology-forward aesthetic.",
+    "Add a black leather modular sofa with chrome frame, a glass and steel coffee table, LED strip under-lighting. A wall-mounted flat screen, minimal black shelving with tech accessories.",
   country:
-    "Add country-style furniture: warm wood pieces, checkered textiles, cozy rugs. Comfortable sofas, rustic shelving, homey atmosphere.",
+    "Add a large plaid upholstered sofa in warm brown, a distressed pine coffee table, a woven basket with blankets. Gingham cushions, a table lamp with burlap shade, braided oval rug.",
   eco:
-    "Add eco-friendly furniture: natural wood, bamboo elements, linen textiles, many green plants. Sustainable materials, earthy tones, biophilic design.",
+    "Add a natural linen sofa on bamboo frame, a live-edge wood slab coffee table, cork side table. Five potted plants of varying heights, linen curtains, a jute area rug. Earthy warm tones.",
   industrial:
-    "Add industrial furniture: metal and reclaimed wood pieces, exposed-style shelving, factory-inspired lighting. Urban warehouse aesthetic.",
+    "Add a dark gray canvas sofa on black metal frame, a cart-style coffee table with iron wheels, a factory pendant lamp. Concrete-look accessories, metal wire baskets, a reclaimed wood bookshelf.",
   mediterranean:
-    "Add Mediterranean furniture: terracotta accents, wrought iron details, blue and white textiles. Ceramic tiles, olive branches, coastal warmth.",
+    "Add a white linen sofa with terracotta and blue cushions, a mosaic-top round coffee table, wrought iron candle holders. Olive branches in a ceramic vase, blue and white patterned rug.",
   retro:
-    "Add retro/vintage furniture: 1960s-70s inspired pieces, bold colors, rounded forms. Vintage lamps, retro patterns, nostalgic atmosphere.",
+    "Add a curved orange velvet sofa on wooden legs, a kidney-shaped teak coffee table, a lava lamp and rotary phone. Geometric wallpaper accent, shag rug in cream, a sunburst clock.",
   neoclassic:
-    "Add neoclassical furniture: elegant symmetrical pieces, muted luxury, classical columns influence. Refined fabrics, subtle gold accents, timeless elegance.",
+    "Add a dove gray silk sofa with fluted wooden legs, a marble-top round side table, two matching armchairs. Pleated silk curtains, a gilt-framed mirror, a crystal table lamp.",
   midcentury:
-    "Add mid-century modern furniture: iconic 1950s-60s design, organic curves, wooden legs. Eames-style chairs, teak sideboards, retro-modern feel.",
+    "Add an Eames-style walnut lounge chair with ottoman, a teak credenza, a tulip side table. A Nelson saucer pendant lamp, an abstract print on the wall, a low sheepskin rug.",
   coastal:
-    "Add coastal-style furniture: white and blue palette, rope accents, driftwood elements. Light fabrics, nautical touches, breezy beach house feel.",
+    "Add a white slipcovered sofa with navy and coral striped cushions, a driftwood coffee table, a rope-wrapped basket. Sheer white curtains, a blue glass vase with sea grass, sisal rug.",
   farmhouse:
-    "Add farmhouse furniture: shiplap-style elements, distressed wood, mason jar accents. Comfortable seating, rustic charm, warm hospitality.",
+    "Add a deep-seated white linen sofa, a reclaimed barnwood coffee table, a galvanized metal side table. Mason jar with wildflowers, woven throw blanket, a vintage ladder as decor.",
   rustic:
-    "Add rustic furniture: raw natural wood, stone accents, thick woolen textiles. Log cabin aesthetic, warm fireplace feel, natural imperfections.",
+    "Add a chunky leather sofa with nail-head trim, a tree-trunk coffee table with clear lacquer, a stone table lamp. A thick wool area rug, antler wall mount, stack of firewood in a metal basket.",
   glam:
-    "Add glamorous furniture: mirrored surfaces, crystal chandeliers, plush velvet. Gold accents, fur throws, Hollywood luxury aesthetic.",
+    "Add a blush pink velvet sofa with gold legs, a mirrored coffee table, a faux fur throw. Crystal table lamps on marble side tables, a large gold-framed mirror, metallic accent pillows.",
   transitional:
-    "Add transitional furniture: blend of traditional and modern, neutral palette, comfortable sophistication. Clean lines with warm wood tones.",
+    "Add a charcoal linen sofa with clean lines and walnut legs, a round marble-top coffee table, two neutral upholstered chairs. Simple white curtains, a ceramic table lamp, a soft gray area rug.",
   baroque:
-    "Add baroque-style furniture: ornate carved wood, rich brocade fabrics, gold gilding. Dramatic chandelier, heavy curtains, royal palace aesthetic.",
+    "Add an ornate carved wood sofa in deep burgundy velvet, a gilded oval coffee table, two high-back throne chairs. Heavy brocade curtains with gold tassels, a large crystal chandelier.",
   fusion:
-    "Add fusion-style furniture: creative mix of East and West, bold color combinations, eclectic art pieces. Unique personality, cultural blend.",
+    "Add a teal velvet sofa with embroidered silk cushions, a brass-inlay wooden coffee table, a moroccan pouf. Japanese ceramic vases, an Indian silk rug, contemporary art on the wall.",
   ethnic:
-    "Add ethnic-style furniture: tribal patterns, handwoven textiles, carved wood accents. Rich colors, global artisan pieces, cultural authenticity.",
+    "Add a low carved wooden daybed with indigo batik cushions, a hammered copper tray table, hand-woven textile wall hanging. Tribal print rug, carved wooden masks, brass oil lamps.",
 };
 
 const STYLE_PROMPTS_REDESIGN: Record<string, string> = {
   modern:
-    "Replace the furniture with modern minimalist style: stylish sofa, modern coffee table, sleek shelving, pendant lights. Neutral colors with accent pieces, clean lines.",
+    "Replace all furniture with: a light gray linen sectional sofa, a round walnut coffee table with architecture books, two cream armchairs. Add a wool throw, a potted fiddle leaf fig, warm pendant lighting.",
   scandinavian:
-    "Replace the furniture with Scandinavian style: light wood furniture, white and beige textiles, cozy throws, plants. Warm minimal aesthetic, hygge feeling.",
+    "Replace all furniture with: a cream boucle sofa with oak legs, a light birch coffee table, linen cushions. Add a sheepskin throw, dried pampas in a ceramic vase, a woven jute rug.",
   loft:
-    "Replace the furniture with industrial loft style: vintage leather furniture, metal shelving, Edison bulb lighting. Dark wood and metal accents.",
+    "Replace all furniture with: a cognac leather Chesterfield sofa, a reclaimed wood coffee table on iron hairpin legs, an industrial floor lamp with Edison bulb. Add a vintage rug, metal bookshelf.",
   classic:
-    "Replace the furniture with classic elegant style: traditional furniture with curved lines, rich fabrics, warm wood. Elegant curtains, chandelier lighting.",
+    "Replace all furniture with: an ivory tufted sofa with rolled arms, a mahogany coffee table, two sage green velvet wingback chairs. Add silk curtains, crystal chandelier, Persian rug.",
   japanese:
-    "Replace the furniture with Japanese minimalist style: low furniture, tatami elements, shoji screens, bonsai plants. Natural materials, zen simplicity.",
+    "Replace all furniture with: a low walnut platform sofa with linen cushions, a round stone coffee table, floor tatami mat. Add a bonsai on wooden stand, rice paper floor lamp.",
   minimalist:
-    "Replace the furniture with ultra-minimalist style: very few pieces, clean surfaces, monochrome palette. Only essential items, nothing extra.",
+    "Replace all furniture with: a single white linen sofa and a slim black metal side table. Add one large ceramic floor vase. Remove everything else — clean open space, monochrome palette.",
   boho:
-    "Replace the furniture with bohemian style: eclectic patterns, macrame, floor cushions, plants. Warm colors, layered textiles, relaxed vibe.",
+    "Replace all furniture with: a rust-colored velvet sofa with mixed-pattern cushions, a round rattan coffee table, macrame wall hanging. Add layered kilim rugs, trailing pothos, brass lantern.",
   provence:
-    "Replace the furniture with Provence style: whitewashed wood, lavender accents, floral textiles. Vintage charm, soft pastels, French countryside.",
+    "Replace all furniture with: a whitewashed oak dining table, four ladder-back chairs with lavender linen seats. Add a ceramic jug with dried lavender, distressed white sideboard, soft blue floral curtains.",
   artdeco:
-    "Replace the furniture with Art Deco style: geometric patterns, gold and black, velvet upholstery. Glamorous mirrors, luxury materials.",
+    "Replace all furniture with: an emerald green velvet sofa with gold legs, a mirrored geometric coffee table, brass table lamps. Add a black and gold rug, sunburst mirror, crystal decanter on bar cart.",
   hightech:
-    "Replace the furniture with high-tech style: chrome and glass, LED lighting, sleek black surfaces. Futuristic, technology-forward look.",
+    "Replace all furniture with: a black leather modular sofa with chrome frame, a glass and steel coffee table, LED strip under-lighting. Add a wall-mounted screen, minimal black shelving.",
   country:
-    "Replace the furniture with country style: warm wood, checkered textiles, cozy rugs. Comfortable sofas, rustic shelving, homey feel.",
+    "Replace all furniture with: a large plaid upholstered sofa in warm brown, a distressed pine coffee table, a woven basket with blankets. Add gingham cushions, burlap lamp, braided rug.",
   eco:
-    "Replace the furniture with eco style: natural wood, bamboo, linen, many green plants. Sustainable materials, earthy tones, biophilic design.",
+    "Replace all furniture with: a natural linen sofa on bamboo frame, a live-edge wood coffee table, a cork side table. Add five potted plants of varying heights, linen curtains, jute rug.",
   industrial:
-    "Replace the furniture with industrial style: metal and reclaimed wood, exposed shelving, factory lighting. Urban warehouse aesthetic.",
+    "Replace all furniture with: a dark gray canvas sofa on black metal frame, a cart-style iron coffee table, a factory pendant lamp. Add metal wire baskets, reclaimed wood bookshelf.",
   mediterranean:
-    "Replace the furniture with Mediterranean style: terracotta, wrought iron, blue and white. Ceramic details, olive branches, coastal warmth.",
+    "Replace all furniture with: a white linen sofa with terracotta and blue cushions, a mosaic-top round coffee table, wrought iron candle holders. Add olive branches in ceramic vase, blue-white rug.",
   retro:
-    "Replace the furniture with retro style: 1960s-70s pieces, bold colors, rounded forms. Vintage lamps, retro patterns, nostalgic feel.",
+    "Replace all furniture with: a curved orange velvet sofa on wooden legs, a kidney-shaped teak coffee table, a vintage lava lamp. Add geometric accents, cream shag rug, sunburst wall clock.",
   neoclassic:
-    "Replace the furniture with neoclassical style: elegant symmetry, muted luxury, classical influence. Refined fabrics, subtle gold accents.",
+    "Replace all furniture with: a dove gray silk sofa with fluted wooden legs, a marble-top round side table, two matching armchairs. Add pleated silk curtains, gilt-framed mirror, crystal lamp.",
   midcentury:
-    "Replace the furniture with mid-century modern style: 1950s-60s design, organic curves, wooden legs. Iconic chairs, teak pieces.",
+    "Replace all furniture with: an Eames-style walnut lounge chair with ottoman, a teak credenza, a tulip side table. Add a Nelson saucer pendant lamp, abstract art print, low sheepskin rug.",
   coastal:
-    "Replace the furniture with coastal style: white and blue palette, rope accents, driftwood. Light fabrics, nautical touches, beach house vibe.",
+    "Replace all furniture with: a white slipcovered sofa with navy and coral cushions, a driftwood coffee table, rope-wrapped basket. Add sheer white curtains, blue glass vase with sea grass, sisal rug.",
   farmhouse:
-    "Replace the furniture with farmhouse style: shiplap elements, distressed wood, mason jars. Comfortable seating, rustic charm.",
+    "Replace all furniture with: a deep-seated white linen sofa, a reclaimed barnwood coffee table, a galvanized metal side table. Add mason jar with wildflowers, woven throw, vintage ladder decor.",
   rustic:
-    "Replace the furniture with rustic style: raw natural wood, stone accents, thick wool textiles. Log cabin feel, natural imperfections.",
+    "Replace all furniture with: a chunky leather sofa with nail-head trim, a tree-trunk coffee table with clear lacquer, a stone lamp. Add thick wool rug, antler wall mount, firewood in metal basket.",
   glam:
-    "Replace the furniture with glamorous style: mirrored surfaces, crystal chandeliers, plush velvet. Gold accents, Hollywood luxury.",
+    "Replace all furniture with: a blush pink velvet sofa with gold legs, a mirrored coffee table, a faux fur throw. Add crystal lamps on marble side tables, large gold-framed mirror, metallic pillows.",
   transitional:
-    "Replace the furniture with transitional style: blend of traditional and modern, neutral palette. Clean lines with warm wood tones.",
+    "Replace all furniture with: a charcoal linen sofa with walnut legs, a round marble-top coffee table, two neutral upholstered chairs. Add simple white curtains, ceramic lamp, soft gray rug.",
   baroque:
-    "Replace the furniture with baroque style: ornate carved wood, rich brocade, gold gilding. Dramatic chandelier, heavy curtains.",
+    "Replace all furniture with: an ornate carved wood sofa in deep burgundy velvet, a gilded oval coffee table, two high-back throne chairs. Add heavy brocade curtains with gold tassels, crystal chandelier.",
   fusion:
-    "Replace the furniture with fusion style: creative East-West mix, bold colors, eclectic art. Unique personality, cultural blend.",
+    "Replace all furniture with: a teal velvet sofa with embroidered silk cushions, a brass-inlay wooden coffee table, a moroccan pouf. Add Japanese ceramic vases, Indian silk rug, contemporary art.",
   ethnic:
-    "Replace the furniture with ethnic style: tribal patterns, handwoven textiles, carved wood. Rich colors, global artisan pieces.",
+    "Replace all furniture with: a low carved wooden daybed with indigo batik cushions, a hammered copper tray table, hand-woven wall hanging. Add tribal print rug, carved wooden masks, brass lamps.",
 };
 
 /**
@@ -214,18 +214,12 @@ Be specific about colors, patterns, materials. Keep very concise.`,
   const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Edit this photo to show the SAME room after a quick 5-minute cleanup. " +
-        "Remove ONLY the loose clutter: scattered clothes, boxes, bags, papers, dishes, " +
-        "and personal items from bed, floor, and surfaces. " +
-        "Show clean surfaces underneath where items were removed. " +
-        "CRITICAL — these must remain PIXEL-PERFECT IDENTICAL, do not change them at all: " +
-        "the chandelier/light fixture, curtain rod and curtains, window frames, " +
-        "wallpaper pattern and color, picture frames on walls, all furniture frames " +
-        "(bed frame, tables, chairs, shelves, wardrobes), flooring, doors, " +
-        "appliances, radiators, wall-mounted items. " +
-        "Keep the exact same camera angle, perspective, and lighting. " +
-        "This is a before/after cleaning photo — same room, just tidied up.",
+        "Remove all loose clutter from this room: scattered clothes, boxes, bags, papers, dishes, personal items from surfaces and floor. " +
+        "Show clean surfaces underneath. " +
+        "Keep all furniture, walls, flooring, windows, fixtures, and decor exactly as they are. " +
+        "Same camera angle and lighting. Professional interior photography, shot on Canon 5D Mark IV, 16-35mm wide angle.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -259,12 +253,12 @@ export async function stageRoom(
   const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Virtual staging: furnish this empty room. " + stylePrompt +
-        " IMPORTANT: Keep the EXACT same walls, wallpaper, paint color, windows, " +
-        "window frames, doors, flooring, ceiling and room shape. " +
-        "The room is currently empty or mostly empty — add appropriate furniture and decor. " +
-        "Keep the same camera angle and lighting. Professional real estate photo.",
+        stylePrompt +
+        " Place furniture naturally on the floor, grounded with proper shadows. " +
+        "While maintaining the exact same walls, flooring, windows, and room architecture. " +
+        "Same camera angle and perspective. Professional interior photography, shot on Canon 5D Mark IV, 16-35mm wide angle.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -298,12 +292,12 @@ export async function redesignRoom(
   const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Virtual staging for this room. " + stylePrompt +
-        " IMPORTANT: Keep the EXACT same walls, wallpaper, paint color, windows, " +
-        "window frames, doors, flooring, ceiling and room shape. " +
-        "Only change the furniture and small decor items. " +
-        "Keep the same camera angle and lighting. Professional real estate photo.",
+        stylePrompt +
+        " Place furniture naturally on the floor, grounded with proper shadows. " +
+        "While maintaining the exact same walls, flooring, windows, and room architecture. " +
+        "Same camera angle and perspective. Professional interior photography, shot on Canon 5D Mark IV, 16-35mm wide angle.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -378,13 +372,13 @@ export async function removeObjects(
   const removeOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Edit this photo. Remove the following objects: " +
+        "Remove the following objects from this photo: " +
         combinedDescription +
-        ". Replace removed areas with clean floor/wall/surface that matches the surrounding area. " +
-        "The removed areas should blend seamlessly with the background. " +
-        "Keep everything else PIXEL-PERFECT identical — same camera angle, lighting, colors, " +
-        "all other furniture and fixtures must remain exactly as they are.",
+        ". Reconstruct the floor and wall surfaces behind removed objects, matching existing textures seamlessly. " +
+        "While maintaining all other furniture, fixtures, walls, and lighting exactly as they are. " +
+        "Same camera angle and composition.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -469,14 +463,12 @@ export async function dayToDusk(imageBase64: string): Promise<string> {
   const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Transform this daytime exterior photo into a beautiful dusk/twilight scene. " +
-        "Add warm golden sunset sky with soft clouds. " +
-        "Make windows glow with warm interior lighting. " +
-        "Add subtle landscape lighting and pathway lights if applicable. " +
-        "The sky should transition from deep blue at the top to warm orange/pink at the horizon. " +
-        "Keep the building structure, landscaping, and all architectural details PIXEL-PERFECT identical. " +
-        "Same camera angle and composition. Professional real estate twilight photography.",
+        "Change the time of day to golden hour dusk. Add warm sunset sky transitioning from deep blue to orange-pink at the horizon. " +
+        "Add warm interior light glowing through all windows. Add subtle landscape lighting along pathways. " +
+        "While maintaining the exact same building structure, landscaping, and camera angle. " +
+        "Professional real estate twilight photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -501,13 +493,13 @@ export async function replaceSky(
 
   const skyPrompts: Record<string, string> = {
     sunny:
-      "Replace the sky with a beautiful clear sunny sky with bright blue color and a few white fluffy clouds. Bright daylight.",
+      "Replace the sky with a clear bright blue sky and a few white fluffy cumulus clouds. Bright warm daylight on the building.",
     sunset:
-      "Replace the sky with a stunning sunset sky with warm orange, pink and purple gradients. Golden hour lighting on the building.",
+      "Replace the sky with a warm sunset gradient — orange, pink and purple tones. Golden hour light casting warm tones on the building facade.",
     dramatic:
-      "Replace the sky with dramatic clouds and deep blue sky. Moody but impressive atmosphere. Professional dramatic sky.",
+      "Replace the sky with dramatic storm clouds in deep blue and gray. Moody cinematic atmosphere with strong contrast.",
     blue:
-      "Replace the sky with a perfectly clear bright blue sky. No clouds, pure blue gradient. Clean and fresh look.",
+      "Replace the sky with a perfectly clear gradient blue sky, no clouds. Clean, crisp, fresh look.",
   };
 
   const skyPrompt = skyPrompts[skyType] || skyPrompts.sunny;
@@ -517,9 +509,10 @@ export async function replaceSky(
     input: {
       prompt:
         skyPrompt +
-        " CRITICAL: Keep the building, landscaping, roads, and all ground-level elements PIXEL-PERFECT identical. " +
-        "Only change the sky area. Same camera angle and composition. Professional real estate photography.",
+        " While maintaining the exact same building, landscaping, roads, and all ground-level elements. " +
+        "Only change the sky. Same camera angle. Professional real estate photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -816,21 +809,21 @@ export async function renovateRoom(
 
   const renovationPrompts: Record<string, string> = {
     white_walls:
-      "Repaint all walls to clean bright white color. Smooth matte finish. Fresh, clean, bright white walls throughout the room.",
+      "Repaint all walls to clean matte white #FFFFFF. Smooth finish, fresh bright look throughout the room.",
     beige_walls:
-      "Repaint all walls to warm beige/cream color. Smooth finish. Elegant, warm, inviting beige tone throughout the room.",
+      "Repaint all walls to warm cream #F5F0EB. Smooth matte finish, warm inviting tone.",
     gray_walls:
-      "Repaint all walls to modern light gray color. Smooth matte finish. Contemporary, sophisticated light gray walls.",
+      "Repaint all walls to modern light gray #D5D5D5. Smooth matte finish, contemporary sophisticated look.",
     laminate:
-      "Replace the floor with modern light oak laminate flooring. Clean, uniform planks, modern laminate with natural wood pattern.",
+      "Replace the floor with light oak laminate planks with visible wood grain texture. Natural warm tone.",
     tile:
-      "Replace the floor with modern large-format light gray porcelain tiles. Clean even grout lines, contemporary polished tile floor.",
+      "Replace the floor with large-format porcelain tiles in light gray #C8C8C8. Clean even grout lines.",
     parquet:
-      "Replace the floor with classic herringbone parquet in warm natural oak color. Elegant, traditional herringbone parquet flooring.",
+      "Replace the floor with herringbone parquet in warm natural oak. Classic elegant pattern.",
     full_light:
-      "Complete light renovation: repaint all walls pure white, replace floor with light oak laminate. Clean modern white baseboards. Fresh, bright, modern renovation.",
+      "Repaint all walls pure white #FFFFFF and replace floor with light oak laminate. Add clean white baseboards. Fresh modern renovation.",
     full_dark:
-      "Complete dark renovation: paint all walls sophisticated dark charcoal gray, replace floor with dark walnut laminate. Modern dark baseboards. Dramatic, modern, sophisticated look.",
+      "Repaint all walls dark charcoal #3A3A3A and replace floor with dark walnut laminate. Add dark baseboards. Dramatic sophisticated look.",
   };
 
   const renovationPrompt = renovationPrompts[renovationType] || renovationPrompts.white_walls;
@@ -839,12 +832,12 @@ export async function renovateRoom(
   const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Virtual renovation of this room. " + renovationPrompt +
-        " CRITICAL: Keep ALL furniture, fixtures, appliances, windows, window frames, doors, " +
-        "ceiling, light fixtures, and room layout PIXEL-PERFECT identical. " +
-        "Only change the walls and/or floor as specified. " +
-        "Keep the same camera angle, perspective, and lighting. Professional real estate photo.",
+        renovationPrompt +
+        " While maintaining all furniture, fixtures, appliances, windows, doors, ceiling, and room layout exactly as they are. " +
+        "Only change walls and/or floor as specified. Same camera angle and lighting. " +
+        "Professional interior photography, shot on Canon 5D Mark IV, 16-35mm wide angle.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -870,19 +863,19 @@ export async function changeExterior(
 
   const exteriorPrompts: Record<string, string> = {
     modern:
-      "Transform this building exterior to modern contemporary style: clean geometric lines, large windows, flat roof or subtle angles, combination of glass, concrete and wood cladding. Minimalist, sleek facade.",
+      "Change the facade to modern contemporary: clean geometric lines, flat roof, combination of glass panels, smooth concrete, and horizontal wood cladding in warm cedar tone. Large floor-to-ceiling windows.",
     classic:
-      "Transform this building exterior to classic traditional style: symmetrical facade, elegant moldings, crown details, traditional windows with shutters, warm neutral colors. Timeless, refined look.",
+      "Change the facade to classic traditional: symmetrical design, elegant white moldings and crown details, traditional windows with decorative shutters in navy, warm cream stucco walls.",
     minimalist:
-      "Transform this building exterior to ultra-minimalist style: pure white or light gray walls, no ornaments, floor-to-ceiling windows, clean surfaces. Stark, pristine appearance.",
+      "Change the facade to ultra-minimalist: smooth white rendered walls, no ornaments, large frameless windows, clean flat surfaces. Stark pristine appearance.",
     scandinavian:
-      "Transform this building exterior to Scandinavian style: light wood cladding, white/gray tones, large windows, simple gable roof. Clean, natural Nordic look with greenery.",
+      "Change the facade to Scandinavian: vertical light pine wood cladding, white trim, large windows, simple gable roof with dark tiles. Clean Nordic aesthetic with small garden.",
     mediterranean:
-      "Transform this building exterior to Mediterranean style: terracotta roof tiles, stucco walls in warm cream/beige, arched windows, wrought iron details. Sun-kissed coastal villa look.",
+      "Change the facade to Mediterranean: terracotta clay roof tiles, warm cream stucco walls, arched windows, wrought iron balcony railings. Bougainvillea climbing the wall.",
     craftsman:
-      "Transform this building exterior to Craftsman style: wide front porch with columns, natural stone or wood siding, exposed rafters, earth-tone colors. Warm, handcrafted character.",
+      "Change the facade to Craftsman: wide covered front porch with tapered stone columns, cedar shingle siding in warm brown, exposed rafter tails, earth-tone paint.",
     colonial:
-      "Transform this building exterior to Colonial style: symmetrical design, centered entrance with columns, dormer windows, brick or clapboard siding. Stately, dignified appearance.",
+      "Change the facade to Colonial: symmetrical brick facade with centered entrance, white column portico, dormer windows with white frames, black shutters.",
   };
 
   let prompt: string;
@@ -897,10 +890,11 @@ export async function changeExterior(
     input: {
       prompt:
         prompt +
-        " CRITICAL: Keep the building's overall shape, size, roof line, driveway, trees and landscaping IDENTICAL. " +
-        "Only change the facade materials, colors, and architectural details. " +
-        "Keep the same camera angle, perspective, and sky. Professional real estate photography.",
+        " While maintaining the building's overall shape, size, roof line, driveway, and landscaping. " +
+        "Only change facade materials and architectural details. Same camera angle and sky. " +
+        "Professional architectural photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -922,12 +916,12 @@ export async function designLandscape(
   const replicate = getReplicate();
 
   const landscapePrompts: Record<string, string> = {
-    garden: "Add beautiful garden landscaping: colorful flower beds, ornamental shrubs, stone edging, mulch paths.",
-    lawn: "Add a perfect green lawn: thick, evenly trimmed grass, clean edges, healthy vibrant green color.",
-    patio: "Add an elegant outdoor patio area: stone or wood deck, modern outdoor furniture, string lights, potted plants.",
-    pool: "Add a beautiful swimming pool: rectangular pool with clear blue water, stone coping, sun loungers, surrounding greenery.",
-    lights: "Add professional landscape lighting: pathway lights, up-lighting on trees, accent lights on facade, warm ambient glow.",
-    full: "Complete landscape makeover: manicured lawn, flower beds, stone pathway, decorative trees, outdoor lighting, clean driveway.",
+    garden: "Add colorful flower beds with roses, lavender, and ornamental grasses along the house. Stone edging, bark mulch paths, trimmed boxwood hedges.",
+    lawn: "Add a thick, perfectly manicured green lawn with crisp clean edges. Healthy vibrant grass in peak summer condition.",
+    patio: "Add a natural stone patio with teak outdoor dining set for six, string lights overhead, large terracotta planters with olive trees.",
+    pool: "Add a rectangular swimming pool with clear turquoise water, limestone coping, two teak sun loungers with white cushions, surrounding lavender bushes.",
+    lights: "Add warm landscape lighting: brass pathway lights along walkway, uplights on trees casting warm glow, accent spotlights on the facade.",
+    full: "Add complete landscaping: manicured green lawn, stone pathway to the entrance, colorful flower beds, two ornamental trees, brass pathway lights, clean swept driveway.",
   };
 
   const landscapePrompt = landscapePrompts[landscapeType] || landscapePrompts.full;
@@ -936,11 +930,12 @@ export async function designLandscape(
   const lndOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Landscape design for this property. " + landscapePrompt +
-        " CRITICAL: Keep the building structure, windows, doors, roof, and all architectural elements PIXEL-PERFECT identical. " +
-        "Only add/improve the landscaping and outdoor elements. " +
-        "Keep the same camera angle and sky. Professional real estate photography.",
+        landscapePrompt +
+        " While maintaining the exact same building structure, windows, doors, roof, and architectural elements. " +
+        "Only change landscaping and outdoor elements. Same camera angle and sky. " +
+        "Professional real estate photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -963,15 +958,15 @@ export async function changeWallColor(
   const replicate = getReplicate();
 
   const colorPrompts: Record<string, string> = {
-    white: "Repaint all walls to clean bright pure white. Smooth matte finish, crisp and fresh.",
-    beige: "Repaint all walls to warm beige/cream tone. Soft, warm, inviting atmosphere.",
-    gray: "Repaint all walls to modern light gray. Sophisticated, contemporary, neutral.",
-    blue: "Repaint all walls to soft sky blue. Calming, serene, airy feeling.",
-    green: "Repaint all walls to olive green. Natural, earthy, warm and grounding.",
-    terracotta: "Repaint all walls to warm terracotta. Rich, Mediterranean, warm and bold.",
-    lavender: "Repaint all walls to soft lavender. Delicate, calming, romantic atmosphere.",
-    sage: "Repaint all walls to sage green. Muted, organic, subtle and sophisticated.",
-    navy: "Repaint all walls to deep navy blue. Bold, dramatic, elegant statement.",
+    white: "Repaint all walls to clean matte white #FFFFFF. Crisp, fresh, bright.",
+    beige: "Repaint all walls to warm cream #F5F0EB. Soft, warm, inviting.",
+    gray: "Repaint all walls to light gray #D5D5D5. Sophisticated, contemporary.",
+    blue: "Repaint all walls to soft sky blue #B8D4E8. Calming, serene, airy.",
+    green: "Repaint all walls to olive green #6B7F52. Natural, earthy, grounding.",
+    terracotta: "Repaint all walls to warm terracotta #C4725A. Rich, Mediterranean warmth.",
+    lavender: "Repaint all walls to soft lavender #C4B7D4. Delicate, calming, romantic.",
+    sage: "Repaint all walls to sage green #B2BFA8. Muted, organic, sophisticated.",
+    navy: "Repaint all walls to deep navy #2C3E6B. Bold, dramatic, elegant.",
   };
 
   let colorPrompt: string;
@@ -985,11 +980,12 @@ export async function changeWallColor(
   const wcOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Wall color change in this room. " + colorPrompt +
-        " CRITICAL: Keep ALL furniture, fixtures, appliances, windows, window frames, doors, " +
-        "ceiling, floor, light fixtures, and room layout PIXEL-PERFECT identical. " +
-        "Only change the wall color. Keep the same camera angle, perspective, and lighting.",
+        colorPrompt +
+        " While maintaining all furniture, fixtures, windows, doors, ceiling, floor, and room layout exactly as they are. " +
+        "Only change the wall color. Same camera angle and lighting. " +
+        "Professional interior photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1011,14 +1007,12 @@ export async function improveLighting(imageBase64: string): Promise<string> {
   const litOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Improve the lighting in this real estate photo. " +
-        "Brighten dark areas and shadows. Balance the exposure evenly across the entire room. " +
-        "Make windows show a pleasant outdoor view (not blown out white). " +
-        "Add natural-looking warm fill light to dark corners. " +
-        "The result should look like a professionally lit real estate photo with HDR quality. " +
-        "CRITICAL: Keep ALL furniture, walls, decor, floor, and room layout PIXEL-PERFECT identical. " +
-        "Only improve the lighting and exposure. Same camera angle and composition.",
+        "Improve the lighting to professional HDR real estate quality. Brighten dark areas evenly, balance exposure across the room. " +
+        "Add warm natural fill light to dark corners. Windows should show a pleasant outdoor view, not blown out white. " +
+        "While maintaining all furniture, walls, decor, and room layout exactly as they are. " +
+        "Same camera angle. Shot on Canon 5D Mark IV with HDR bracketing.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1040,14 +1034,12 @@ export async function fixPerspective(imageBase64: string): Promise<string> {
   const persOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Correct the perspective distortion in this real estate photo. " +
-        "Make all vertical lines perfectly vertical (walls, door frames, window frames). " +
-        "Fix the horizon line to be perfectly level. " +
-        "Correct any wide-angle lens barrel distortion. " +
-        "The result should look like it was taken with a professional tilt-shift lens. " +
-        "CRITICAL: Keep ALL room contents, furniture, colors, lighting PIXEL-PERFECT identical. " +
-        "Only correct the geometric perspective.",
+        "Correct perspective distortion: make all vertical lines perfectly vertical — walls, door frames, window frames. " +
+        "Level the horizon line. Correct wide-angle barrel distortion. " +
+        "While maintaining all room contents, furniture, colors, and lighting exactly as they are. " +
+        "Result should look like a professional tilt-shift lens shot.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1094,11 +1086,10 @@ export async function removeWatermark(imageBase64: string): Promise<string> {
     input: {
       prompt:
         "Remove all watermarks, logos, text overlays, dates, and stamps from this photo. " +
-        "Replace the removed areas with clean background that matches the surrounding area seamlessly. " +
-        "The result should be a clean photo with no visible text, logos, or watermarks. " +
-        "CRITICAL: Keep ALL other elements PIXEL-PERFECT identical — furniture, walls, " +
-        "floors, windows, lighting, colors. Same camera angle and composition.",
+        "Reconstruct clean background behind removed areas, matching surrounding textures seamlessly. " +
+        "While maintaining all other elements exactly as they are. Same camera angle.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1123,11 +1114,12 @@ export async function replaceFurniture(
   const frnOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        `Edit this room photo: ${description}. ` +
-        "The replacement should look natural and realistic, matching the room's style and lighting. " +
-        "CRITICAL: Keep everything else PIXEL-PERFECT identical — walls, floors, " +
-        "other furniture, windows, lighting. Same camera angle and composition.",
+        `${description}. ` +
+        "Place naturally with proper shadows, matching the room's existing lighting and style. " +
+        "While maintaining walls, floors, other furniture, and windows exactly as they are. " +
+        "Same camera angle. Professional interior photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1271,13 +1263,13 @@ export async function changeFlooring(
   const replicate = getReplicate();
 
   const floorPrompts: Record<string, string> = {
-    laminate: "Replace the floor with new light oak laminate flooring with realistic wood grain texture",
-    parquet: "Replace the floor with herringbone parquet flooring in warm walnut tone",
-    tile: "Replace the floor with large format porcelain tile in light gray color",
-    marble: "Replace the floor with polished white marble flooring with subtle gray veining",
-    vinyl: "Replace the floor with luxury vinyl plank flooring in light ash color",
-    concrete: "Replace the floor with polished concrete floor with smooth finish",
-    carpet: "Replace the floor with wall-to-wall plush carpet in neutral beige color",
+    laminate: "Replace the floor with light oak laminate planks with realistic wood grain texture and natural knots. Warm honey tone #D4B896",
+    parquet: "Replace the floor with classic herringbone parquet in warm walnut tone #8B6F47. Polished surface with subtle sheen",
+    tile: "Replace the floor with large-format 60x60cm porcelain tiles in light gray #C8C8C8. Thin grout lines, smooth matte finish",
+    marble: "Replace the floor with polished Carrara marble with subtle gray veining on white background. Glossy reflective surface",
+    vinyl: "Replace the floor with luxury vinyl planks in light ash #C4B5A0 with realistic wood grain embossing",
+    concrete: "Replace the floor with polished concrete in medium gray #999999. Smooth industrial finish with subtle sheen",
+    carpet: "Replace the floor with wall-to-wall plush carpet in warm beige #D4C5A9. Soft thick pile texture",
   };
 
   const prompt = customFlooring || floorPrompts[flooringType] || floorPrompts.laminate;
@@ -1287,9 +1279,10 @@ export async function changeFlooring(
     input: {
       prompt:
         prompt +
-        " CRITICAL: Keep ALL furniture, fixtures, walls, ceiling, windows, doors, and room layout PIXEL-PERFECT identical. " +
-        "Only change the floor. Same camera angle and composition. Professional real estate photography.",
+        ". While maintaining all furniture, fixtures, walls, ceiling, windows, doors, and room layout exactly as they are. " +
+        "Only change the floor. Same camera angle. Professional interior photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1312,12 +1305,12 @@ export async function changeKitchen(
   const replicate = getReplicate();
 
   const kitchenPrompts: Record<string, string> = {
-    modern_white: "Transform the kitchen cabinets to modern flat-panel white cabinets with quartz countertop and subway tile backsplash",
-    modern_dark: "Transform the kitchen cabinets to modern flat-panel dark charcoal cabinets with dark stone countertop",
-    classic_wood: "Transform the kitchen cabinets to classic raised-panel natural wood cabinets with granite countertop",
-    scandinavian: "Transform the kitchen to Scandinavian style with light wood cabinets, white countertop, minimal design",
-    industrial: "Transform the kitchen to industrial style with dark metal and wood cabinets, concrete countertop, exposed hardware",
-    shaker: "Transform the kitchen cabinets to white shaker-style cabinets with butcher block countertop",
+    modern_white: "Replace kitchen cabinets with modern flat-panel white matte cabinets, white quartz countertop with subtle veining, white subway tile backsplash, brushed nickel hardware",
+    modern_dark: "Replace kitchen cabinets with modern flat-panel charcoal #3A3A3A cabinets, dark honed granite countertop, matte black hardware and fixtures",
+    classic_wood: "Replace kitchen cabinets with classic raised-panel natural oak cabinets, speckled granite countertop in warm brown, brass cup-pull hardware",
+    scandinavian: "Replace kitchen cabinets with light birch plywood fronts with finger-pull handles, white laminate countertop, open shelving with ceramics. Minimal clean design",
+    industrial: "Replace kitchen cabinets with dark reclaimed wood and black metal frame fronts, poured concrete countertop, exposed black iron pipe hardware",
+    shaker: "Replace kitchen cabinets with white shaker-style cabinets with rail detail, thick butcher block oak countertop, brushed brass knobs",
   };
 
   const prompt = customKitchen || kitchenPrompts[kitchenStyle] || kitchenPrompts.modern_white;
@@ -1327,9 +1320,10 @@ export async function changeKitchen(
     input: {
       prompt:
         prompt +
-        " CRITICAL: Keep the room layout, floor, ceiling, windows, doors, and appliances positions PIXEL-PERFECT identical. " +
-        "Only change kitchen cabinets, countertops, and backsplash. Same camera angle and composition. Professional real estate photography.",
+        ". While maintaining room layout, floor, ceiling, windows, doors, and appliance positions exactly as they are. " +
+        "Only change cabinets, countertops, and backsplash. Same camera angle. Professional interior photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1351,10 +1345,10 @@ export async function changeSeason(
   const replicate = getReplicate();
 
   const seasonPrompts: Record<string, string> = {
-    spring: "Transform to spring season: green leaves, blooming flowers, fresh green grass, bright daylight",
-    summer: "Transform to peak summer: lush green trees, bright sunshine, blue sky, vibrant green lawn",
-    autumn: "Transform to autumn: orange and red foliage, fallen leaves on the ground, warm golden light",
-    winter: "Transform to winter: snow covering the roof and ground, bare trees with frost, winter atmosphere",
+    spring: "Change the season to spring: fresh green leaves on trees, blooming cherry blossoms and tulips, bright green lawn, clear bright daylight",
+    summer: "Change the season to peak summer: lush dark green trees, bright sunshine, clear blue sky, thick vibrant green lawn, warm light",
+    autumn: "Change the season to autumn: orange, red and golden foliage on trees, fallen leaves on the lawn and pathway, warm golden hour light",
+    winter: "Change the season to winter: fresh snow covering the roof, lawn, and driveway. Bare frosted tree branches, overcast winter sky",
   };
 
   const prompt = seasonPrompts[seasonType] || seasonPrompts.summer;
@@ -1364,9 +1358,10 @@ export async function changeSeason(
     input: {
       prompt:
         prompt +
-        " CRITICAL: Keep the building structure, architecture, roads, and all man-made elements PIXEL-PERFECT identical. " +
-        "Only change vegetation, sky, and seasonal elements. Same camera angle and composition. Professional real estate photography.",
+        ". While maintaining the exact same building structure, architecture, roads, and all man-made elements. " +
+        "Only change vegetation, sky, and seasonal elements. Same camera angle. Professional real estate photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1388,12 +1383,12 @@ export async function addDecor(
   const replicate = getReplicate();
 
   const decorPrompts: Record<string, string> = {
-    newyear: "Add New Year holiday decorations: Christmas tree, garlands with lights, festive ornaments, cozy winter atmosphere",
-    christmas: "Add Christmas decorations: decorated tree, wreaths, stockings, warm firelight, festive red and green decor",
-    halloween: "Add Halloween decorations: carved pumpkins, spider webs, orange and black decor, spooky candles",
-    easter: "Add Easter decorations: colorful eggs, spring flowers, pastel colors, bunny figurines",
-    birthday: "Add birthday party decorations: colorful balloons, banner, gift boxes, festive table setting",
-    romantic: "Add romantic decorations: rose petals, candles, soft pink lighting, heart-shaped elements",
+    newyear: "Add a decorated Christmas tree with warm golden lights and red ornaments in the corner, pine garlands with fairy lights along the windows, a few wrapped gift boxes under the tree",
+    christmas: "Add a tall decorated Christmas tree with red and gold ornaments, a fresh pine wreath on the door, knitted stockings hanging by the window, warm candlelight on surfaces",
+    halloween: "Add carved jack-o-lanterns with candlelight on the porch, fake cobwebs in corners, a wreath of autumn leaves, orange and black bunting along the railing",
+    easter: "Add a vase of fresh spring tulips on the table, decorated Easter eggs in a basket, pastel-colored bunting, small bunny figurines on shelves",
+    birthday: "Add colorful helium balloons clustered in corners, a fabric birthday banner across the wall, wrapped gift boxes on the table, a festive table setting",
+    romantic: "Add scattered red rose petals on the bed, tall white candles on surfaces casting warm glow, sheer fairy lights along the headboard, soft pink accent lighting",
   };
 
   const prompt = decorPrompts[decorType] || decorPrompts.newyear;
@@ -1403,9 +1398,10 @@ export async function addDecor(
     input: {
       prompt:
         prompt +
-        " CRITICAL: Keep the room structure, walls, floor, ceiling, windows, doors, and existing furniture PIXEL-PERFECT identical. " +
-        "Only ADD decorative elements. Same camera angle and composition. Professional real estate photography.",
+        ". While maintaining the room structure, walls, floor, ceiling, windows, doors, and existing furniture exactly as they are. " +
+        "Only add decorative elements. Same camera angle. Professional interior photography.",
       input_image: imageBase64,
+      prompt_upsampling: false,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
     },
@@ -1427,14 +1423,14 @@ export async function stageCommercial(
   const replicate = getReplicate();
 
   const commercialPrompts: Record<string, string> = {
-    office: "Transform into a modern professional office space with desks, ergonomic chairs, computers, meeting area, plants",
-    restaurant: "Transform into an upscale restaurant with dining tables, chairs, ambient lighting, bar area, decorative elements",
-    cafe: "Transform into a cozy cafe with small tables, counter with espresso machine, menu boards, pendant lighting",
-    retail: "Transform into a modern retail store with display shelves, racks, checkout counter, good lighting",
-    hotel: "Transform into a luxury hotel room with king bed, nightstands, seating area, elegant decor, artwork",
-    coworking: "Transform into a modern coworking space with shared desks, lounge area, phone booths, plants, whiteboards",
-    gym: "Transform into a modern gym with exercise equipment, mirrors, rubber flooring, good lighting",
-    salon: "Transform into a beauty salon with styling stations, mirrors, salon chairs, wash basins, modern decor",
+    office: "Add modern office furniture: white standing desks with monitors, black mesh ergonomic chairs, a glass meeting table for 6, potted snake plants, pendant lighting",
+    restaurant: "Add upscale restaurant interior: round walnut dining tables with white linen, dark velvet chairs, warm pendant lighting above each table, a polished bar counter with stools",
+    cafe: "Add cozy cafe setup: small round marble tables with bent-wood chairs, an espresso bar with professional machine, chalkboard menu, industrial pendant lights, potted herbs",
+    retail: "Add modern retail displays: sleek white shelving units, a glass checkout counter, track lighting, mannequins, polished concrete floors, clean signage",
+    hotel: "Add luxury hotel room furnishing: king bed with crisp white duvet and upholstered headboard, walnut nightstands with reading lamps, a lounge chair by the window, framed art",
+    coworking: "Add coworking furniture: long shared oak desks with task lamps, ergonomic chairs, a lounge corner with sofa, acoustic phone booths, large whiteboards, trailing plants",
+    gym: "Add gym equipment: treadmills, free weights on racks, a bench press station, full-wall mirror, rubber flooring, bright overhead lighting",
+    salon: "Add beauty salon setup: styling stations with large illuminated mirrors, hydraulic salon chairs in blush pink, shampoo wash stations, sleek reception desk",
   };
 
   const prompt = commercialPrompts[commercialType] || commercialPrompts.office;
@@ -1444,11 +1440,12 @@ export async function stageCommercial(
     input: {
       prompt:
         prompt +
-        " CRITICAL: Keep the room structure, walls, ceiling, windows, doors, and architectural elements PIXEL-PERFECT identical. " +
-        "Only add furniture and equipment appropriate for the space. Same camera angle and composition. Professional real estate photography.",
+        ". While maintaining the room structure, walls, ceiling, windows, and doors exactly as they are. " +
+        "Furniture grounded on the floor with natural shadows. Shot on Canon 5D Mark IV, 16-35mm wide angle lens.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
+      prompt_upsampling: false,
     },
   });
 
@@ -1520,15 +1517,13 @@ export async function renderFromText(
   const txtOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        `Transform this room completely based on description: ${textrenderPrompt}. ` +
-        "Make it photorealistic, professional real estate photography style. " +
-        "Same camera angle and composition.",
+        `Redesign this room based on the following vision: ${textrenderPrompt}. ` +
+        "While maintaining the room shape, windows, and doors exactly as they are. " +
+        "Shot on Canon 5D Mark IV, 16-35mm wide angle lens. Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
-      guidance_scale: 4.0,
-      num_inference_steps: 30,
-      seed: 42,
+      prompt_upsampling: false,
     },
   });
 
@@ -1549,17 +1544,17 @@ export async function remodelBathroom(
   const replicate = getReplicate();
 
   const bathroomPrompts: Record<string, string> = {
-    modern_white: "Transform this bathroom to modern white style: white large-format wall tiles, floating white vanity with integrated sink, frameless glass shower, chrome fixtures, LED mirror",
-    marble: "Transform this bathroom to luxurious marble style: marble wall and floor tiles with gray veining, marble-top vanity, freestanding bathtub, gold or brass fixtures",
-    industrial: "Transform this bathroom to industrial style: concrete-look walls, black metal fixtures, exposed pipe details, wooden vanity with vessel sink, matte black shower",
-    wood: "Transform this bathroom to warm wood style: wood-look tiles on walls, wooden vanity cabinet, warm lighting, natural stone accents, brass fixtures",
-    minimalist: "Transform this bathroom to ultra-minimalist style: seamless white walls, hidden storage, walk-in shower with no frame, wall-mounted toilet, simple round mirror",
-    classic: "Transform this bathroom to classic elegant style: subway tiles, pedestal sink or traditional vanity, clawfoot bathtub, polished chrome fixtures, decorative mirror frame",
+    modern_white: "Replace bathroom surfaces with large-format white (#FFFFFF) wall tiles 60x120cm, floating white vanity with integrated basin and soft-close drawers, frameless glass walk-in shower with rain showerhead, chrome fixtures, round LED backlit mirror",
+    marble: "Replace bathroom surfaces with Calacatta marble wall and floor tiles with gray veining, marble-top double vanity with brass legs, freestanding oval bathtub, brushed brass fixtures, rectangular framed mirror",
+    industrial: "Replace bathroom surfaces with gray concrete-look wall panels, matte black fixtures and exposed pipe towel rack, reclaimed wood vanity with white vessel sink, walk-in shower with black frame, round mirror with black metal frame",
+    wood: "Replace bathroom surfaces with warm wood-look porcelain tiles on walls, solid oak vanity cabinet with stone countertop, warm LED strip lighting behind mirror, natural river stone accent wall, brushed brass fixtures",
+    minimalist: "Replace bathroom surfaces with seamless white microcement walls, wall-hung toilet and floating vanity with push-to-open drawers, frameless walk-in shower with linear drain, simple round mirror, recessed LED lighting",
+    classic: "Replace bathroom surfaces with white subway tiles with gray grout, traditional vanity with marble top and porcelain legs, clawfoot cast iron bathtub, polished chrome cross-handle fixtures, ornate rectangular mirror with molded frame",
   };
 
   let prompt: string;
   if (bathroomStyle === "custom" && customBathroom) {
-    prompt = `Transform this bathroom in the following style: ${customBathroom}. Make it look professional and realistic.`;
+    prompt = `Replace bathroom tiles, vanity, and fixtures with: ${customBathroom}.`;
   } else {
     prompt = bathroomPrompts[bathroomStyle] || bathroomPrompts.modern_white;
   }
@@ -1569,12 +1564,12 @@ export async function remodelBathroom(
     input: {
       prompt:
         prompt +
-        " CRITICAL: Keep the room layout, size, window positions, and door positions PIXEL-PERFECT identical. " +
-        "Only change tiles, vanity, fixtures, shower/bathtub, and decorative elements. " +
-        "Same camera angle and composition. Professional real estate photography.",
+        " While maintaining the room layout, window and door positions exactly as they are. " +
+        "Shot on Canon 5D Mark IV, 16-35mm wide angle lens. Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
+      prompt_upsampling: false,
     },
   });
 
@@ -1597,15 +1592,14 @@ export async function addItem(
   const addOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        `Add the following item to this room: ${description}. ` +
-        "Place it naturally and realistically, matching the room's scale, lighting, and style. " +
-        "The added item should look like it belongs in this space. " +
-        "CRITICAL: Keep everything else PIXEL-PERFECT identical — walls, floor, ceiling, " +
-        "existing furniture, windows, lighting. Same camera angle and composition. " +
+        `Add ${description} to this room, placed naturally on the floor or against a wall. ` +
+        "The item should match the room's lighting and cast realistic shadows. " +
+        "While maintaining all existing furniture, walls, floor, and windows exactly as they are. " +
         "Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
+      prompt_upsampling: false,
     },
   });
 
@@ -1625,18 +1619,14 @@ export async function greenifyExterior(imageBase64: string): Promise<string> {
   const grnOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Enhance all vegetation in this exterior photo. " +
-        "Make the lawn thick, lush, and vibrant green. " +
-        "Make trees full and leafy with healthy green foliage. " +
-        "Make shrubs and bushes neatly trimmed and green. " +
-        "Make flower beds colorful and well-maintained. " +
-        "The yard should look professionally landscaped in peak summer condition. " +
-        "CRITICAL: Keep the building, driveway, fences, paths, sky, and all man-made elements " +
-        "PIXEL-PERFECT identical. Only enhance the vegetation and lawn. " +
-        "Same camera angle, perspective, and lighting. Professional real estate photography.",
+        "Change all lawn grass to thick vibrant emerald green, trees to full leafy canopy, " +
+        "shrubs neatly trimmed, flower beds blooming with color. Peak summer landscaping condition. " +
+        "While maintaining the building, driveway, fences, paths, sky, and all structures exactly as they are. " +
+        "Shot on Canon 5D Mark IV, 24-70mm lens. Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
+      prompt_upsampling: false,
     },
   });
 
@@ -1659,15 +1649,13 @@ export async function refineWithAI(
   const refOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        `Edit this photo according to user request: ${editPrompt}. ` +
-        "Apply the requested change naturally and realistically. " +
-        "CRITICAL: Keep everything else PIXEL-PERFECT identical — " +
-        "same composition, camera angle, and overall layout. " +
-        "Only modify what the user specifically asked for. " +
-        "Professional real estate photography result.",
+        `${editPrompt}. ` +
+        "While maintaining everything else in the photo exactly as it is. " +
+        "Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
+      prompt_upsampling: false,
     },
   });
 
@@ -1687,18 +1675,15 @@ export async function makeVacant(imageBase64: string): Promise<string> {
   const vacOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Remove ALL furniture, belongings, and movable objects from this room. " +
-        "Remove sofas, tables, chairs, beds, shelves, cabinets, TVs, rugs, curtains, artwork, " +
-        "plants, lamps, personal items, electronics — everything that is not a fixed building element. " +
-        "Show a completely EMPTY room with only walls, floor, ceiling, windows, doors, " +
-        "built-in closets, radiators, and light fixtures remaining. " +
-        "The empty room should look clean and spacious, ready for new owners to furnish. " +
-        "CRITICAL: Keep walls, floor material, ceiling, windows, doors, built-in elements " +
-        "PIXEL-PERFECT identical. Same camera angle, perspective, and lighting. " +
-        "Professional real estate photography of an empty room.",
+        "Remove all furniture, rugs, curtains, artwork, and personal belongings from this room. " +
+        "Show a completely empty room with clean bare walls and floor. " +
+        "Reconstruct the floor and wall surfaces where furniture was removed. " +
+        "While maintaining walls, floor material, ceiling, windows, and doors exactly as they are. " +
+        "Shot on Canon 5D Mark IV, 16-35mm wide angle lens. Clean empty room ready for new owners.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
+      prompt_upsampling: false,
     },
   });
 
@@ -1718,20 +1703,16 @@ export async function declutterRoom(imageBase64: string): Promise<string> {
   const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Clean up and declutter this room photo. " +
-        "Remove all clutter, mess, personal belongings, scattered items: " +
-        "clothes on chairs, shoes on floor, toys, papers, dishes, bags, boxes, " +
-        "toiletries, cables, laundry, trash, random objects on surfaces. " +
-        "Keep all FURNITURE in place (sofas, tables, beds, shelves, cabinets) — " +
-        "just remove the mess and personal items from them and from the floor. " +
-        "Surfaces should be clean and tidy. Floor should be clear. " +
-        "The room should look professionally staged and ready for a real estate photo. " +
-        "CRITICAL: Keep ALL furniture, walls, floor, ceiling, windows, doors, " +
-        "and room layout PIXEL-PERFECT identical. Only remove clutter and personal items. " +
-        "Same camera angle, perspective, and lighting.",
+        "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
+        "bags, cables, laundry, trash, scattered objects on surfaces and floor. " +
+        "Leave all furniture in place — only remove mess from surfaces and floor. " +
+        "Clean tidy surfaces, clear floor. " +
+        "While maintaining all furniture, walls, floor, ceiling, windows, and room layout exactly as they are. " +
+        "Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
+      prompt_upsampling: false,
     },
   });
 
