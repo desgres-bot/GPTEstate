@@ -231,7 +231,7 @@ export default function HomePage() {
                         <h3 className="text-lg font-semibold text-white">{CAT_LABELS[cat.id] || cat.label}</h3>
                         <span className="text-xs text-neutral-500">{items.length}</span>
                       </div>
-                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         {items.map((svc) => {
                           const demo = DEMO_PHOTOS[svc.id];
                           const placeholder = PLACEHOLDER_DESC[svc.id];
