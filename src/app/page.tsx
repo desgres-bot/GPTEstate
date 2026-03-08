@@ -6,7 +6,7 @@ import FadeInSection from "@/components/FadeInSection";
 import LiveCounter from "@/components/LiveCounter";
 import AllModesGrid from "@/components/AllModesGrid";
 import { getFAQSchema } from "@/lib/jsonld";
-import { SERVICES, SERVICE_CATEGORIES } from "@/app/generate/_data/services";
+import { SERVICES, SERVICE_CATEGORIES, buttonLabel } from "@/app/generate/_data/services";
 
 export const metadata: Metadata = {
   title: "GPT Estate — Фото, которые продают дома и квартиры. 38 возможностей для риелторов",
@@ -259,9 +259,11 @@ export default function HomePage() {
                               <p className="text-xs text-neutral-500 mt-0.5">{svc.desc}</p>
                               <Link
                                 href={href}
-                                className="mt-1 inline-flex items-center gap-1 text-xs text-terra-400 hover:text-terra-300 transition-colors"
+                                className="mt-3 inline-flex items-center justify-center px-4 py-2 rounded-lg text-xs font-medium
+                                           bg-terra-500 text-white
+                                           hover:bg-terra-400 transition-all duration-200"
                               >
-                                Попробовать <span aria-hidden="true">&rarr;</span>
+                                {buttonLabel[svc.id as keyof typeof buttonLabel] || svc.label} →
                               </Link>
                             </div>
                           );
