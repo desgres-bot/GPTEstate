@@ -172,16 +172,16 @@ const STYLE_PROMPTS_REDESIGN: Record<string, string> = {
 };
 
 /**
- * Enhance photo = Virtual cleanup using Flux Kontext Pro.
- * GPT-4o first describes the room, then Kontext edits with precise preservation.
+ * Enhance photo = Improve lighting, colors, contrast, white balance.
+ * GPT-4o first analyzes photo issues, then Flux applies targeted corrections.
  */
 export async function enhancePhoto(imageBase64: string): Promise<string> {
   const replicate = getReplicate();
 
-  // Step 1: GPT-4o describes what to keep and what to remove
-  console.log("[enhance] Step 1: Analyzing room with GPT-4o...");
+  // Step 1: GPT-4o analyzes photo quality issues
+  console.log("[enhance] Step 1: Analyzing photo quality with GPT-4o...");
   const imgSrc = await compressForAnalysis(imageBase64);
-  const description = await openaiChatViaProxy(
+  const analysis = await openaiChatViaProxy(
     [
       {
         role: "user",
@@ -189,35 +189,37 @@ export async function enhancePhoto(imageBase64: string): Promise<string> {
           { type: "image_url", image_url: { url: imgSrc, detail: "low" } },
           {
             type: "text",
-            text: `Look at this room photo. In 2-3 short bullet points each, list:
+            text: `Analyze this real estate photo quality. In 2-3 bullet points, describe:
 
-KEEP (permanent fixtures/furniture — describe exact colors and materials):
-- e.g. "dark wood bed frame with carved headboard"
+LIGHTING ISSUES (e.g. "dark shadows in corners", "overexposed window", "yellow tungsten cast"):
+- be specific about which areas
 
-REMOVE (loose clutter a person can pick up):
-- e.g. "cardboard boxes on bed"
+COLOR ISSUES (e.g. "overall blue tint", "desaturated colors", "warm orange cast from lamps"):
+- describe the color temperature problem
 
-SURFACES AFTER CLEANUP (what should be visible):
-- e.g. "clean blue patterned bedspread"
+WHAT TO PRESERVE (key room features — describe exact colors and materials):
+- e.g. "cream walls", "dark wood floor"
 
-Be specific about colors, patterns, materials. Keep very concise.`,
+Be very concise. English only.`,
           },
         ],
       },
     ],
-    400,
+    300,
   );
-  console.log("[enhance] Room analysis:", description.substring(0, 200));
+  console.log("[enhance] Photo analysis:", analysis.substring(0, 200));
 
-  // Step 2: Flux Kontext Pro — edit image with precise prompt
-  console.log("[enhance] Step 2: Flux Kontext Pro cleanup...");
+  // Step 2: Flux Kontext Pro — enhance with targeted prompt
+  console.log("[enhance] Step 2: Flux Kontext Pro enhancement...");
   const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
-        "Remove all loose clutter from this room: scattered clothes, boxes, bags, papers, dishes, personal items from surfaces and floor. " +
-        "Show clean surfaces underneath. " +
-        "Keep all furniture, walls, flooring, windows, fixtures, and decor exactly as they are. " +
-        "Same camera angle and lighting. Professional interior photography, shot on Canon 5D Mark IV, 16-35mm wide angle.",
+        "Improve this real estate photo quality: correct white balance to neutral daylight, " +
+        "brighten dark shadow areas, balance exposure between windows and interior, " +
+        "boost color saturation slightly for vivid but natural tones, " +
+        "add natural HDR effect with detail in both shadows and highlights. " +
+        "While maintaining all furniture, objects, room layout, and composition exactly as they are. " +
+        "Shot on Canon 5D Mark IV, 16-35mm wide angle lens, f/8, properly exposed. Professional real estate photography.",
       input_image: imageBase64,
       prompt_upsampling: false,
       aspect_ratio: "match_input_image",

@@ -24,7 +24,7 @@ export const SERVICE_CATEGORIES = [
 
 export const SERVICES: ServiceDef[] = [
   // Фото — интерьер (7)
-  { id: "enhance",    label: "Уборка",        desc: "Убрать бардак",        icon: "✨", category: "photo" },
+  { id: "enhance",    label: "Улучшение",     desc: "Свет и цвет",          icon: "📸", category: "photo" },
   { id: "staging",    label: "Мебель",        desc: "Обставить пустую",     icon: "🛋️", category: "photo" },
   { id: "redesign",   label: "Новый стиль",   desc: "Сменить интерьер",     icon: "🎨", category: "photo" },
   { id: "remove",     label: "Удаление",      desc: "Убрать объекты",       icon: "🧹", category: "photo" },
@@ -72,7 +72,7 @@ export const SERVICES: ServiceDef[] = [
 /* ──────────── Mode subtitle (показывается в sticky header) ──────────── */
 
 export const modeSubtitle: Record<Mode, string> = {
-  enhance: "Уборка фото",
+  enhance: "Улучшение качества фото",
   staging: "Добавить мебель",
   redesign: "Новый стиль интерьера",
   remove: "Удаление объектов",
@@ -115,9 +115,9 @@ export const modeSubtitle: Record<Mode, string> = {
 
 export const modeDescription: Record<Mode, { what: string; how: string; best: string }> = {
   enhance: {
-    what: "AI уберёт беспорядок, лишние вещи и визуальный мусор с фото. Комната станет чистой и аккуратной — как после уборки.",
-    how: "Загрузите фото комнаты с беспорядком и нажмите «Убрать бардак». Через 30 секунд получите чистое фото.",
-    best: "Фото квартир перед показом, комнат с разбросанными вещами, кухонь с посудой на столе.",
+    what: "AI улучшит свет, цвета и контраст фото — как профессиональная обработка в Lightroom. Тёмные углы станут светлее, цвета сочнее, баланс белого правильный.",
+    how: "Загрузите фото и нажмите «Улучшить фото». Через 30 секунд получите профессионально обработанный снимок.",
+    best: "Тёмные фото с телефона, снимки в пасмурную погоду, фото с жёлтым светом ламп, недоэкспонированные кадры.",
   },
   staging: {
     what: "AI расставит мебель и декор в пустой комнате. Покупатель увидит, как квартира будет выглядеть после обстановки.",
@@ -304,7 +304,7 @@ export const modeDescription: Record<Mode, { what: string; how: string; best: st
 /* ──────────── Button & loading labels ──────────── */
 
 export const buttonLabel: Record<Mode, string> = {
-  enhance: "Убрать бардак",
+  enhance: "Улучшить фото",
   staging: "Добавить мебель",
   redesign: "Сменить стиль",
   remove: "Убрать объекты",
@@ -344,7 +344,7 @@ export const buttonLabel: Record<Mode, string> = {
 };
 
 export const loadingLabel: Record<Mode, string> = {
-  enhance: "Убираем...",
+  enhance: "Улучшаем...",
   staging: "Расставляем мебель...",
   redesign: "Меняем стиль...",
   remove: "Удаляем...",
@@ -386,7 +386,7 @@ export const loadingLabel: Record<Mode, string> = {
 /* ──────────── Tips per mode ──────────── */
 
 export const modeTips: Record<Mode, string[]> = {
-  enhance: ["Горизонтальные фото работают лучше", "Минимум 512x512 пикселей", "Снимайте с хорошим охватом комнаты"],
+  enhance: ["Лучше всего работает с тёмными фото и фото с телефона", "Исправит баланс белого, яркость, контраст", "Фото станет как после обработки в Lightroom"],
   staging: ["Горизонтальные фото работают лучше", "Минимум 512x512 пикселей", "Снимайте с хорошим охватом комнаты"],
   redesign: ["Горизонтальные фото работают лучше", "Минимум 512x512 пикселей", "Снимайте с хорошим охватом комнаты"],
   remove: ["Горизонтальные фото работают лучше", "Минимум 512x512 пикселей", "Снимайте с хорошим охватом комнаты"],
