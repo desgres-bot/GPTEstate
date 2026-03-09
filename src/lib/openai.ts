@@ -1771,15 +1771,26 @@ export async function makeVacant(imageBase64: string): Promise<string> {
 async function uploadImageToProxy(imageBuffer: Buffer, contentType = "image/jpeg"): Promise<string> {
   const baseURL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
   const proxyOrigin = baseURL.replace("/v1", "");
-  const resp = await fetch(`${proxyOrigin}/image`, {
-    method: "POST",
-    headers: { "Content-Type": contentType },
-    body: new Uint8Array(imageBuffer),
-  });
-  if (!resp.ok) throw new Error(`Image upload failed: ${resp.status}`);
-  const data = await resp.json() as { url: string };
-  console.log("[uploadImage] Uploaded:", data.url);
-  return data.url;
+  const uploadUrl = `${proxyOrigin}/image`;
+  console.log("[uploadImage] Uploading to:", uploadUrl, "size:", imageBuffer.length);
+  try {
+    const resp = await fetch(uploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": contentType },
+      body: new Uint8Array(imageBuffer),
+    });
+    console.log("[uploadImage] Response status:", resp.status);
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(`Image upload failed: ${resp.status} ${text}`);
+    }
+    const data = await resp.json() as { url: string };
+    console.log("[uploadImage] Uploaded:", data.url);
+    return data.url;
+  } catch (err) {
+    console.error("[uploadImage] Error:", err);
+    throw err;
+  }
 }
 
 export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number }>> {
