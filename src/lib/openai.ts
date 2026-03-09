@@ -1901,7 +1901,7 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       samInput.negative_mask_prompt = negPrompt;
     }
 
-    const samOutput = await replicate.run("schananas/grounded_sam", { input: samInput });
+    const samOutput = await replicate.run("schananas/grounded_sam:ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c", { input: samInput });
 
     // Grounded SAM yields 4 images: annotated, neg_annotated, mask, inverted_mask
     // We need the 3rd one (index 2) — the final combined mask
