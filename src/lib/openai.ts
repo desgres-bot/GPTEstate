@@ -1936,7 +1936,13 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
         <rect width="${imgW}" height="${imgH}" fill="black"/>
         ${rects}
       </svg>`;
-      const keepMask = await sharp(Buffer.from(maskSvg)).resize(imgW, imgH).raw().toBuffer();
+      // Blur mask edges for smooth blending (feathering)
+      const blurRadius = Math.max(10, Math.round(Math.min(imgW, imgH) * 0.03));
+      const keepMask = await sharp(Buffer.from(maskSvg))
+        .resize(imgW, imgH)
+        .blur(blurRadius)
+        .raw()
+        .toBuffer();
 
       // Resize Kontext result to match original
       const kontextResized = await sharp(dclBuf).resize(imgW, imgH).ensureAlpha().raw().toBuffer();
