@@ -1970,45 +1970,45 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
         continue;
       }
 
-      const resizedMask = await sharp(maskBuf).resize(imgW, imgH).png().toBuffer();
-      const maskBase64 = `data:image/png;base64,${resizedMask.toString("base64")}`;
+      // Ensure mask is binary (0 or 255, no grey) and same size as image — ClipDrop requirement
+      const resizedMask = await sharp(maskBuf)
+        .resize(imgW, imgH)
+        .grayscale()
+        .threshold(128)
+        .png()
+        .toBuffer();
 
-      // Step B: Bria Eraser
-      const eraserOutput = await replicate.run("bria/eraser", {
-        input: {
-          image: currentImage,
-          mask: maskBase64,
-          mask_type: "manual",
-        },
-      });
-      const eraserUrl = extractUrl(eraserOutput);
-      const eraserResp = await fetch(eraserUrl);
-      const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
-
-      // Step C: Composite — keep original pixels outside mask, use Bria inside mask
+      // Step B: ClipDrop Cleanup API — professional object removal
+      const clipdropKey = process.env.CLIPDROP_API_KEY;
       const curBase64 = currentImage.replace(/^data:image\/\w+;base64,/, "");
       const curBuffer = Buffer.from(curBase64, "base64");
-      const curRaw = await sharp(curBuffer).resize(imgW, imgH).raw().toBuffer();
-      const eraserRaw = await sharp(eraserBuf).resize(imgW, imgH).raw().toBuffer();
-      const maskRaw = await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer();
+      // Convert current image to JPEG buffer for upload
+      const imageForUpload = await sharp(curBuffer).jpeg({ quality: 95 }).toBuffer();
 
-      const composited = Buffer.alloc(curRaw.length);
-      for (let p = 0; p < maskRaw.length; p++) {
-        const idx = p * 3;
-        if (maskRaw[p] > 128) {
-          composited[idx] = eraserRaw[idx];
-          composited[idx + 1] = eraserRaw[idx + 1];
-          composited[idx + 2] = eraserRaw[idx + 2];
-        } else {
-          composited[idx] = curRaw[idx];
-          composited[idx + 1] = curRaw[idx + 1];
-          composited[idx + 2] = curRaw[idx + 2];
-        }
+      const formData = new FormData();
+      formData.append("image_file", new Blob([imageForUpload], { type: "image/jpeg" }), "image.jpg");
+      formData.append("mask_file", new Blob([resizedMask], { type: "image/png" }), "mask.png");
+
+      console.log(`[declutter] ClipDrop Cleanup for "${label}", image: ${imageForUpload.length}b, mask: ${resizedMask.length}b`);
+
+      const clipResp = await fetch("https://clipdrop-api.co/cleanup/v1", {
+        method: "POST",
+        headers: { "x-api-key": clipdropKey || "" },
+        body: formData,
+      });
+
+      if (!clipResp.ok) {
+        const errText = await clipResp.text();
+        console.log(`[declutter] ClipDrop error for "${label}": ${clipResp.status} ${errText}`);
+        continue;
       }
 
-      const stepResult = await sharp(composited, { raw: { width: imgW, height: imgH, channels: 3 } })
-        .jpeg({ quality: 95 })
-        .toBuffer();
+      const clipBuf = Buffer.from(await clipResp.arrayBuffer());
+      const remaining = clipResp.headers.get("x-remaining-credits");
+      console.log(`[declutter] ClipDrop success for "${label}", result: ${clipBuf.length}b, credits left: ${remaining}`);
+
+      // ClipDrop returns full image with same dimensions — use directly
+      const stepResult = await sharp(clipBuf).resize(imgW, imgH).jpeg({ quality: 95 }).toBuffer();
 
       currentImage = `data:image/jpeg;base64,${stepResult.toString("base64")}`;
       console.log(`[declutter] Removed "${label}" successfully (composited)`);
