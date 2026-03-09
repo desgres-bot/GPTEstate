@@ -1857,7 +1857,7 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
     const labelParts = rawLabel.split(/\s+/);
     const name = LABEL_RU[rawLabel] || LABEL_RU[labelParts[0]] || rawLabel;
 
-    return { id: i + 1, name, label: labelParts[0], x, y, bbox: det.bbox, score: det.confidence };
+    return { id: i + 1, name, label: rawLabel, x, y, bbox: det.bbox, score: det.confidence };
   });
 
   // Sort by score descending and deduplicate nearby objects (within 5% distance)
