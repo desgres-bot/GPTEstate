@@ -2254,16 +2254,27 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
   }
 
-  // Fallback: prompt-based removal with Flux Kontext (no bboxes)
-  console.log("[declutter] Flux Kontext: prompt-based removal (no bboxes)...");
+  // Auto-detect all objects and use the same SAM2+Bria pipeline
+  console.log("[declutter] Auto mode: detecting all objects first...");
+  const detected = await detectObjects(imageBase64);
+  if (detected.length > 0) {
+    const autoLabels = detected.map(o => o.label);
+    const autoBboxes = detected.map(o => o.bbox);
+    console.log("[declutter] Auto mode: found", detected.length, "objects, removing all via SAM2+Bria");
+    return declutterRoom(imageBase64, detected.map(o => o.name), autoBboxes, autoLabels, []);
+  }
+
+  // Last resort: Flux Kontext prompt-based removal (if no objects detected)
+  console.log("[declutter] Flux Kontext: prompt-based removal (no objects detected)...");
   const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
-      prompt: "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
-        "bags, cables, laundry, trash, scattered objects on surfaces and floor. " +
-        "Leave all furniture in place — only remove mess from surfaces and floor. " +
-        "Clean tidy surfaces, clear floor. " +
-        "While maintaining all furniture, walls, floor, ceiling, windows, and room layout exactly as they are. " +
-        "Professional real estate photography.",
+      prompt: "Remove only clutter and personal items from this room: clothes, shoes, toys, papers, dirty dishes, " +
+        "bags, cables, laundry, trash, scattered small objects on surfaces and floor. " +
+        "KEEP all appliances exactly as they are: stove, oven, induction cooktop, microwave, refrigerator, " +
+        "dishwasher, washing machine, coffee maker, toaster, kettle, TV, monitor, air conditioner. " +
+        "KEEP all furniture: tables, chairs, cabinets, shelves, bed, sofa, wardrobe. " +
+        "KEEP all fixtures: sink, faucet, toilet, bathtub, shower, light fixtures, curtains, blinds. " +
+        "Clean tidy surfaces, clear floor. Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
