@@ -1953,21 +1953,25 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     const resizedMask = await sharp(maskBuf).resize(imgW, imgH).png().toBuffer();
     const maskBase64 = `data:image/png;base64,${resizedMask.toString("base64")}`;
 
-    console.log("[declutter] Bria Eraser with SAM mask, image:", imgW, "x", imgH);
+    console.log("[declutter] Bria GenFill with SAM mask, image:", imgW, "x", imgH);
 
-    // Step 2: Bria Eraser removes masked areas
-    const eraserOutput = await replicate.run("bria/eraser", {
+    // Step 2: Bria GenFill — context-aware inpainting (preserves quality outside mask)
+    const genfillOutput = await replicate.run("bria/genfill", {
       input: {
         image: imageBase64,
         mask: maskBase64,
-        mask_type: "manual",
+        prompt: "clean empty surface, matching the surrounding area seamlessly, same lighting and perspective",
+        negative_prompt: "objects, items, clutter, furniture, text, watermark, blur, artifacts",
+        sync: true,
       },
     });
 
-    const eraserUrl = extractUrl(eraserOutput);
-    const eraserResp = await fetch(eraserUrl);
-    const eraserBuf = await eraserResp.arrayBuffer();
-    return `data:image/jpeg;base64,${Buffer.from(eraserBuf).toString("base64")}`;
+    const genfillUrl = extractUrl(genfillOutput);
+    const genfillResp = await fetch(genfillUrl);
+    const genfillBuf = await genfillResp.arrayBuffer();
+
+    console.log("[declutter] GenFill result size:", genfillBuf.byteLength);
+    return `data:image/png;base64,${Buffer.from(genfillBuf).toString("base64")}`;
   }
 
   // Fallback: prompt-based removal with Flux Kontext (no bboxes)
