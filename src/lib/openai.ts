@@ -2133,25 +2133,21 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
         .toBuffer();
       const maskBase64 = `data:image/png;base64,${maskPng.toString("base64")}`;
 
-      // Bria Eraser removal
-      const bxmin = Math.max(0, Math.floor(bbox[0]));
-      const bymin = Math.max(0, Math.floor(bbox[1]));
-      const bxmax = Math.min(imgW, Math.ceil(bbox[2]));
-      const bymax = Math.min(imgH, Math.ceil(bbox[3]));
-      console.log(`[declutter] Bria Eraser for object ${i + 1}/${removeLabels.length} "${label}" bbox:[${bxmin},${bymin},${bxmax},${bymax}]`);
+      // LaMa inpainting — fills with surrounding texture, NO hallucinations
+      console.log(`[declutter] LaMa removal for object ${i + 1}/${removeLabels.length} "${label}"`);
 
       try {
-        const eraserOutput = await replicate.run("bria/eraser", {
-          input: { image: currentImage, mask: maskBase64, mask_type: "manual" },
+        const lamaOutput = await replicate.run("dpakkk/image-object-removal:40e67426e1bf78199d78b36580389fbbdcb4c9cdc2bc2b489e99d713f167b3c5", {
+          input: { image: currentImage, mask: maskBase64, hd_strategy_resize_limit: Math.max(imgW, imgH, 1024) },
         });
-        const eraserUrl = extractUrl(eraserOutput);
-        const eraserResp = await fetch(eraserUrl);
-        const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
-        const stepResult = await sharp(eraserBuf).resize(imgW, imgH).png().toBuffer();
+        const lamaUrl = extractUrl(lamaOutput);
+        const lamaResp = await fetch(lamaUrl);
+        const lamaBuf = Buffer.from(await lamaResp.arrayBuffer());
+        const stepResult = await sharp(lamaBuf).resize(imgW, imgH).png().toBuffer();
         currentImage = `data:image/png;base64,${stepResult.toString("base64")}`;
         console.log(`[declutter] Removed object ${i + 1} "${label}" ✓`);
       } catch (err) {
-        console.log(`[declutter] Bria Eraser error for "${label}":`, err);
+        console.log(`[declutter] LaMa error for "${label}":`, err);
         continue;
       }
     }
@@ -2216,17 +2212,17 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
 
       const maskBase64 = `data:image/png;base64,${maskPng.toString("base64")}`;
       try {
-        const eraserOutput = await replicate.run("bria/eraser", {
-          input: { image: currentImage, mask: maskBase64, mask_type: "manual" },
+        const lamaOutput = await replicate.run("dpakkk/image-object-removal:40e67426e1bf78199d78b36580389fbbdcb4c9cdc2bc2b489e99d713f167b3c5", {
+          input: { image: currentImage, mask: maskBase64, hd_strategy_resize_limit: Math.max(imgW, imgH, 1024) },
         });
-        const eraserUrl = extractUrl(eraserOutput);
-        const eraserResp = await fetch(eraserUrl);
-        const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
-        const stepResult = await sharp(eraserBuf).resize(imgW, imgH).png().toBuffer();
+        const lamaUrl = extractUrl(lamaOutput);
+        const lamaResp = await fetch(lamaUrl);
+        const lamaBuf = Buffer.from(await lamaResp.arrayBuffer());
+        const stepResult = await sharp(lamaBuf).resize(imgW, imgH).png().toBuffer();
         currentImage = `data:image/png;base64,${stepResult.toString("base64")}`;
         console.log(`[declutter] Legacy: removed "${label}" ✓`);
       } catch (err) {
-        console.log(`[declutter] Legacy: Bria Eraser error for "${label}":`, err);
+        console.log(`[declutter] Legacy: LaMa error for "${label}":`, err);
         continue;
       }
     }
