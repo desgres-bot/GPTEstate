@@ -39,6 +39,7 @@ import {
   greenifyExterior,
   refineWithAI,
 } from "@/lib/openai";
+import { logHistory } from "@/lib/history";
 
 export const maxDuration = 300; // Allow up to 5 min for image generation
 
@@ -119,47 +120,70 @@ export async function POST(req: NextRequest) {
     const mimeType = image.type || "image/jpeg";
     const dataUri = `data:${mimeType};base64,${base64}`;
 
+    // Common history params
+    const inputBuffer = Buffer.from(bytes);
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "";
+    const userAgent = req.headers.get("user-agent") || "";
+    const allParams: Record<string, string | null> = {
+      style, customStyle, description: description || mask, platform, tone,
+      skyType, renovationType, exteriorStyle, customExterior,
+      landscapeType, wallColor, customWallColor, socialPlatform,
+      furnishDescription, flooringType, customFlooring, kitchenStyle, customKitchen,
+      seasonType, decorType, commercialType, textrenderPrompt,
+      bathroomStyle, customBathroom, additemDescription, refinePrompt, declutterObjects,
+    };
+
     // ─── Text modes ───
     if (mode === "describe") {
       const text = await describePhoto(dataUri, platform || "avito", tone || "selling");
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
     if (mode === "score") {
       const text = await scorePhoto(dataUri);
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
     if (mode === "analyze") {
       const text = await analyzeRoom(dataUri);
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
     if (mode === "checklist") {
       const text = await generateChecklist(dataUri);
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
     if (mode === "listing") {
       const text = await generateListing(dataUri, platform || "avito");
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
     if (mode === "social") {
       const text = await generateSocialPost(dataUri, socialPlatform || "instagram");
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
     if (mode === "floorplan") {
       const text = await describeFloorPlan(dataUri);
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
     if (mode === "compliance") {
       const text = await checkCompliance(dataUri);
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
     if (mode === "repaircost") {
       const text = await estimateRepairCost(dataUri);
+      logHistory({ mode, params: { ...allParams, result: text.slice(0, 500) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ text });
     }
 
     // ─── Declutter detect mode ───
     if (mode === "declutter-detect") {
       const objects = await detectObjects(dataUri);
+      logHistory({ mode, params: { ...allParams, result: JSON.stringify(objects) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ objects });
     }
 
@@ -168,6 +192,7 @@ export async function POST(req: NextRequest) {
       const stylesParam = formData.get("styles") as string | null;
       const styles = stylesParam ? JSON.parse(stylesParam) : ["modern", "scandinavian", "loft", "classic"];
       const outputUrls = await compareStyles(dataUri, styles);
+      logHistory({ mode, params: allParams, inputBuffer, ip, userAgent });
       return NextResponse.json({ output_urls: outputUrls });
     }
 
@@ -242,6 +267,9 @@ export async function POST(req: NextRequest) {
       outputDataUri = await redesignRoom(dataUri, style || "modern", customStyle || undefined);
     }
 
+    // Log successful generation
+    logHistory({ mode, params: allParams, inputBuffer, outputDataUri, ip, userAgent });
+
     return NextResponse.json({ output_url: outputDataUri });
   } catch (error: unknown) {
     const err = error as { message?: string; status?: number; code?: string };
@@ -250,6 +278,10 @@ export async function POST(req: NextRequest) {
       status: err.status,
       code: err.code,
     }, null, 2));
+
+    // Log error (best effort)
+    logHistory({ mode: "error", params: { error: err.message || "unknown" }, inputBuffer: Buffer.alloc(0), error: err.message }).catch(() => {});
+
     return NextResponse.json(
       { error: err.message || "Ошибка генерации. Попробуйте позже." },
       { status: 500 }
