@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFile, unlink } from "fs/promises";
+import { readFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 
@@ -19,8 +19,6 @@ export async function GET(
   const filePath = join(TMP_DIR, id);
   try {
     const data = await readFile(filePath);
-    // Auto-delete after serving (one-time use)
-    unlink(filePath).catch(() => {});
     return new NextResponse(data, {
       headers: { "Content-Type": "image/jpeg", "Cache-Control": "no-store" },
     });
