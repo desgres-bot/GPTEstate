@@ -2098,66 +2098,88 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       }
     }
 
-    // ── Step 2: Iterative removal with Bria Eraser ──
-    let currentImage = imageBase64;
+    // ── Step 2: Combine all masks into one + single Bria Eraser pass ──
+    // Combining masks avoids iterative quality degradation and is faster
+    const combinedMask = Buffer.alloc(imgW * imgH, 0);
 
     for (let i = 0; i < removeLabels.length; i++) {
       const label = removeLabels[i];
       const bbox = bboxes[i];
       let maskRaw = objectMasks[i];
 
-      // If no precise mask, fall back to elliptical bbox mask (softer than rectangle)
+      // If no precise mask, fall back to elliptical bbox mask
       if (!maskRaw) {
         console.log(`[declutter] No precise mask for "${label}", using elliptical bbox mask`);
         maskRaw = Buffer.alloc(imgW * imgH, 0);
         const cx = (bbox[0] + bbox[2]) / 2;
         const cy = (bbox[1] + bbox[3]) / 2;
-        const rx = (bbox[2] - bbox[0]) / 2 + 5; // slight padding
+        const rx = (bbox[2] - bbox[0]) / 2 + 5;
         const ry = (bbox[3] - bbox[1]) / 2 + 5;
-        for (let y = Math.max(0, Math.floor(cy - ry)); y < Math.min(imgH, Math.ceil(cy + ry)); y++) {
-          for (let x = Math.max(0, Math.floor(cx - rx)); x < Math.min(imgW, Math.ceil(cx + rx)); x++) {
-            const dx = (x - cx) / rx;
-            const dy = (y - cy) / ry;
+        for (let py = Math.max(0, Math.floor(cy - ry)); py < Math.min(imgH, Math.ceil(cy + ry)); py++) {
+          for (let px = Math.max(0, Math.floor(cx - rx)); px < Math.min(imgW, Math.ceil(cx + rx)); px++) {
+            const dx = (px - cx) / rx;
+            const dy = (py - cy) / ry;
             if (dx * dx + dy * dy <= 1.0) {
-              maskRaw[y * imgW + x] = 255;
+              maskRaw[py * imgW + px] = 255;
             }
           }
         }
       }
 
-      // Convert to PNG mask with slight feathering
-      const maskPng = await sharp(maskRaw, { raw: { width: imgW, height: imgH, channels: 1 } })
-        .blur(1.5)
-        .threshold(64)
-        .png()
-        .toBuffer();
-      const maskBase64 = `data:image/png;base64,${maskPng.toString("base64")}`;
+      // Add this object's mask to combined mask
+      for (let p = 0; p < maskRaw.length; p++) {
+        if (maskRaw[p] > 128) combinedMask[p] = 255;
+      }
+      console.log(`[declutter] Added mask for "${label}" to combined mask`);
+    }
 
-      // LaMa inpainting — fills with surrounding texture, NO hallucinations
-      console.log(`[declutter] LaMa removal for object ${i + 1}/${removeLabels.length} "${label}"`);
-
-      try {
-        const lamaOutput = await replicate.run("dpakkk/image-object-removal:40e67426e1bf78199d78b36580389fbbdcb4c9cdc2bc2b489e99d713f167b3c5", {
-          input: { image: currentImage, mask: maskBase64, hd_strategy_resize_limit: Math.max(imgW, imgH, 1024) },
-        });
-        const lamaUrl = extractUrl(lamaOutput);
-        const lamaResp = await fetch(lamaUrl);
-        const lamaBuf = Buffer.from(await lamaResp.arrayBuffer());
-        const stepResult = await sharp(lamaBuf).resize(imgW, imgH).png().toBuffer();
-        currentImage = `data:image/png;base64,${stepResult.toString("base64")}`;
-        console.log(`[declutter] Removed object ${i + 1} "${label}" ✓`);
-      } catch (err) {
-        console.log(`[declutter] LaMa error for "${label}":`, err);
-        continue;
+    // Dilate combined mask by ~12px for better blending at edges
+    const DILATE_PX = 12;
+    const dilatedMask = Buffer.alloc(imgW * imgH, 0);
+    for (let y = 0; y < imgH; y++) {
+      for (let x = 0; x < imgW; x++) {
+        if (combinedMask[y * imgW + x] === 255) {
+          // Spread to neighbors
+          for (let dy = -DILATE_PX; dy <= DILATE_PX; dy++) {
+            for (let dx = -DILATE_PX; dx <= DILATE_PX; dx++) {
+              if (dx * dx + dy * dy <= DILATE_PX * DILATE_PX) {
+                const ny = y + dy, nx = x + dx;
+                if (ny >= 0 && ny < imgH && nx >= 0 && nx < imgW) {
+                  dilatedMask[ny * imgW + nx] = 255;
+                }
+              }
+            }
+          }
+        }
       }
     }
 
-    // Final JPEG output
-    const finalBase64 = currentImage.replace(/^data:image\/\w+;base64,/, "");
-    const finalBuf = Buffer.from(finalBase64, "base64");
-    const finalJpeg = await sharp(finalBuf).jpeg({ quality: 95 }).toBuffer();
-    console.log("[declutter] Removal complete,", removeLabels.length, "objects processed");
-    return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
+    // Convert to PNG mask with soft edges
+    const maskPng = await sharp(dilatedMask, { raw: { width: imgW, height: imgH, channels: 1 } })
+      .blur(3)
+      .threshold(100)
+      .png()
+      .toBuffer();
+    const maskBase64 = `data:image/png;base64,${maskPng.toString("base64")}`;
+
+    // Single Bria Eraser pass — precise SAM2 masks + dilation = clean result
+    console.log(`[declutter] Bria Eraser: removing ${removeLabels.length} objects in single pass`);
+
+    try {
+      const eraserOutput = await replicate.run("bria/eraser", {
+        input: { image: imageBase64, mask: maskBase64 },
+      });
+      const eraserUrl = extractUrl(eraserOutput);
+      const eraserResp = await fetch(eraserUrl);
+      const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
+      const finalJpeg = await sharp(eraserBuf).resize(imgW, imgH).jpeg({ quality: 95 }).toBuffer();
+      console.log("[declutter] Removal complete,", removeLabels.length, "objects processed");
+      return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
+    } catch (err) {
+      console.log("[declutter] Bria Eraser error:", err);
+      // If Bria fails, return original image
+      return imageBase64;
+    }
   }
 
   // ── Legacy: label-only removal (no bboxes) — kept for backward compat ──
