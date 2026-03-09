@@ -1922,15 +1922,49 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
         mask: maskBase64,
         prompt: "Clean empty surface matching the surrounding materials — countertop, wall, floor. " +
           "No objects, no text, no labels, no items. Just clean bare surface continuation.",
-        output_format: "jpg",
+        output_format: "png",
         guidance: 4,
       },
     });
 
     const fillUrl = extractUrl(fillOutput);
     const fillResp = await fetch(fillUrl);
-    const fillBuf = await fillResp.arrayBuffer();
-    return `data:image/jpeg;base64,${Buffer.from(fillBuf).toString("base64")}`;
+    const fillBuf = Buffer.from(await fillResp.arrayBuffer());
+
+    // Composite: take FLUX Fill output ONLY in masked areas, keep original everywhere else
+    // This prevents blur/quality loss in non-masked areas
+    const fillResized = await sharp(fillBuf).resize(imgW, imgH).toBuffer();
+
+    // Create alpha mask: white areas = use fill, black areas = use original
+    const composited = await sharp(buffer)
+      .composite([{
+        input: fillResized,
+        blend: "over",
+        // Use the mask as alpha channel for the fill layer
+      }])
+      .toBuffer();
+
+    // Manual composite: original + mask-guided fill overlay
+    // Extract raw pixels for precise per-pixel compositing
+    const origRaw = await sharp(buffer).ensureAlpha().raw().toBuffer();
+    const fillRaw = await sharp(fillResized).ensureAlpha().raw().toBuffer();
+    const maskRaw = await sharp(maskBuffer).ensureAlpha().raw().toBuffer();
+
+    const result = Buffer.alloc(origRaw.length);
+    for (let i = 0; i < origRaw.length; i += 4) {
+      const maskVal = maskRaw[i]; // R channel of mask (0=keep original, 255=use fill)
+      const t = maskVal / 255;
+      result[i]     = Math.round(origRaw[i]     * (1 - t) + fillRaw[i]     * t); // R
+      result[i + 1] = Math.round(origRaw[i + 1] * (1 - t) + fillRaw[i + 1] * t); // G
+      result[i + 2] = Math.round(origRaw[i + 2] * (1 - t) + fillRaw[i + 2] * t); // B
+      result[i + 3] = 255; // A
+    }
+
+    const finalBuffer = await sharp(result, { raw: { width: imgW, height: imgH, channels: 4 } })
+      .jpeg({ quality: 92 })
+      .toBuffer();
+
+    return `data:image/jpeg;base64,${finalBuffer.toString("base64")}`;
   }
 
   // Fallback: prompt-based removal with Flux Kontext (no bboxes available)
