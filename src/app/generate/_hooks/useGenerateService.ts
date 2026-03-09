@@ -204,6 +204,7 @@ export function useGenerateService() {
         const selected = declutterObjects.filter(o => declutterSelected.has(o.id));
         formData.append("declutterObjects", JSON.stringify(selected.map(o => o.name)));
         formData.append("declutterBboxes", JSON.stringify(selected.map(o => o.bbox)));
+        formData.append("allBboxes", JSON.stringify(declutterObjects.map(o => o.bbox)));
       }
 
       const res = await fetch("/api/generate", {

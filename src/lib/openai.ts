@@ -1875,100 +1875,16 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
 }
 
 /**
- * Declutter — remove objects using mask-based inpainting (LaMa).
- * When bboxes provided, builds a precise mask from bounding boxes.
- * Falls back to prompt-based Flux Kontext if no bboxes.
+ * Declutter — remove objects from a room.
+ * When bboxes provided (selective mode): Flux Kontext removes ALL clutter,
+ * then we composite original pixels back for objects user wants to KEEP.
+ * Without bboxes: simple Flux Kontext prompt-based removal.
  */
-export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][]): Promise<string> {
+export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][], allBboxes?: number[][]): Promise<string> {
   const replicate = getReplicate();
 
-  // Mask-based approach: build mask from bboxes and use LaMa inpainting
-  if (bboxes && bboxes.length > 0) {
-    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-    const meta = await sharp(buffer).metadata();
-    const imgW = meta.width!;
-    const imgH = meta.height!;
-
-    // Build white-on-black mask SVG from bounding boxes (white = remove, black = keep)
-    // Add padding around each bbox to capture shadows/reflections
-    const PAD = Math.max(5, Math.round(Math.min(imgW, imgH) * 0.02));
-    let rects = "";
-    for (const bbox of bboxes) {
-      const [xmin, ymin, xmax, ymax] = bbox;
-      const x = Math.max(0, Math.round(xmin) - PAD);
-      const y = Math.max(0, Math.round(ymin) - PAD);
-      const w = Math.min(imgW, Math.round(xmax) + PAD) - x;
-      const h = Math.min(imgH, Math.round(ymax) + PAD) - y;
-      rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="white" rx="8"/>`;
-    }
-    const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${imgW}" height="${imgH}">
-      <rect width="${imgW}" height="${imgH}" fill="black"/>
-      ${rects}
-    </svg>`;
-
-    const maskBuffer = await sharp(Buffer.from(maskSvg))
-      .resize(imgW, imgH)
-      .png()
-      .toBuffer();
-    const maskBase64 = `data:image/png;base64,${maskBuffer.toString("base64")}`;
-
-    console.log("[declutter] Mask-based removal:", bboxes.length, "objects, image:", imgW, "x", imgH);
-
-    // Use FLUX Fill Pro with strict prompt to prevent hallucinated objects
-    const fillOutput = await replicate.run("black-forest-labs/flux-fill-pro", {
-      input: {
-        image: imageBase64,
-        mask: maskBase64,
-        prompt: "Clean empty surface matching the surrounding materials — countertop, wall, floor. " +
-          "No objects, no text, no labels, no items. Just clean bare surface continuation.",
-        output_format: "png",
-        guidance: 4,
-      },
-    });
-
-    const fillUrl = extractUrl(fillOutput);
-    const fillResp = await fetch(fillUrl);
-    const fillBuf = Buffer.from(await fillResp.arrayBuffer());
-
-    // Composite: take FLUX Fill output ONLY in masked areas, keep original everywhere else
-    // This prevents blur/quality loss in non-masked areas
-    const fillResized = await sharp(fillBuf).resize(imgW, imgH).toBuffer();
-
-    // Create alpha mask: white areas = use fill, black areas = use original
-    const composited = await sharp(buffer)
-      .composite([{
-        input: fillResized,
-        blend: "over",
-        // Use the mask as alpha channel for the fill layer
-      }])
-      .toBuffer();
-
-    // Manual composite: original + mask-guided fill overlay
-    // Extract raw pixels for precise per-pixel compositing
-    const origRaw = await sharp(buffer).ensureAlpha().raw().toBuffer();
-    const fillRaw = await sharp(fillResized).ensureAlpha().raw().toBuffer();
-    const maskRaw = await sharp(maskBuffer).ensureAlpha().raw().toBuffer();
-
-    const result = Buffer.alloc(origRaw.length);
-    for (let i = 0; i < origRaw.length; i += 4) {
-      const maskVal = maskRaw[i]; // R channel of mask (0=keep original, 255=use fill)
-      const t = maskVal / 255;
-      result[i]     = Math.round(origRaw[i]     * (1 - t) + fillRaw[i]     * t); // R
-      result[i + 1] = Math.round(origRaw[i + 1] * (1 - t) + fillRaw[i + 1] * t); // G
-      result[i + 2] = Math.round(origRaw[i + 2] * (1 - t) + fillRaw[i + 2] * t); // B
-      result[i + 3] = 255; // A
-    }
-
-    const finalBuffer = await sharp(result, { raw: { width: imgW, height: imgH, channels: 4 } })
-      .jpeg({ quality: 92 })
-      .toBuffer();
-
-    return `data:image/jpeg;base64,${finalBuffer.toString("base64")}`;
-  }
-
-  // Fallback: prompt-based removal with Flux Kontext (no bboxes available)
-  console.log("[declutter] Prompt-based removal (no bboxes)...");
+  // Step 1: Flux Kontext removes ALL clutter (it's great at this)
+  console.log("[declutter] Step 1: Flux Kontext removing all clutter...");
   const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt: "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
@@ -1984,10 +1900,68 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     },
   });
 
-  const cleanUrl = extractUrl(dclOutput);
-  const cleanResp = await fetch(cleanUrl);
-  const cleanBuf = await cleanResp.arrayBuffer();
-  return `data:image/jpeg;base64,${Buffer.from(cleanBuf).toString("base64")}`;
+  const dclUrl = extractUrl(dclOutput);
+  const dclResp = await fetch(dclUrl);
+  const dclBuf = Buffer.from(await dclResp.arrayBuffer());
+
+  // If we have bboxes for selective removal, composite original back for KEPT objects
+  // allBboxes = all detected objects, bboxes = objects to REMOVE
+  // Objects to KEEP = allBboxes minus bboxes
+  if (allBboxes && bboxes && allBboxes.length > bboxes.length) {
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const origBuffer = Buffer.from(base64Data, "base64");
+    const meta = await sharp(origBuffer).metadata();
+    const imgW = meta.width!;
+    const imgH = meta.height!;
+
+    // Find bboxes to KEEP (allBboxes minus selected-to-remove bboxes)
+    const removeSet = new Set(bboxes.map(b => b.join(",")));
+    const keepBboxes = allBboxes.filter(b => !removeSet.has(b.join(",")));
+
+    if (keepBboxes.length > 0) {
+      console.log("[declutter] Step 2: Compositing back", keepBboxes.length, "kept objects...");
+
+      // Build mask: white = areas to restore from original (objects to keep)
+      const PAD = Math.max(8, Math.round(Math.min(imgW, imgH) * 0.02));
+      let rects = "";
+      for (const bbox of keepBboxes) {
+        const [xmin, ymin, xmax, ymax] = bbox;
+        const x = Math.max(0, Math.round(xmin) - PAD);
+        const y = Math.max(0, Math.round(ymin) - PAD);
+        const w = Math.min(imgW, Math.round(xmax) + PAD) - x;
+        const h = Math.min(imgH, Math.round(ymax) + PAD) - y;
+        rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="white" rx="4"/>`;
+      }
+      const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${imgW}" height="${imgH}">
+        <rect width="${imgW}" height="${imgH}" fill="black"/>
+        ${rects}
+      </svg>`;
+      const keepMask = await sharp(Buffer.from(maskSvg)).resize(imgW, imgH).raw().toBuffer();
+
+      // Resize Kontext result to match original
+      const kontextResized = await sharp(dclBuf).resize(imgW, imgH).ensureAlpha().raw().toBuffer();
+      const origRaw = await sharp(origBuffer).ensureAlpha().raw().toBuffer();
+
+      // Per-pixel composite: mask white = original, mask black = kontext result
+      const result = Buffer.alloc(origRaw.length);
+      for (let i = 0; i < origRaw.length; i += 4) {
+        const maskVal = keepMask[i]; // R channel: 255=keep original, 0=use kontext
+        const t = maskVal / 255;
+        result[i]     = Math.round(kontextResized[i]     * (1 - t) + origRaw[i]     * t);
+        result[i + 1] = Math.round(kontextResized[i + 1] * (1 - t) + origRaw[i + 1] * t);
+        result[i + 2] = Math.round(kontextResized[i + 2] * (1 - t) + origRaw[i + 2] * t);
+        result[i + 3] = 255;
+      }
+
+      const finalBuf = await sharp(result, { raw: { width: imgW, height: imgH, channels: 4 } })
+        .jpeg({ quality: 92 })
+        .toBuffer();
+      return `data:image/jpeg;base64,${finalBuf.toString("base64")}`;
+    }
+  }
+
+  // No selective compositing needed — return Kontext result directly
+  return `data:image/jpeg;base64,${dclBuf.toString("base64")}`;
 }
 
 /**
