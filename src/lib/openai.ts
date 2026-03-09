@@ -1816,9 +1816,13 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
   const buffer = Buffer.from(base64Data, "base64");
 
-  // Upload original to CF KV, pass URL to GPT-4o (no size limits via URL)
-  console.log("[detectObjects] Original size:", buffer.length, "bytes");
-  const imageUrl = await uploadImageToProxy(buffer);
+  // Compress to fit CF KV upload limit (~25KB), but maximize quality for detection
+  const compressed = await sharp(buffer)
+    .resize(512, 512, { fit: "inside" })
+    .jpeg({ quality: 45 })
+    .toBuffer();
+  console.log("[detectObjects] Compressed:", compressed.length, "bytes");
+  const imageUrl = await uploadImageToProxy(compressed);
 
   const result = await openaiChatViaProxy(
     [
