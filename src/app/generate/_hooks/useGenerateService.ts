@@ -38,7 +38,7 @@ export function useGenerateService() {
   const [additemDescription, setAdditemDescription] = useState("");
 
   // Declutter object detection
-  type DetectedObject = { id: number; name: string; x: number; y: number };
+  type DetectedObject = { id: number; name: string; x: number; y: number; bbox: number[] };
   const [declutterObjects, setDeclutterObjects] = useState<DetectedObject[]>([]);
   const [declutterSelected, setDeclutterSelected] = useState<Set<number>>(new Set());
   const [declutterDetecting, setDeclutterDetecting] = useState(false);
@@ -201,10 +201,9 @@ export function useGenerateService() {
       }
       if (mode === "additem") formData.append("additemDescription", additemDescription);
       if (mode === "declutter" && declutterDetected && declutterSelected.size > 0) {
-        const selectedNames = declutterObjects
-          .filter(o => declutterSelected.has(o.id))
-          .map(o => o.name);
-        formData.append("declutterObjects", JSON.stringify(selectedNames));
+        const selected = declutterObjects.filter(o => declutterSelected.has(o.id));
+        formData.append("declutterObjects", JSON.stringify(selected.map(o => o.name)));
+        formData.append("declutterBboxes", JSON.stringify(selected.map(o => o.bbox)));
       }
 
       const res = await fetch("/api/generate", {

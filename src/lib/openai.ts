@@ -1804,7 +1804,7 @@ const LABEL_RU: Record<string, string> = {
   "food package": "упаковка еды", "cleaning product": "моющее средство",
 };
 
-export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number }>> {
+export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number; bbox: number[] }>> {
   console.log("[detectObjects] Using Grounding DINO for precise detection...");
   const replicate = getReplicate();
 
@@ -1857,7 +1857,7 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
     const labelParts = rawLabel.split(/\s+/);
     const name = LABEL_RU[rawLabel] || LABEL_RU[labelParts[0]] || rawLabel;
 
-    return { id: i + 1, name, x, y, score: det.confidence };
+    return { id: i + 1, name, x, y, bbox: det.bbox, score: det.confidence };
   });
 
   // Sort by score descending and deduplicate nearby objects (within 5% distance)
@@ -1871,32 +1871,74 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
   }
 
   // Re-number and return without score field
-  return filtered.map((obj, i) => ({ id: i + 1, name: obj.name, x: obj.x, y: obj.y }));
+  return filtered.map((obj, i) => ({ id: i + 1, name: obj.name, x: obj.x, y: obj.y, bbox: obj.bbox }));
 }
 
 /**
- * Declutter — remove specific objects from a room (or all clutter if no list provided).
+ * Declutter — remove objects using mask-based inpainting (LaMa).
+ * When bboxes provided, builds a precise mask from bounding boxes.
+ * Falls back to prompt-based Flux Kontext if no bboxes.
  */
-export async function declutterRoom(imageBase64: string, objectsToRemove?: string[]): Promise<string> {
+export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][]): Promise<string> {
   const replicate = getReplicate();
 
-  // Pass 1: Remove clutter
-  const hasSpecificObjects = objectsToRemove && objectsToRemove.length > 0;
-  const removeList = hasSpecificObjects ? objectsToRemove.join(", ") : null;
+  // Mask-based approach: build mask from bboxes and use LaMa inpainting
+  if (bboxes && bboxes.length > 0) {
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+    const meta = await sharp(buffer).metadata();
+    const imgW = meta.width!;
+    const imgH = meta.height!;
 
-  console.log("[declutter] Pass 1: Removing", hasSpecificObjects ? removeList : "all clutter...");
+    // Build white-on-black mask SVG from bounding boxes (white = remove, black = keep)
+    // Add padding around each bbox to capture shadows/reflections
+    const PAD = Math.max(5, Math.round(Math.min(imgW, imgH) * 0.02));
+    let rects = "";
+    for (const bbox of bboxes) {
+      const [xmin, ymin, xmax, ymax] = bbox;
+      const x = Math.max(0, Math.round(xmin) - PAD);
+      const y = Math.max(0, Math.round(ymin) - PAD);
+      const w = Math.min(imgW, Math.round(xmax) + PAD) - x;
+      const h = Math.min(imgH, Math.round(ymax) + PAD) - y;
+      rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="white" rx="8"/>`;
+    }
+    const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${imgW}" height="${imgH}">
+      <rect width="${imgW}" height="${imgH}" fill="black"/>
+      ${rects}
+    </svg>`;
+
+    const maskBuffer = await sharp(Buffer.from(maskSvg))
+      .resize(imgW, imgH)
+      .png()
+      .toBuffer();
+    const maskBase64 = `data:image/png;base64,${maskBuffer.toString("base64")}`;
+
+    console.log("[declutter] Mask-based removal:", bboxes.length, "objects, image:", imgW, "x", imgH);
+
+    // Use LaMa for fast, clean inpainting
+    const lamaOutput = await replicate.run("zylim0702/remove-object", {
+      input: {
+        image: imageBase64,
+        mask: maskBase64,
+      },
+    });
+
+    const lamaUrl = extractUrl(lamaOutput);
+    const lamaResp = await fetch(lamaUrl);
+    const lamaBuf = await lamaResp.arrayBuffer();
+    return `data:image/jpeg;base64,${Buffer.from(lamaBuf).toString("base64")}`;
+  }
+
+  // Fallback: prompt-based removal with Flux Kontext (no bboxes available)
+  console.log("[declutter] Prompt-based removal (no bboxes)...");
   const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
-      prompt: hasSpecificObjects
-        ? `Remove only these specific items from this room: ${removeList}. ` +
-          "Keep everything else exactly as it is — all furniture, appliances, and other objects must remain. " +
-          "Clean the surfaces where removed items were. Professional real estate photography."
-        : "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
-          "bags, cables, laundry, trash, scattered objects on surfaces and floor. " +
-          "Leave all furniture in place — only remove mess from surfaces and floor. " +
-          "Clean tidy surfaces, clear floor. " +
-          "While maintaining all furniture, walls, floor, ceiling, windows, and room layout exactly as they are. " +
-          "Professional real estate photography.",
+      prompt: "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
+        "bags, cables, laundry, trash, scattered objects on surfaces and floor. " +
+        "Leave all furniture in place — only remove mess from surfaces and floor. " +
+        "Clean tidy surfaces, clear floor. " +
+        "While maintaining all furniture, walls, floor, ceiling, windows, and room layout exactly as they are. " +
+        "Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
@@ -1904,26 +1946,7 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     },
   });
 
-  const dclUrl = extractUrl(dclOutput);
-  const dclResp = await fetch(dclUrl);
-  const dclBuf = await dclResp.arrayBuffer();
-  const pass1Base64 = `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
-
-  // Pass 2: Clean reflections and ghosting artifacts on glossy surfaces
-  console.log("[declutter] Pass 2: Cleaning reflections on glossy surfaces...");
-  const cleanOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
-    input: {
-      prompt:
-        "Remove all phantom reflections and ghost artifacts from glass and glossy surfaces. " +
-        "Glass should be clean and clear. Keep everything else exactly as it is.",
-      input_image: pass1Base64,
-      aspect_ratio: "match_input_image",
-      output_format: "jpg",
-      prompt_upsampling: false,
-    },
-  });
-
-  const cleanUrl = extractUrl(cleanOutput);
+  const cleanUrl = extractUrl(dclOutput);
   const cleanResp = await fetch(cleanUrl);
   const cleanBuf = await cleanResp.arrayBuffer();
   return `data:image/jpeg;base64,${Buffer.from(cleanBuf).toString("base64")}`;

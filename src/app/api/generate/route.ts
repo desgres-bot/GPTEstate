@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
     const refinePrompt = formData.get("refinePrompt") as string | null;
     const originalImage = formData.get("originalImage") as File | null;
     const declutterObjects = formData.get("declutterObjects") as string | null;
+    const declutterBboxes = formData.get("declutterBboxes") as string | null;
 
     console.log("[generate] Mode:", mode, "Image size:", image?.size, "Image type:", image?.type);
 
@@ -243,7 +244,8 @@ export async function POST(req: NextRequest) {
       outputDataUri = await makeVacant(dataUri);
     } else if (mode === "declutter") {
       const objectsList = declutterObjects ? JSON.parse(declutterObjects) as string[] : undefined;
-      outputDataUri = await declutterRoom(dataUri, objectsList);
+      const bboxesList = declutterBboxes ? JSON.parse(declutterBboxes) as number[][] : undefined;
+      outputDataUri = await declutterRoom(dataUri, objectsList, bboxesList);
     } else if (mode === "bathroom") {
       outputDataUri = await remodelBathroom(dataUri, bathroomStyle || "modern_white", customBathroom || undefined);
     } else if (mode === "additem") {
