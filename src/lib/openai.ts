@@ -1901,21 +1901,41 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       samInput.negative_mask_prompt = negPrompt;
     }
 
-    const samOutput = await replicate.run("schananas/grounded_sam:ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c", { input: samInput });
+    // Call Grounded SAM via Replicate API directly (SDK uses wrong endpoint for this model)
+    const replicateToken = process.env.REPLICATE_API_TOKEN;
+    const samPrediction = await fetch("https://api.replicate.com/v1/predictions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${replicateToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        version: "ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
+        input: samInput,
+      }),
+    });
+    const samPredData = await samPrediction.json() as { id: string; urls: { get: string } };
+    console.log("[declutter] SAM prediction created:", samPredData.id);
 
-    // Grounded SAM yields 4 images: annotated, neg_annotated, mask, inverted_mask
-    // We need the 3rd one (index 2) — the final combined mask
-    let maskUrl: string;
-    if (Array.isArray(samOutput)) {
-      maskUrl = samOutput[2] as string; // mask is 3rd output
-    } else {
-      // Iterator/stream output — collect all
-      const outputs: string[] = [];
-      for await (const item of samOutput as AsyncIterable<unknown>) {
-        outputs.push(String(item));
-      }
-      maskUrl = outputs[2];
+    // Poll for completion
+    let samResult: { status: string; output?: string[] };
+    const getUrl = samPredData.urls?.get || `https://api.replicate.com/v1/predictions/${samPredData.id}`;
+    do {
+      await new Promise(r => setTimeout(r, 2000));
+      const pollResp = await fetch(getUrl, {
+        headers: { "Authorization": `Bearer ${replicateToken}` },
+      });
+      samResult = await pollResp.json() as typeof samResult;
+    } while (samResult.status !== "succeeded" && samResult.status !== "failed");
+
+    if (samResult.status === "failed" || !samResult.output) {
+      throw new Error("Grounded SAM failed: " + JSON.stringify(samResult));
     }
+    const samOutput = samResult.output;
+
+    // Grounded SAM returns 4 images: annotated, neg_annotated, mask, inverted_mask
+    // We need the 3rd one (index 2) — the final combined mask
+    const maskUrl = samOutput[2];
 
     console.log("[declutter] SAM mask URL:", maskUrl?.slice(0, 100));
 
