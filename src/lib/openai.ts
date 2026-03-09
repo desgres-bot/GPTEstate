@@ -1986,8 +1986,8 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       const imageForUpload = await sharp(curBuffer).jpeg({ quality: 95 }).toBuffer();
 
       const formData = new FormData();
-      formData.append("image_file", new Blob([imageForUpload], { type: "image/jpeg" }), "image.jpg");
-      formData.append("mask_file", new Blob([resizedMask], { type: "image/png" }), "mask.png");
+      formData.append("image_file", new Blob([new Uint8Array(imageForUpload)], { type: "image/jpeg" }), "image.jpg");
+      formData.append("mask_file", new Blob([new Uint8Array(resizedMask)], { type: "image/png" }), "mask.png");
 
       console.log(`[declutter] ClipDrop Cleanup for "${label}", image: ${imageForUpload.length}b, mask: ${resizedMask.length}b`);
 
