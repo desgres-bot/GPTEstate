@@ -2258,25 +2258,13 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
   console.log("[declutter] Smart auto mode: GPT-4o analyzing photo...");
 
   try {
-    // Save image as temp file and use public URL instead of base64
-    // This avoids Cloudflare Worker proxy timeout on large vision payloads
-    const { writeFile, mkdir } = await import("fs/promises");
-    const { join } = await import("path");
-    const { tmpdir } = await import("os");
-    const { randomUUID } = await import("crypto");
-
-    const tmpDir = join(tmpdir(), "gptestate-tmp");
-    await mkdir(tmpDir, { recursive: true });
-    const tmpId = `declutter-${randomUUID().slice(0, 8)}.jpg`;
-    const analyzeBase64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const analyzeBuf = Buffer.from(analyzeBase64Data, "base64");
-    const analyzeJpeg = await sharp(analyzeBuf).resize(2048, 2048, { fit: "inside" }).jpeg({ quality: 85 }).toBuffer();
-    await writeFile(join(tmpDir, tmpId), analyzeJpeg);
-
-    // Build public URL for the temp image (served by /api/tmp/[id] route)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "https://fotostate.ru";
-    const imageUrl = `${siteUrl}/api/tmp/${tmpId}`;
-    console.log("[declutter] Saved temp image for GPT-4o analysis:", tmpId, "size:", analyzeJpeg.length);
+    // Compress image for GPT-4o vision analysis — small enough for CF Worker proxy
+    // 768px + quality 50 ≈ 30-60KB base64, fast through proxy, enough for object identification
+    const analyzeBase64Raw = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const analyzeBuf = Buffer.from(analyzeBase64Raw, "base64");
+    const smallJpeg = await sharp(analyzeBuf).resize(768, 768, { fit: "inside" }).jpeg({ quality: 50 }).toBuffer();
+    const smallDataUri = `data:image/jpeg;base64,${smallJpeg.toString("base64")}`;
+    console.log("[declutter] Compressed image for GPT-4o:", smallJpeg.length, "bytes");
 
     // Step 1: GPT-4o looks at the photo and produces a precise removal/keep prompt
     const analysisResponse = await openaiChatViaProxy([
@@ -2302,7 +2290,7 @@ Examples of KEEP items: stove, oven, refrigerator, microwave, dishwasher, sink, 
         content: [
           {
             type: "image_url",
-            image_url: { url: imageUrl, detail: "high" },
+            image_url: { url: smallDataUri, detail: "auto" },
           },
           {
             type: "text",
