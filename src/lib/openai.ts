@@ -1790,9 +1790,47 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
   const buffer = Buffer.from(base64Data, "base64");
 
-  // Save original to temp, serve via local API — no size limits
-  console.log("[detectObjects] Original size:", buffer.length, "bytes");
-  const imageUrl = await saveTempImage(buffer);
+  // Overlay a labeled grid so GPT-4o can reference cells accurately
+  const COLS = 10;
+  const ROWS = 10;
+  const COL_LABELS = "ABCDEFGHIJ";
+  const meta = await sharp(buffer).metadata();
+  const w = meta.width!;
+  const h = meta.height!;
+  const cellW = Math.floor(w / COLS);
+  const cellH = Math.floor(h / ROWS);
+
+  // Build SVG grid overlay with labels
+  let svgLines = "";
+  // Vertical lines
+  for (let c = 1; c < COLS; c++) {
+    const x = c * cellW;
+    svgLines += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="rgba(255,255,0,0.5)" stroke-width="2"/>`;
+  }
+  // Horizontal lines
+  for (let r = 1; r < ROWS; r++) {
+    const y = r * cellH;
+    svgLines += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="rgba(255,255,0,0.5)" stroke-width="2"/>`;
+  }
+  // Cell labels (e.g. A1, B3)
+  const fontSize = Math.max(14, Math.min(cellW, cellH) * 0.3);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cx = c * cellW + cellW * 0.5;
+      const cy = r * cellH + cellH * 0.5;
+      const label = `${COL_LABELS[c]}${r + 1}`;
+      svgLines += `<text x="${cx}" y="${cy}" font-size="${fontSize}" font-family="Arial,sans-serif" font-weight="bold" fill="rgba(255,255,0,0.7)" text-anchor="middle" dominant-baseline="central">${label}</text>`;
+    }
+  }
+  const gridSvg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${svgLines}</svg>`);
+
+  const gridImage = await sharp(buffer)
+    .composite([{ input: gridSvg, top: 0, left: 0 }])
+    .jpeg({ quality: 85 })
+    .toBuffer();
+
+  console.log("[detectObjects] Grid image size:", gridImage.length, "bytes, original:", w, "x", h);
+  const imageUrl = await saveTempImage(gridImage);
 
   const result = await openaiChatViaProxy(
     [
@@ -1802,18 +1840,18 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
           { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
           {
             type: "text",
-            text: `Analyze this room photo. List EVERY single removable item — be very thorough, don't miss anything.
-For each item provide:
-- "name": short name in Russian (e.g. "полотенце", "кастрюля", "сковорода", "пакет хлеба")
-- "x": horizontal center position as percentage (0-100, left to right)
-- "y": vertical center position as percentage (0-100, top to bottom)
+            text: `This image has a labeled grid overlay (columns A-J, rows 1-10). Each cell is labeled like A1, B3, F7, etc.
+
+List EVERY removable item in this room. For each item provide:
+- "name": short name in Russian (e.g. "полотенце", "кастрюля", "сковорода")
+- "cell": the grid cell where the CENTER of this item is (e.g. "D7", "A3", "H5")
 
 List ALL: dishes, pots, pans, utensils, towels, cloths, food packages, bottles, bags, boxes, papers, cables, shoes, toys, cleaning supplies, soap, sponges, personal items, decorations, magnets, etc.
 Even small items like a single spoon or sponge should be listed separately.
 Do NOT include: built-in furniture, appliances (oven, fridge, dishwasher, microwave, sink, stove), countertops, cabinets, walls, floor, ceiling.
 
 Respond ONLY with a JSON array. Example:
-[{"name":"полотенце","x":25,"y":60},{"name":"кастрюля","x":50,"y":35}]`,
+[{"name":"полотенце","cell":"C6"},{"name":"кастрюля","cell":"E3"}]`,
           },
         ],
       },
@@ -1823,8 +1861,15 @@ Respond ONLY with a JSON array. Example:
 
   try {
     const cleaned = result.replace(/```json\n?|\n?```/g, "").trim();
-    const objects = JSON.parse(cleaned) as Array<{ name: string; x: number; y: number }>;
-    return objects.map((obj, i) => ({ id: i + 1, ...obj }));
+    const objects = JSON.parse(cleaned) as Array<{ name: string; cell: string }>;
+    // Convert cell references (e.g. "D7") to percentage coordinates
+    return objects.map((obj, i) => {
+      const col = COL_LABELS.indexOf(obj.cell.charAt(0).toUpperCase());
+      const row = parseInt(obj.cell.slice(1), 10) - 1;
+      const x = col >= 0 ? ((col + 0.5) / COLS) * 100 : 50;
+      const y = row >= 0 ? ((row + 0.5) / ROWS) * 100 : 50;
+      return { id: i + 1, name: obj.name, x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+    });
   } catch {
     console.error("[detectObjects] Failed to parse GPT response:", result);
     return [];
