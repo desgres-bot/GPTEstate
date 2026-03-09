@@ -1767,13 +1767,13 @@ export async function makeVacant(imageBase64: string): Promise<string> {
 export async function declutterRoom(imageBase64: string): Promise<string> {
   const replicate = getReplicate();
 
-  console.log("[declutter] Auto-cleaning room...");
+  // Pass 1: Remove clutter
+  console.log("[declutter] Pass 1: Removing clutter...");
   const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt:
         "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
         "bags, cables, laundry, trash, scattered objects on surfaces and floor. " +
-        "Also remove all reflections, shadows, and traces of removed items on glossy surfaces, glass, mirrors, and polished furniture. " +
         "Leave all furniture in place — only remove mess from surfaces and floor. " +
         "Clean tidy surfaces, clear floor. " +
         "While maintaining all furniture, walls, floor, ceiling, windows, and room layout exactly as they are. " +
@@ -1788,7 +1788,26 @@ export async function declutterRoom(imageBase64: string): Promise<string> {
   const dclUrl = extractUrl(dclOutput);
   const dclResp = await fetch(dclUrl);
   const dclBuf = await dclResp.arrayBuffer();
-  return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
+  const pass1Base64 = `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
+
+  // Pass 2: Clean reflections and ghosting artifacts on glossy surfaces
+  console.log("[declutter] Pass 2: Cleaning reflections on glossy surfaces...");
+  const cleanOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
+    input: {
+      prompt:
+        "Remove all phantom reflections and ghost artifacts from glass and glossy surfaces. " +
+        "Glass should be clean and clear. Keep everything else exactly as it is.",
+      input_image: pass1Base64,
+      aspect_ratio: "match_input_image",
+      output_format: "jpg",
+      prompt_upsampling: false,
+    },
+  });
+
+  const cleanUrl = extractUrl(cleanOutput);
+  const cleanResp = await fetch(cleanUrl);
+  const cleanBuf = await cleanResp.arrayBuffer();
+  return `data:image/jpeg;base64,${Buffer.from(cleanBuf).toString("base64")}`;
 }
 
 /**
