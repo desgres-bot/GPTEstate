@@ -235,7 +235,7 @@ export default function ResultDisplay({ mode, service }: Props) {
             onChange={(e) => service.setRefinePrompt(e.target.value)}
             placeholder="Сделать стены белыми, добавить больше света, убрать картину..."
             rows={2}
-            className="w-full bg-white/8 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/40 focus:bg-white/12 focus:outline-none resize-none"
+            className="w-full bg-white/8 rounded-lg px-4 py-3 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-white/40 focus:bg-white/12 focus:outline-none resize-none"
             disabled={service.refineLoading}
           />
           <div className="flex gap-2 mt-2">
