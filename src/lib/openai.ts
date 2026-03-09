@@ -1826,47 +1826,38 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
   console.log("[detectObjects] Raw output type:", typeof output, "keys:", output ? Object.keys(output) : "null");
   console.log("[detectObjects] Raw output sample:", JSON.stringify(output).slice(0, 1000));
 
-  // Parse Grounding DINO output — may return { detections: [...] } or similar
-  let detections: Array<{ label: string; score: number; xmin: number; ymin: number; xmax: number; ymax: number }> = [];
-
-  if (output && typeof output === "object") {
-    if (Array.isArray((output as { detections?: unknown }).detections)) {
-      detections = (output as { detections: typeof detections }).detections;
-    } else if (Array.isArray(output)) {
-      detections = output as typeof detections;
-    }
-  }
+  // Parse Grounding DINO output: { detections: [{ bbox: [xmin,ymin,xmax,ymax], confidence, label }], result_image }
+  type GDDetection = { bbox: number[]; confidence: number; label: string };
+  const raw = output as { detections?: GDDetection[] };
+  const detections = raw.detections || [];
 
   if (detections.length === 0) {
     console.error("[detectObjects] No detections found in output");
     return [];
   }
 
-  // Get image dimensions for coordinate conversion (if coords are pixel-based)
+  // Get image dimensions for pixel → percentage conversion
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
   const buffer = Buffer.from(base64Data, "base64");
   const meta = await sharp(buffer).metadata();
   const imgW = meta.width || 1;
   const imgH = meta.height || 1;
 
+  console.log("[detectObjects] Found", detections.length, "detections, image:", imgW, "x", imgH);
+
   // Convert detections to our format
   const results = detections.map((det, i) => {
-    // Determine if coordinates are normalized (0-1) or pixel-based
-    const isNormalized = det.xmax <= 1.0 && det.ymax <= 1.0;
-    const xmin = isNormalized ? det.xmin * 100 : (det.xmin / imgW) * 100;
-    const ymin = isNormalized ? det.ymin * 100 : (det.ymin / imgH) * 100;
-    const xmax = isNormalized ? det.xmax * 100 : (det.xmax / imgW) * 100;
-    const ymax = isNormalized ? det.ymax * 100 : (det.ymax / imgH) * 100;
+    const [bxmin, bymin, bxmax, bymax] = det.bbox;
+    // bbox is in pixels
+    const x = Math.round((((bxmin + bxmax) / 2) / imgW) * 1000) / 10;
+    const y = Math.round((((bymin + bymax) / 2) / imgH) * 1000) / 10;
 
-    // Center of bounding box
-    const x = Math.round(((xmin + xmax) / 2) * 10) / 10;
-    const y = Math.round(((ymin + ymax) / 2) * 10) / 10;
+    // Translate label to Russian — label may be combined like "pot pan", take first match
+    const rawLabel = det.label.trim().toLowerCase();
+    const labelParts = rawLabel.split(/\s+/);
+    const name = LABEL_RU[rawLabel] || LABEL_RU[labelParts[0]] || rawLabel;
 
-    // Translate label to Russian
-    const label = det.label.trim().toLowerCase();
-    const name = LABEL_RU[label] || label;
-
-    return { id: i + 1, name, x, y, score: det.score };
+    return { id: i + 1, name, x, y, score: det.confidence };
   });
 
   // Sort by score descending and deduplicate nearby objects (within 5% distance)
