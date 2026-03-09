@@ -131,15 +131,15 @@ export default function ResultDisplay({ mode, service }: Props) {
                 <button
                   key={obj.id}
                   onClick={() => service.toggleDeclutterObject(obj.id)}
-                  className={`absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 transition-all text-[10px] font-bold flex items-center justify-center ${
+                  className={`absolute -ml-3 -mt-3 rounded-full border-2 transition-all text-[10px] font-bold flex items-center justify-center ${
                     service.declutterSelected.has(obj.id)
-                      ? "bg-red-500 border-white text-white scale-100"
-                      : "bg-white/80 border-neutral-400 text-neutral-500 scale-90"
+                      ? "bg-red-500 border-white text-white w-6 h-6"
+                      : "bg-white/70 border-neutral-300 text-neutral-400 w-5 h-5 opacity-50"
                   }`}
                   style={{ left: `${obj.x}%`, top: `${obj.y}%` }}
                   title={obj.name}
                 >
-                  {service.declutterSelected.has(obj.id) ? "×" : "○"}
+                  {obj.id}
                 </button>
               ))}
             </div>
@@ -189,7 +189,7 @@ export default function ResultDisplay({ mode, service }: Props) {
                         : "bg-white/8 text-white/40 border border-white/10 line-through"
                     }`}
                   >
-                    {service.declutterSelected.has(obj.id) ? "× " : ""}
+                    <span className="font-bold mr-1">{obj.id}</span>
                     {obj.name}
                   </button>
                 ))}

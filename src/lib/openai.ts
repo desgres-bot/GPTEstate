@@ -1767,32 +1767,40 @@ export async function makeVacant(imageBase64: string): Promise<string> {
  */
 export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number }>> {
   console.log("[detectObjects] Analyzing room for removable objects...");
-  const compressed = await compressForAnalysis(imageBase64);
+  // Use higher resolution for detection — need to see small items
+  const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+  const buffer = Buffer.from(base64Data, "base64");
+  const compressed = await sharp(buffer)
+    .resize(1024, 1024, { fit: "inside" })
+    .jpeg({ quality: 70 })
+    .toBuffer();
+  const compressedUri = `data:image/jpeg;base64,${compressed.toString("base64")}`;
 
   const result = await openaiChatViaProxy(
     [
       {
         role: "user",
         content: [
-          { type: "image_url", image_url: { url: compressed, detail: "low" } },
+          { type: "image_url", image_url: { url: compressedUri, detail: "high" } },
           {
             type: "text",
-            text: `Analyze this room photo. List ALL removable items (clutter, personal items, objects on surfaces and floor).
+            text: `Analyze this room photo. List EVERY single removable item — be very thorough, don't miss anything.
 For each item provide:
-- "name": short name in Russian (e.g. "полотенце", "кастрюля", "сковорода")
-- "x": horizontal position as percentage (0-100, left to right)
-- "y": vertical position as percentage (0-100, top to bottom)
+- "name": short name in Russian (e.g. "полотенце", "кастрюля", "сковорода", "пакет хлеба")
+- "x": horizontal center position as percentage (0-100, left to right)
+- "y": vertical center position as percentage (0-100, top to bottom)
 
-Include items like: clothes, shoes, towels, dishes, bags, toys, papers, cables, bottles, food, boxes, cleaning supplies, personal items.
-Do NOT include: built-in furniture, appliances (oven, fridge, sink), countertops, cabinets, walls, floor, ceiling.
+List ALL: dishes, pots, pans, utensils, towels, cloths, food packages, bottles, bags, boxes, papers, cables, shoes, toys, cleaning supplies, soap, sponges, personal items, decorations, magnets, etc.
+Even small items like a single spoon or sponge should be listed separately.
+Do NOT include: built-in furniture, appliances (oven, fridge, dishwasher, microwave, sink, stove), countertops, cabinets, walls, floor, ceiling.
 
-Respond ONLY with a JSON array, no other text. Example:
+Respond ONLY with a JSON array. Example:
 [{"name":"полотенце","x":25,"y":60},{"name":"кастрюля","x":50,"y":35}]`,
           },
         ],
       },
     ],
-    1000,
+    2000,
   );
 
   try {
