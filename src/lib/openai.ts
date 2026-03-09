@@ -1870,17 +1870,33 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
     const y = Math.round((((bymin + bymax) / 2) / imgH) * 1000) / 10;
 
     // Clean DINO labels: may return compound garbage like "towel scarf", "cup mug bottle jar"
-    // Extract first known word from LABEL_RU, or just the first word ≥3 chars
+    // Priority: 1) full rawLabel in LABEL_RU, 2) multi-word substrings, 3) single word, 4) first word
     const rawLabel = det.label.trim().toLowerCase().replace(/^#+\s*/, ""); // strip "##r " prefix artifacts
     const labelParts = rawLabel.split(/\s+/).filter(w => w.length >= 2);
     let cleanedLabel = rawLabel;
-    for (const part of labelParts) {
-      if (part in LABEL_RU) { cleanedLabel = part; break; }
+
+    if (rawLabel in LABEL_RU) {
+      // Full label is a known key (e.g. "cutting board", "remote control")
+      cleanedLabel = rawLabel;
+    } else {
+      // Try 2-word combos first (e.g. "cutting board" from "cutting board knife")
+      let found = false;
+      for (let a = 0; a < labelParts.length - 1 && !found; a++) {
+        const twoWord = `${labelParts[a]} ${labelParts[a + 1]}`;
+        if (twoWord in LABEL_RU) { cleanedLabel = twoWord; found = true; }
+      }
+      // Then try single words
+      if (!found) {
+        for (const part of labelParts) {
+          if (part in LABEL_RU) { cleanedLabel = part; found = true; break; }
+        }
+      }
+      // Fallback: just first word
+      if (!found && labelParts.length > 0) {
+        cleanedLabel = labelParts[0];
+      }
     }
-    if (cleanedLabel === rawLabel && labelParts.length > 0) {
-      cleanedLabel = labelParts[0]; // just take first word if no LABEL_RU match
-    }
-    const name = LABEL_RU[cleanedLabel] || LABEL_RU[rawLabel] || cleanedLabel;
+    const name = LABEL_RU[cleanedLabel] || cleanedLabel;
 
     return { id: i + 1, name, label: cleanedLabel, x, y, bbox: det.bbox, score: det.confidence };
   });
@@ -1933,60 +1949,74 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       const imageUrl = await saveTempImage(origBuffer);
       console.log("[declutter] Image URL for SAM2:", imageUrl);
 
-      // Get SAM2 masks for all objects IN PARALLEL — each with its own bbox
-      console.log("[declutter] Getting fal.ai SAM2 masks for", removeLabels.length, "objects...");
-      await Promise.all(
-        bboxes.map(async (bbox, i) => {
-          try {
-            const sam2Resp = await fetch("https://fal.run/fal-ai/sam2/image", {
-              method: "POST",
-              headers: {
-                "Authorization": `Key ${falKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                image_url: imageUrl,
-                box_prompts: [{
-                  x_min: Math.floor(bbox[0]),
-                  y_min: Math.floor(bbox[1]),
-                  x_max: Math.ceil(bbox[2]),
-                  y_max: Math.ceil(bbox[3]),
-                }],
-                output_format: "png",
-              }),
-            });
+      // Get SAM2 masks with concurrency limit of 2 (fal.ai free tier limit)
+      const SAM2_CONCURRENCY = 2;
+      console.log("[declutter] Getting fal.ai SAM2 masks for", removeLabels.length, "objects (concurrency:", SAM2_CONCURRENCY, ")...");
 
-            if (!sam2Resp.ok) {
-              const errText = await sam2Resp.text();
-              console.log(`[declutter] SAM2 error for object ${i + 1}:`, sam2Resp.status, errText.substring(0, 200));
-              return;
-            }
+      const fetchSAM2Mask = async (bbox: number[], i: number, retries = 1): Promise<void> => {
+        try {
+          const sam2Resp = await fetch("https://fal.run/fal-ai/sam2/image", {
+            method: "POST",
+            headers: {
+              "Authorization": `Key ${falKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              image_url: imageUrl,
+              box_prompts: [{
+                x_min: Math.floor(bbox[0]),
+                y_min: Math.floor(bbox[1]),
+                x_max: Math.ceil(bbox[2]),
+                y_max: Math.ceil(bbox[3]),
+              }],
+              output_format: "png",
+            }),
+          });
 
-            const sam2Data = await sam2Resp.json() as { image?: { url: string } };
-            if (!sam2Data.image?.url) {
-              console.log(`[declutter] SAM2 no image in response for object ${i + 1}`);
-              return;
-            }
-
-            // Download mask and convert to grayscale raw buffer
-            const maskResp = await fetch(sam2Data.image.url);
-            const maskBuf = Buffer.from(await maskResp.arrayBuffer());
-            const rawMask = await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer();
-
-            // Check mask is non-empty
-            let maskSum = 0;
-            for (let p = 0; p < rawMask.length; p++) maskSum += rawMask[p];
-            if (maskSum > 0) {
-              objectMasks[i] = rawMask;
-              console.log(`[declutter] SAM2 mask OK for object ${i + 1} "${removeLabels[i]}" (${maskSum / 255} px)`);
-            } else {
-              console.log(`[declutter] SAM2 empty mask for object ${i + 1} "${removeLabels[i]}"`);
-            }
-          } catch (err) {
-            console.log(`[declutter] SAM2 exception for object ${i + 1}:`, err);
+          if (sam2Resp.status === 429 && retries > 0) {
+            console.log(`[declutter] SAM2 rate limited for object ${i + 1}, retrying in 2s...`);
+            await new Promise(r => setTimeout(r, 2000));
+            return fetchSAM2Mask(bbox, i, retries - 1);
           }
-        }),
-      );
+
+          if (!sam2Resp.ok) {
+            const errText = await sam2Resp.text();
+            console.log(`[declutter] SAM2 error for object ${i + 1}:`, sam2Resp.status, errText.substring(0, 200));
+            return;
+          }
+
+          const sam2Data = await sam2Resp.json() as { image?: { url: string } };
+          if (!sam2Data.image?.url) {
+            console.log(`[declutter] SAM2 no image in response for object ${i + 1}`);
+            return;
+          }
+
+          // Download mask and convert to grayscale raw buffer
+          const maskResp = await fetch(sam2Data.image.url);
+          const maskBuf = Buffer.from(await maskResp.arrayBuffer());
+          const rawMask = await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer();
+
+          // Check mask is non-empty
+          let maskSum = 0;
+          for (let p = 0; p < rawMask.length; p++) maskSum += rawMask[p];
+          if (maskSum > 0) {
+            objectMasks[i] = rawMask;
+            console.log(`[declutter] SAM2 mask OK for object ${i + 1} "${removeLabels[i]}" (${maskSum / 255} px)`);
+          } else {
+            console.log(`[declutter] SAM2 empty mask for object ${i + 1} "${removeLabels[i]}"`);
+          }
+        } catch (err) {
+          console.log(`[declutter] SAM2 exception for object ${i + 1}:`, err);
+        }
+      };
+
+      // Process in batches of SAM2_CONCURRENCY
+      for (let batch = 0; batch < bboxes.length; batch += SAM2_CONCURRENCY) {
+        const batchItems = bboxes.slice(batch, batch + SAM2_CONCURRENCY);
+        await Promise.all(
+          batchItems.map((bbox, j) => fetchSAM2Mask(bbox, batch + j)),
+        );
+      }
 
       const gotMasks = objectMasks.filter(m => m !== null).length;
       console.log("[declutter] SAM2 masks obtained:", gotMasks, "of", removeLabels.length);
