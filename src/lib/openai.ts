@@ -2254,70 +2254,76 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
   }
 
-  // ── Smart Auto Mode: GPT-4o vision analyzes photo → builds precise Kontext prompt ──
-  console.log("[declutter] Smart auto mode: GPT-4o analyzing photo...");
+  // ── Smart Auto Mode: DINO detects objects → GPT-4o text filters → Kontext removes ──
+  console.log("[declutter] Smart auto mode: detecting objects with DINO...");
 
   try {
-    // Compress image for GPT-4o vision analysis — small enough for CF Worker proxy
-    // 768px + quality 50 ≈ 30-60KB base64, fast through proxy, enough for object identification
-    const analyzeBase64Raw = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const analyzeBuf = Buffer.from(analyzeBase64Raw, "base64");
-    const smallJpeg = await sharp(analyzeBuf).resize(768, 768, { fit: "inside" }).jpeg({ quality: 50 }).toBuffer();
-    const smallDataUri = `data:image/jpeg;base64,${smallJpeg.toString("base64")}`;
-    console.log("[declutter] Compressed image for GPT-4o:", smallJpeg.length, "bytes");
+    // Step 1: Grounding DINO detects all objects (fast, ~5 sec)
+    const detected = await detectObjects(imageBase64);
+    console.log("[declutter] DINO found", detected.length, "objects:", detected.map(o => o.label).join(", "));
 
-    // Step 1: GPT-4o looks at the photo and produces a precise removal/keep prompt
-    const analysisResponse = await openaiChatViaProxy([
+    if (detected.length === 0) {
+      console.log("[declutter] No objects detected, using generic Kontext prompt");
+      const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
+        input: {
+          prompt: "Remove only small clutter items that a person can pick up with one hand in under 3 seconds. " +
+            "Keep all appliances, furniture, fixtures, and permanent items exactly as they are. " +
+            "Professional real estate photography.",
+          input_image: imageBase64,
+          aspect_ratio: "match_input_image",
+          output_format: "jpg",
+          prompt_upsampling: false,
+        },
+      });
+      const dclUrl = extractUrl(dclOutput);
+      const dclResp = await fetch(dclUrl);
+      const dclBuf = await dclResp.arrayBuffer();
+      return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
+    }
+
+    // Step 2: GPT-4o TEXT-ONLY (no image!) classifies detected objects
+    // Text request is fast (~3 sec), no vision timeout issues
+    const objectList = detected.map((o, i) => `${i + 1}. ${o.label} (at position x:${o.x}%, y:${o.y}%)`).join("\n");
+
+    const gptResponse = await openaiChatViaProxy([
       {
         role: "system",
-        content: `You are an expert real estate photo editor. Your job is to analyze a room photo and create a precise editing instruction.
+        content: `You are a real estate photo editor. Given a list of detected objects in a room photo, classify each into REMOVE or KEEP.
 
-The "3-second rule": if an average person can pick up and remove an item with ONE hand in under 3 seconds, it's clutter and should be removed.
+The "3-second rule": if a person can pick it up with ONE hand in under 3 seconds, it's clutter → REMOVE.
 
-You must output EXACTLY two sections in this format:
+REMOVE examples: dirty dishes, cups, plates, bowls, utensils, towels (hanging or lying), rags, sponges, soap/detergent bottles, food, bread, packages, papers, magazines, small trash, cables, clothes on surfaces, shoes, toys, bags, bottles, pans on stove (not built-in), cutting boards, candles, small decorations.
 
-REMOVE: [comma-separated list of specific items with their exact locations]
-KEEP: [comma-separated list of permanent/heavy items that must NOT be touched]
+KEEP examples: stove, oven, refrigerator, microwave, dishwasher, sink, faucet, cabinets, countertop, table, chairs, sofa, bed, shelves, curtains, ceiling lights, walls, floor, windows, doors, radiator, built-in appliances, large furniture.
 
-Be very specific about locations. Instead of just "towel", say "towel hanging on oven door handle" or "blue towel on wall hook to the right of the window".
-
-Examples of REMOVE items: dirty dishes in the sink, sponge on the counter near the faucet, towel draped over oven handle, pan on the front-left burner, cutting board leaning against the backsplash, soap bottle next to the sink, magazines on the coffee table, shoes on the floor near the door, clothes draped over a chair back.
-
-Examples of KEEP items: stove, oven, refrigerator, microwave, dishwasher, sink, faucet, cabinets, countertop, backsplash, table, chairs, sofa, bed, shelves, curtains, ceiling lights, floor, walls, windows, doors, radiator, built-in appliances.`
+Reply in EXACTLY this format:
+REMOVE: [comma-separated descriptions with locations, e.g. "towel at x:65% y:40% (hanging on oven handle)", "pan at x:30% y:50% (on stovetop)"]
+KEEP: [comma-separated descriptions with locations]`
       },
       {
         role: "user",
-        content: [
-          {
-            type: "image_url",
-            image_url: { url: smallDataUri, detail: "auto" },
-          },
-          {
-            type: "text",
-            text: "Analyze this room photo. List ALL items visible, then classify each as REMOVE (3-second rule clutter) or KEEP (permanent/heavy). Be specific about locations.",
-          },
-        ],
+        content: `Objects detected in room photo:\n${objectList}\n\nClassify each as REMOVE or KEEP.`
       },
-    ], 1000);
+    ], 800);
 
-    console.log("[declutter] GPT-4o analysis:", analysisResponse.substring(0, 500));
+    console.log("[declutter] GPT-4o classification:", gptResponse.substring(0, 400));
 
-    // Step 2: Parse the response and build a precise Flux Kontext prompt
-    const removeMatch = analysisResponse.match(/REMOVE:\s*([\s\S]+?)(?=\nKEEP:|$)/);
-    const keepMatch = analysisResponse.match(/KEEP:\s*([\s\S]+?)$/);
+    // Step 3: Parse response and build Kontext prompt
+    const removeMatch = gptResponse.match(/REMOVE:\s*([\s\S]+?)(?=\nKEEP:|$)/);
+    const keepMatch = gptResponse.match(/KEEP:\s*([\s\S]+?)$/);
 
     const removeList = removeMatch?.[1]?.trim() || "";
     const keepList = keepMatch?.[1]?.trim() || "";
 
-    if (!removeList || removeList.toUpperCase() === "NONE" || removeList.toUpperCase() === "NOTHING") {
-      console.log("[declutter] GPT-4o found nothing to remove, returning original");
+    if (!removeList || removeList.toUpperCase() === "NONE") {
+      console.log("[declutter] GPT-4o says nothing to remove");
       return imageBase64;
     }
 
-    console.log("[declutter] REMOVE:", removeList.substring(0, 200));
-    console.log("[declutter] KEEP:", keepList.substring(0, 200));
+    console.log("[declutter] REMOVE:", removeList.substring(0, 300));
+    console.log("[declutter] KEEP:", keepList.substring(0, 300));
 
-    // Step 3: Flux Kontext with precise, photo-specific prompt
+    // Step 4: Flux Kontext with precise prompt
     const kontextPrompt = `Remove ONLY these specific items from the photo: ${removeList}. ` +
       `IMPORTANT: Keep ALL of the following EXACTLY as they are, do not move, change, or remove them: ${keepList}. ` +
       `Where items were removed, show the clean surface underneath (countertop, wall, floor, etc.) matching the surrounding area seamlessly. ` +
@@ -2340,7 +2346,7 @@ Examples of KEEP items: stove, oven, refrigerator, microwave, dishwasher, sink, 
     return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
   } catch (err) {
     console.log("[declutter] Smart auto mode error:", err);
-    // Fallback: simple Flux Kontext with generic prompt
+    // Fallback: generic Kontext prompt
     console.log("[declutter] Falling back to generic Kontext prompt...");
     const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
       input: {
