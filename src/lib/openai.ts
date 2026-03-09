@@ -1901,7 +1901,7 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     let currentImage = imageBase64;
 
     // Helper: call Grounded SAM and poll for result
-    async function callSAM(image: string, prompt: string, negative: string): Promise<{ output?: string[]; error?: string }> {
+    const callSAM = async (image: string, prompt: string, negative: string): Promise<{ output?: string[]; error?: string }> => {
       const samInput: Record<string, unknown> = {
         image,
         mask_prompt: prompt,
