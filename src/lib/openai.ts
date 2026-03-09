@@ -2258,6 +2258,12 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
   console.log("[declutter] Smart auto mode: GPT-4o analyzing photo...");
 
   try {
+    // Resize image for GPT-4o to reduce payload and speed up analysis
+    const analyzeBase64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const analyzeBuf = Buffer.from(analyzeBase64Data, "base64");
+    const smallJpeg = await sharp(analyzeBuf).resize(1024, 1024, { fit: "inside" }).jpeg({ quality: 80 }).toBuffer();
+    const smallDataUri = `data:image/jpeg;base64,${smallJpeg.toString("base64")}`;
+
     // Step 1: GPT-4o looks at the photo and produces a precise removal/keep prompt
     const analysisResponse = await openaiChatViaProxy([
       {
@@ -2282,7 +2288,7 @@ Examples of KEEP items: stove, oven, refrigerator, microwave, dishwasher, sink, 
         content: [
           {
             type: "image_url",
-            image_url: { url: imageBase64, detail: "high" },
+            image_url: { url: smallDataUri, detail: "low" },
           },
           {
             type: "text",
