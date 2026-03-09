@@ -1766,49 +1766,23 @@ export async function makeVacant(imageBase64: string): Promise<string> {
  * Returns a list of objects with names and approximate positions (% of image).
  */
 /**
- * Upload image to CF Workers KV storage, returns a public URL (TTL 1h).
+ * Save image to local temp dir and return a public URL served by /api/tmp/[id].
  */
-async function uploadImageToProxy(imageBuffer: Buffer, contentType = "image/jpeg"): Promise<string> {
-  const baseURL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-  const proxyOrigin = baseURL.replace("/v1", "");
-  const url = new URL(`${proxyOrigin}/image`);
-  console.log("[uploadImage] Uploading to:", url.href, "size:", imageBuffer.length);
+async function saveTempImage(imageBuffer: Buffer): Promise<string> {
+  const { join } = require("path");
+  const { tmpdir } = require("os");
+  const { writeFile, mkdir } = require("fs/promises");
+  const { randomUUID } = require("crypto");
 
-  return new Promise((resolve, reject) => {
-    const https = require("https");
-    const options = {
-      hostname: url.hostname,
-      path: url.pathname,
-      method: "POST",
-      headers: {
-        "Content-Type": contentType,
-        "Content-Length": imageBuffer.length,
-      },
-    };
-    const req = https.request(options, (res: import("http").IncomingMessage) => {
-      let body = "";
-      res.on("data", (chunk: string) => { body += chunk; });
-      res.on("end", () => {
-        console.log("[uploadImage] Response:", res.statusCode, body.substring(0, 200));
-        if (res.statusCode !== 200) {
-          reject(new Error(`Image upload failed: ${res.statusCode} ${body}`));
-          return;
-        }
-        try {
-          const data = JSON.parse(body) as { url: string };
-          resolve(data.url);
-        } catch {
-          reject(new Error(`Invalid response: ${body}`));
-        }
-      });
-    });
-    req.on("error", (err: Error) => {
-      console.error("[uploadImage] Error:", err.message);
-      reject(err);
-    });
-    req.write(imageBuffer);
-    req.end();
-  });
+  const dir = join(tmpdir(), "gptestate-tmp");
+  await mkdir(dir, { recursive: true });
+
+  const id = `${randomUUID()}.jpg`;
+  await writeFile(join(dir, id), imageBuffer);
+  console.log("[saveTempImage] Saved:", id, "size:", imageBuffer.length);
+
+  const host = process.env.PUBLIC_HOST || "http://213.189.221.3";
+  return `${host}/api/tmp/${id}`;
 }
 
 export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number }>> {
@@ -1816,13 +1790,9 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
   const buffer = Buffer.from(base64Data, "base64");
 
-  // Compress to fit CF KV upload limit (~25KB), but maximize quality for detection
-  const compressed = await sharp(buffer)
-    .resize(512, 512, { fit: "inside" })
-    .jpeg({ quality: 45 })
-    .toBuffer();
-  console.log("[detectObjects] Compressed:", compressed.length, "bytes");
-  const imageUrl = await uploadImageToProxy(compressed);
+  // Save original to temp, serve via local API — no size limits
+  console.log("[detectObjects] Original size:", buffer.length, "bytes");
+  const imageUrl = await saveTempImage(buffer);
 
   const result = await openaiChatViaProxy(
     [
