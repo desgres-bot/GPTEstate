@@ -1902,11 +1902,8 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
 
     for (let i = 0; i < uniqueRemoveLabels.length; i++) {
       const label = uniqueRemoveLabels[i];
-      // All other labels (keep + remaining remove labels) are negative
-      const otherLabels = [
-        ...uniqueKeepLabels,
-        ...uniqueRemoveLabels.filter((_, j) => j > i), // not-yet-processed labels still in image
-      ];
+      // Negative = keep labels MINUS current label (can't be both positive and negative)
+      const otherLabels = uniqueKeepLabels.filter(l => l !== label);
       const negPrompt = otherLabels.length > 0 ? otherLabels.join(",") : "";
 
       console.log(`[declutter] Step ${i + 1}/${uniqueRemoveLabels.length}: removing "${label}", negative: "${negPrompt || "(none)"}"`);
