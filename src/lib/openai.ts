@@ -1945,9 +1945,9 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
 
     if (falKey) {
       // ═══ fal.ai SAM2 with bbox prompts (BEST approach) ═══
-      // Save image to temp URL so fal.ai can fetch it
-      const imageUrl = await saveTempImage(origBuffer);
-      console.log("[declutter] Image URL for SAM2:", imageUrl);
+      // Pass image as base64 data URI directly — no temp URL needed
+      const imageUrl = `data:image/jpeg;base64,${origBuffer.toString("base64")}`;
+      console.log("[declutter] Using base64 data URI for SAM2 (size:", origBuffer.length, "bytes)");
 
       // Get SAM2 masks with concurrency limit of 2 (fal.ai free tier limit)
       const SAM2_CONCURRENCY = 2;
