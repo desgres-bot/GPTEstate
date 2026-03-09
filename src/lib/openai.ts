@@ -1948,7 +1948,8 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       }
 
       const maskUrl = samResult.output[2]; // mask is 3rd output
-      console.log(`[declutter] SAM mask for "${label}":`, maskUrl?.slice(0, 80));
+      console.log(`[declutter] SAM mask for "${label}":`, maskUrl);
+      console.log(`[declutter] SAM all outputs:`, samResult.output.map((u: string) => u?.slice(0, 60)));
 
       // Download and resize mask
       const maskResp = await fetch(maskUrl);
@@ -1956,8 +1957,9 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
 
       // Check if mask is empty (all black = nothing detected)
       const maskStats = await sharp(maskBuf).resize(imgW, imgH).grayscale().stats();
-      if (maskStats.channels[0].mean < 5) {
-        console.log(`[declutter] Empty mask for "${label}", skipping`);
+      console.log(`[declutter] Mask stats for "${label}": mean=${maskStats.channels[0].mean.toFixed(2)}, max=${maskStats.channels[0].maxVal}`);
+      if (maskStats.channels[0].maxVal === 0) {
+        console.log(`[declutter] Completely empty mask for "${label}", skipping`);
         continue;
       }
 
