@@ -1953,28 +1953,48 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     const resizedMask = await sharp(maskBuf).resize(imgW, imgH).png().toBuffer();
     const maskBase64 = `data:image/png;base64,${resizedMask.toString("base64")}`;
 
-    console.log("[declutter] FLUX Fill Pro with SAM mask, image:", imgW, "x", imgH);
+    console.log("[declutter] Bria Eraser + composite, image:", imgW, "x", imgH);
 
-    // Step 2: FLUX Fill Pro — SOTA inpainting with descriptive prompt
-    const fluxFillOutput = await replicate.run("black-forest-labs/flux-fill-pro", {
+    // Step 2: Bria Eraser removes masked areas
+    const eraserOutput = await replicate.run("bria/eraser", {
       input: {
         image: imageBase64,
         mask: maskBase64,
-        prompt: "empty clean surface continuing the existing countertop, wall, and floor seamlessly. " +
-          "Same wood grain texture, same wall color, same lighting. " +
-          "No objects, no items, no clutter. Just clean bare surfaces. " +
-          "Photorealistic, same camera angle and perspective.",
-        output_format: "jpg",
-        safety_tolerance: 5,
+        mask_type: "manual",
       },
     });
 
-    const fluxUrl = extractUrl(fluxFillOutput);
-    const fluxResp = await fetch(fluxUrl);
-    const fluxBuf = await fluxResp.arrayBuffer();
+    const eraserUrl = extractUrl(eraserOutput);
+    const eraserResp = await fetch(eraserUrl);
+    const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
 
-    console.log("[declutter] FLUX Fill Pro result size:", fluxBuf.byteLength);
-    return `data:image/jpeg;base64,${Buffer.from(fluxBuf).toString("base64")}`;
+    // Step 3: Composite — original pixels where mask is black, Bria result where mask is white
+    // This preserves original quality for everything outside the mask
+    const eraserResized = await sharp(eraserBuf).resize(imgW, imgH).raw().toBuffer();
+    const origRaw = await sharp(origBuffer).resize(imgW, imgH).raw().toBuffer();
+    const maskRaw = await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer();
+
+    const composited = Buffer.alloc(origRaw.length);
+    for (let i = 0; i < maskRaw.length; i++) {
+      const m = maskRaw[i]; // 0 = keep original, 255 = use eraser result
+      const idx = i * 3;
+      if (m > 128) {
+        composited[idx] = eraserResized[idx];
+        composited[idx + 1] = eraserResized[idx + 1];
+        composited[idx + 2] = eraserResized[idx + 2];
+      } else {
+        composited[idx] = origRaw[idx];
+        composited[idx + 1] = origRaw[idx + 1];
+        composited[idx + 2] = origRaw[idx + 2];
+      }
+    }
+
+    const resultBuf = await sharp(composited, { raw: { width: imgW, height: imgH, channels: 3 } })
+      .jpeg({ quality: 95 })
+      .toBuffer();
+
+    console.log("[declutter] Composite result size:", resultBuf.length);
+    return `data:image/jpeg;base64,${resultBuf.toString("base64")}`;
   }
 
   // Fallback: prompt-based removal with Flux Kontext (no bboxes)
