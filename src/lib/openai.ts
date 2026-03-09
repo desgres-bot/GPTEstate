@@ -1960,7 +1960,7 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       input: {
         image: imageBase64,
         mask: maskBase64,
-        mask_type: "automatic",
+        mask_type: "manual",
       },
     });
 
