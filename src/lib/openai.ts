@@ -2254,82 +2254,102 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
   }
 
-  // Auto mode: use Flux Kontext with "3 second rule" prompt
-  // This is simpler and avoids SAM2+Bria artifacts when removing many objects at once
-  console.log("[declutter] Auto mode: using Flux Kontext with 3-second rule...");
-  const detected: Awaited<ReturnType<typeof detectObjects>> = []; // skip detection, go straight to Kontext
+  // ── Smart Auto Mode: GPT-4o vision analyzes photo → builds precise Kontext prompt ──
+  console.log("[declutter] Smart auto mode: GPT-4o analyzing photo...");
 
-  if (detected.length > 0) {
-    // Ask GPT-4o to filter: what can a person pick up with one hand in 3 seconds?
-    const objectList = detected.map((o, i) => `${i + 1}. ${o.name} (${o.label})`).join("\n");
-    console.log("[declutter] Auto mode: asking GPT to filter", detected.length, "objects...");
+  try {
+    // Step 1: GPT-4o looks at the photo and produces a precise removal/keep prompt
+    const analysisResponse = await openaiChatViaProxy([
+      {
+        role: "system",
+        content: `You are an expert real estate photo editor. Your job is to analyze a room photo and create a precise editing instruction.
 
-    try {
-      const gptResponse = await openaiChatViaProxy([
-        {
-          role: "system",
-          content: "You are a real estate photo editor assistant. You help identify clutter items that should be removed from room photos to make them look clean for listings."
-        },
-        {
-          role: "user",
-          content: `Here is a list of objects detected in a room photo. Return ONLY the numbers of objects that an average person can pick up and remove with one hand in under 3 seconds. These are clutter items like dishes, towels, papers, food, small trash, clothes etc.
+The "3-second rule": if an average person can pick up and remove an item with ONE hand in under 3 seconds, it's clutter and should be removed.
 
-Do NOT include:
-- Appliances (stove, oven, microwave, fridge, washing machine, induction cooktop, etc.)
-- Furniture (table, chair, sofa, cabinet, shelf, bed, etc.)
-- Fixtures (sink, faucet, lamp, mirror, curtain, radiator, etc.)
-- Large items that require two hands or more than 3 seconds
+You must output EXACTLY two sections in this format:
 
-Objects found:
-${objectList}
+REMOVE: [comma-separated list of specific items with their exact locations]
+KEEP: [comma-separated list of permanent/heavy items that must NOT be touched]
 
-Reply with ONLY comma-separated numbers of clutter items. Example: 1,3,5,8
-If nothing is clutter, reply: NONE`
-        }
-      ], 200);
+Be very specific about locations. Instead of just "towel", say "towel hanging on oven door handle" or "blue towel on wall hook to the right of the window".
 
-      console.log("[declutter] GPT filter response:", gptResponse.trim());
+Examples of REMOVE items: dirty dishes in the sink, sponge on the counter near the faucet, towel draped over oven handle, pan on the front-left burner, cutting board leaning against the backsplash, soap bottle next to the sink, magazines on the coffee table, shoes on the floor near the door, clothes draped over a chair back.
 
-      if (gptResponse.trim() !== "NONE") {
-        const clutterIds = new Set(
-          gptResponse.trim().split(/[,\s]+/).map(n => parseInt(n.trim())).filter(n => !isNaN(n))
-        );
-        const clutter = detected.filter((_, i) => clutterIds.has(i + 1));
-        console.log("[declutter] Auto mode: GPT selected", clutter.length, "clutter items from", detected.length, "total");
+Examples of KEEP items: stove, oven, refrigerator, microwave, dishwasher, sink, faucet, cabinets, countertop, backsplash, table, chairs, sofa, bed, shelves, curtains, ceiling lights, floor, walls, windows, doors, radiator, built-in appliances.`
+      },
+      {
+        role: "user",
+        content: [
+          {
+            type: "image_url",
+            image_url: { url: imageBase64, detail: "high" },
+          },
+          {
+            type: "text",
+            text: "Analyze this room photo. List ALL items visible, then classify each as REMOVE (3-second rule clutter) or KEEP (permanent/heavy). Be specific about locations.",
+          },
+        ],
+      },
+    ], 1000);
 
-        if (clutter.length > 0) {
-          const autoLabels = clutter.map(o => o.label);
-          const autoBboxes = clutter.map(o => o.bbox);
-          return declutterRoom(imageBase64, clutter.map(o => o.name), autoBboxes, autoLabels, []);
-        }
-      }
-    } catch (err) {
-      console.log("[declutter] GPT filter error:", err);
+    console.log("[declutter] GPT-4o analysis:", analysisResponse.substring(0, 500));
+
+    // Step 2: Parse the response and build a precise Flux Kontext prompt
+    const removeMatch = analysisResponse.match(/REMOVE:\s*([\s\S]+?)(?=\nKEEP:|$)/);
+    const keepMatch = analysisResponse.match(/KEEP:\s*([\s\S]+?)$/);
+
+    const removeList = removeMatch?.[1]?.trim() || "";
+    const keepList = keepMatch?.[1]?.trim() || "";
+
+    if (!removeList || removeList.toUpperCase() === "NONE" || removeList.toUpperCase() === "NOTHING") {
+      console.log("[declutter] GPT-4o found nothing to remove, returning original");
+      return imageBase64;
     }
-  }
 
-  // Flux Kontext prompt-based removal
-  console.log("[declutter] Flux Kontext: prompt-based removal...");
-  const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
-    input: {
-      prompt: "Remove ONLY small clutter items that a person can pick up with one hand in under 3 seconds: " +
-        "dirty dishes, cups, plates, bowls, utensils, towels, rags, sponges, food scraps, bread, packages, " +
-        "papers, magazines, small trash, cables, clothes on surfaces, shoes on floor, toys, bags, bottles. " +
-        "IMPORTANT: Do NOT remove or change anything that requires two hands or more than 3 seconds to move. " +
-        "Keep ALL appliances (stove, oven, cooktop, microwave, fridge, washing machine, dishwasher, coffee maker, toaster, kettle). " +
-        "Keep ALL furniture, fixtures, plumbing, curtains, lamps, decorations. " +
-        "Keep the room layout, walls, floor, ceiling exactly the same. " +
-        "Result should look like someone quickly tidied up by hand. Professional real estate photography.",
-      input_image: imageBase64,
-      aspect_ratio: "match_input_image",
-      output_format: "jpg",
-      prompt_upsampling: false,
-    },
-  });
-  const dclUrl = extractUrl(dclOutput);
-  const dclResp = await fetch(dclUrl);
-  const dclBuf = await dclResp.arrayBuffer();
-  return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
+    console.log("[declutter] REMOVE:", removeList.substring(0, 200));
+    console.log("[declutter] KEEP:", keepList.substring(0, 200));
+
+    // Step 3: Flux Kontext with precise, photo-specific prompt
+    const kontextPrompt = `Remove ONLY these specific items from the photo: ${removeList}. ` +
+      `IMPORTANT: Keep ALL of the following EXACTLY as they are, do not move, change, or remove them: ${keepList}. ` +
+      `Where items were removed, show the clean surface underneath (countertop, wall, floor, etc.) matching the surrounding area seamlessly. ` +
+      `Keep the exact same room layout, lighting, perspective, and colors. Professional real estate photography result.`;
+
+    console.log("[declutter] Kontext prompt length:", kontextPrompt.length);
+
+    const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
+      input: {
+        prompt: kontextPrompt,
+        input_image: imageBase64,
+        aspect_ratio: "match_input_image",
+        output_format: "jpg",
+        prompt_upsampling: false,
+      },
+    });
+    const dclUrl = extractUrl(dclOutput);
+    const dclResp = await fetch(dclUrl);
+    const dclBuf = await dclResp.arrayBuffer();
+    return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
+  } catch (err) {
+    console.log("[declutter] Smart auto mode error:", err);
+    // Fallback: simple Flux Kontext with generic prompt
+    console.log("[declutter] Falling back to generic Kontext prompt...");
+    const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
+      input: {
+        prompt: "Remove only small clutter items that a person can pick up with one hand in under 3 seconds. " +
+          "Keep all appliances, furniture, fixtures, and permanent items exactly as they are. " +
+          "Professional real estate photography.",
+        input_image: imageBase64,
+        aspect_ratio: "match_input_image",
+        output_format: "jpg",
+        prompt_upsampling: false,
+      },
+    });
+    const dclUrl = extractUrl(dclOutput);
+    const dclResp = await fetch(dclUrl);
+    const dclBuf = await dclResp.arrayBuffer();
+    return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
+  }
 }
 
 /**
