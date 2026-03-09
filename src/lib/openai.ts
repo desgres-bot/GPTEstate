@@ -1707,6 +1707,7 @@ export async function declutterRoom(imageBase64: string): Promise<string> {
       prompt:
         "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
         "bags, cables, laundry, trash, scattered objects on surfaces and floor. " +
+        "Also remove all reflections, shadows, and traces of removed items on glossy surfaces, glass, mirrors, and polished furniture. " +
         "Leave all furniture in place — only remove mess from surfaces and floor. " +
         "Clean tidy surfaces, clear floor. " +
         "While maintaining all furniture, walls, floor, ceiling, windows, and room layout exactly as they are. " +
