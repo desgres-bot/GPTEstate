@@ -1957,8 +1957,10 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
 
       // Check if mask is empty (all black = nothing detected)
       const maskStats = await sharp(maskBuf).resize(imgW, imgH).grayscale().stats();
-      console.log(`[declutter] Mask stats for "${label}": mean=${maskStats.channels[0].mean.toFixed(2)}, max=${maskStats.channels[0].maxVal}`);
-      if (maskStats.channels[0].maxVal === 0) {
+      const maskMean = maskStats.channels[0].mean;
+      const maskMax = (maskStats.channels[0] as unknown as { max: number }).max ?? maskMean;
+      console.log(`[declutter] Mask stats for "${label}": mean=${maskMean.toFixed(2)}, max=${maskMax}`);
+      if (maskMean < 1) {
         console.log(`[declutter] Completely empty mask for "${label}", skipping`);
         continue;
       }
