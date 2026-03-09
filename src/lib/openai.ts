@@ -1640,21 +1640,68 @@ export async function greenifyExterior(imageBase64: string): Promise<string> {
 
 /**
  * Refine — iteratively edit a generated image by text prompt.
+ * When originalBase64 is provided, stitches original (left) + current (right) side-by-side
+ * so the model can reference the original, then crops the right half from the result.
  */
 export async function refineWithAI(
   imageBase64: string,
   editPrompt: string,
+  originalBase64: string | null = null,
 ): Promise<string> {
   const replicate = getReplicate();
 
-  console.log("[refine] Editing:", editPrompt.substring(0, 100));
+  let inputImage = imageBase64;
+  let useSideBySide = false;
+  let halfWidth = 0;
+  let fullHeight = 0;
+
+  // If we have the original, stitch side-by-side
+  if (originalBase64) {
+    console.log("[refine] Stitching original + result side-by-side...");
+    const origBuf = Buffer.from(originalBase64.replace(/^data:image\/\w+;base64,/, ""), "base64");
+    const currBuf = Buffer.from(imageBase64.replace(/^data:image\/\w+;base64,/, ""), "base64");
+
+    const origMeta = await sharp(origBuf).metadata();
+    const currMeta = await sharp(currBuf).metadata();
+    const h = Math.max(origMeta.height || 0, currMeta.height || 0);
+    const origW = origMeta.width || 0;
+    const currW = currMeta.width || 0;
+
+    // Resize both to same height
+    const origResized = await sharp(origBuf).resize({ height: h }).toBuffer();
+    const currResized = await sharp(currBuf).resize({ height: h }).toBuffer();
+
+    const stitched = await sharp({
+      create: { width: origW + currW, height: h, channels: 3, background: { r: 0, g: 0, b: 0 } },
+    })
+      .composite([
+        { input: origResized, left: 0, top: 0 },
+        { input: currResized, left: origW, top: 0 },
+      ])
+      .jpeg({ quality: 90 })
+      .toBuffer();
+
+    inputImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
+    useSideBySide = true;
+    halfWidth = currW;
+    fullHeight = h;
+  }
+
+  const prompt = useSideBySide
+    ? `This is a side-by-side image: the LEFT photo is the original, the RIGHT photo is the edited version. ` +
+      `Apply this change to the RIGHT photo: ${editPrompt}. ` +
+      `Use the LEFT photo as reference for any details that need to be restored. ` +
+      `Keep the side-by-side layout. Do not change the LEFT photo. ` +
+      `Professional real estate photography.`
+    : `${editPrompt}. ` +
+      "While maintaining everything else in the photo exactly as it is. " +
+      "Professional real estate photography.";
+
+  console.log("[refine] Editing:", editPrompt.substring(0, 100), useSideBySide ? "(with original reference)" : "");
   const refOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
-      prompt:
-        `${editPrompt}. ` +
-        "While maintaining everything else in the photo exactly as it is. " +
-        "Professional real estate photography.",
-      input_image: imageBase64,
+      prompt,
+      input_image: inputImage,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
       prompt_upsampling: false,
@@ -1663,8 +1710,27 @@ export async function refineWithAI(
 
   const refUrl = extractUrl(refOutput);
   const refResp = await fetch(refUrl);
-  const refBuf = await refResp.arrayBuffer();
-  return `data:image/jpeg;base64,${Buffer.from(refBuf).toString("base64")}`;
+  const refBuf = Buffer.from(await refResp.arrayBuffer());
+
+  // If side-by-side was used, crop the right half
+  if (useSideBySide && halfWidth > 0) {
+    console.log("[refine] Cropping right half from side-by-side result...");
+    const resultMeta = await sharp(refBuf).metadata();
+    const resultW = resultMeta.width || 0;
+    const resultH = resultMeta.height || 0;
+    // The right half starts at the midpoint
+    const cropLeft = Math.floor(resultW / 2);
+    const cropWidth = resultW - cropLeft;
+
+    const cropped = await sharp(refBuf)
+      .extract({ left: cropLeft, top: 0, width: cropWidth, height: resultH })
+      .jpeg({ quality: 92 })
+      .toBuffer();
+
+    return `data:image/jpeg;base64,${cropped.toString("base64")}`;
+  }
+
+  return `data:image/jpeg;base64,${refBuf.toString("base64")}`;
 }
 
 /**

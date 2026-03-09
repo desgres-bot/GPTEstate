@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
     const additemDescription = formData.get("additemDescription") as string | null;
     // Refine (AI chat editor)
     const refinePrompt = formData.get("refinePrompt") as string | null;
+    const originalImage = formData.get("originalImage") as File | null;
 
     console.log("[generate] Mode:", mode, "Image size:", image?.size, "Image type:", image?.type);
 
@@ -219,7 +220,14 @@ export async function POST(req: NextRequest) {
       if (!refinePrompt?.trim()) {
         return NextResponse.json({ error: "Опишите что изменить" }, { status: 400 });
       }
-      outputDataUri = await refineWithAI(dataUri, refinePrompt.trim());
+      let originalDataUri: string | null = null;
+      if (originalImage) {
+        const origBytes = await originalImage.arrayBuffer();
+        const origBase64 = Buffer.from(origBytes).toString("base64");
+        const origMime = originalImage.type || "image/jpeg";
+        originalDataUri = `data:${origMime};base64,${origBase64}`;
+      }
+      outputDataUri = await refineWithAI(dataUri, refinePrompt.trim(), originalDataUri);
     } else {
       // redesign (default)
       outputDataUri = await redesignRoom(dataUri, style || "modern", customStyle || undefined);

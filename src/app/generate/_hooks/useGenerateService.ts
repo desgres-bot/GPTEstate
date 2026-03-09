@@ -198,6 +198,11 @@ export function useGenerateService() {
       formData.append("mode", "refine");
       formData.append("refinePrompt", refinePrompt.trim());
 
+      // Send original image as reference for refine
+      if (selectedFile) {
+        formData.append("originalImage", selectedFile);
+      }
+
       const response = await fetch("/api/generate", {
         method: "POST",
         body: formData,
