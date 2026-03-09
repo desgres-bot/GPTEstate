@@ -1953,25 +1953,28 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     const resizedMask = await sharp(maskBuf).resize(imgW, imgH).png().toBuffer();
     const maskBase64 = `data:image/png;base64,${resizedMask.toString("base64")}`;
 
-    console.log("[declutter] Bria GenFill with SAM mask, image:", imgW, "x", imgH);
+    console.log("[declutter] FLUX Fill Pro with SAM mask, image:", imgW, "x", imgH);
 
-    // Step 2: Bria GenFill — context-aware inpainting (preserves quality outside mask)
-    const genfillOutput = await replicate.run("bria/genfill", {
+    // Step 2: FLUX Fill Pro — SOTA inpainting with descriptive prompt
+    const fluxFillOutput = await replicate.run("black-forest-labs/flux-fill-pro", {
       input: {
         image: imageBase64,
         mask: maskBase64,
-        prompt: "clean empty surface, matching the surrounding area seamlessly, same lighting and perspective",
-        negative_prompt: "objects, items, clutter, furniture, text, watermark, blur, artifacts",
-        sync: true,
+        prompt: "empty clean surface continuing the existing countertop, wall, and floor seamlessly. " +
+          "Same wood grain texture, same wall color, same lighting. " +
+          "No objects, no items, no clutter. Just clean bare surfaces. " +
+          "Photorealistic, same camera angle and perspective.",
+        output_format: "jpg",
+        safety_tolerance: 5,
       },
     });
 
-    const genfillUrl = extractUrl(genfillOutput);
-    const genfillResp = await fetch(genfillUrl);
-    const genfillBuf = await genfillResp.arrayBuffer();
+    const fluxUrl = extractUrl(fluxFillOutput);
+    const fluxResp = await fetch(fluxUrl);
+    const fluxBuf = await fluxResp.arrayBuffer();
 
-    console.log("[declutter] GenFill result size:", genfillBuf.byteLength);
-    return `data:image/png;base64,${Buffer.from(genfillBuf).toString("base64")}`;
+    console.log("[declutter] FLUX Fill Pro result size:", fluxBuf.byteLength);
+    return `data:image/jpeg;base64,${Buffer.from(fluxBuf).toString("base64")}`;
   }
 
   // Fallback: prompt-based removal with Flux Kontext (no bboxes)
