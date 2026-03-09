@@ -1771,26 +1771,44 @@ export async function makeVacant(imageBase64: string): Promise<string> {
 async function uploadImageToProxy(imageBuffer: Buffer, contentType = "image/jpeg"): Promise<string> {
   const baseURL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
   const proxyOrigin = baseURL.replace("/v1", "");
-  const uploadUrl = `${proxyOrigin}/image`;
-  console.log("[uploadImage] Uploading to:", uploadUrl, "size:", imageBuffer.length);
-  try {
-    const resp = await fetch(uploadUrl, {
+  const url = new URL(`${proxyOrigin}/image`);
+  console.log("[uploadImage] Uploading to:", url.href, "size:", imageBuffer.length);
+
+  return new Promise((resolve, reject) => {
+    const https = require("https");
+    const options = {
+      hostname: url.hostname,
+      path: url.pathname,
       method: "POST",
-      headers: { "Content-Type": contentType },
-      body: new Uint8Array(imageBuffer),
+      headers: {
+        "Content-Type": contentType,
+        "Content-Length": imageBuffer.length,
+      },
+    };
+    const req = https.request(options, (res: import("http").IncomingMessage) => {
+      let body = "";
+      res.on("data", (chunk: string) => { body += chunk; });
+      res.on("end", () => {
+        console.log("[uploadImage] Response:", res.statusCode, body.substring(0, 200));
+        if (res.statusCode !== 200) {
+          reject(new Error(`Image upload failed: ${res.statusCode} ${body}`));
+          return;
+        }
+        try {
+          const data = JSON.parse(body) as { url: string };
+          resolve(data.url);
+        } catch {
+          reject(new Error(`Invalid response: ${body}`));
+        }
+      });
     });
-    console.log("[uploadImage] Response status:", resp.status);
-    if (!resp.ok) {
-      const text = await resp.text();
-      throw new Error(`Image upload failed: ${resp.status} ${text}`);
-    }
-    const data = await resp.json() as { url: string };
-    console.log("[uploadImage] Uploaded:", data.url);
-    return data.url;
-  } catch (err) {
-    console.error("[uploadImage] Error:", err);
-    throw err;
-  }
+    req.on("error", (err: Error) => {
+      console.error("[uploadImage] Error:", err.message);
+      reject(err);
+    });
+    req.write(imageBuffer);
+    req.end();
+  });
 }
 
 export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number }>> {
