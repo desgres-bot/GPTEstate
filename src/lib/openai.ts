@@ -1965,8 +1965,8 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       const maskStats = await sharp(maskBuf).resize(imgW, imgH).grayscale().stats();
       const maskMean = maskStats.channels[0].mean;
       console.log(`[declutter] Mask stats for "${label}": mean=${maskMean.toFixed(2)}`);
-      if (maskMean < 1) {
-        console.log(`[declutter] Empty mask for "${label}", skipping`);
+      if (maskMean < 0.01) {
+        console.log(`[declutter] Empty mask for "${label}" (mean=${maskMean.toFixed(4)}), skipping`);
         continue;
       }
 
