@@ -1688,11 +1688,11 @@ export async function refineWithAI(
   }
 
   const prompt = useSideBySide
-    ? `This is a side-by-side image: the LEFT photo is the original, the RIGHT photo is the edited version. ` +
-      `Apply this change to the RIGHT photo: ${editPrompt}. ` +
-      `Use the LEFT photo as reference for any details that need to be restored. ` +
-      `Keep the side-by-side layout. Do not change the LEFT photo. ` +
-      `Professional real estate photography.`
+    ? `This image has two photos side by side. LEFT = original photo, RIGHT = cleaned version. ` +
+      `User request: "${editPrompt}". ` +
+      `Copy the requested element exactly from the LEFT photo and place it in the same position on the RIGHT photo. ` +
+      `The RIGHT photo must have this element restored exactly as it appears on the LEFT. ` +
+      `Output must keep the side-by-side two-photo layout.`
     : `${editPrompt}. ` +
       "While maintaining everything else in the photo exactly as it is. " +
       "Professional real estate photography.";
