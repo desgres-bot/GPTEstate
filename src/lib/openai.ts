@@ -1765,19 +1765,42 @@ export async function makeVacant(imageBase64: string): Promise<string> {
  * Detect removable objects in a room photo using GPT-4o Vision.
  * Returns a list of objects with names and approximate positions (% of image).
  */
+/**
+ * Upload image to CF Workers KV storage, returns a public URL (TTL 1h).
+ */
+async function uploadImageToProxy(imageBuffer: Buffer, contentType = "image/jpeg"): Promise<string> {
+  const baseURL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+  const proxyOrigin = baseURL.replace("/v1", "");
+  const resp = await fetch(`${proxyOrigin}/image`, {
+    method: "POST",
+    headers: { "Content-Type": contentType },
+    body: new Uint8Array(imageBuffer),
+  });
+  if (!resp.ok) throw new Error(`Image upload failed: ${resp.status}`);
+  const data = await resp.json() as { url: string };
+  console.log("[uploadImage] Uploaded:", data.url);
+  return data.url;
+}
+
 export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number }>> {
   console.log("[detectObjects] Analyzing room for removable objects...");
-  // Use higher resolution for detection — need to see small items
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
   const buffer = Buffer.from(base64Data, "base64");
-  const compressedUri = await compressForAnalysis(imageBase64);
+
+  // Compress to 768px for good detail, upload to CF KV, pass URL to GPT-4o
+  const compressed = await sharp(buffer)
+    .resize(768, 768, { fit: "inside" })
+    .jpeg({ quality: 70 })
+    .toBuffer();
+  console.log("[detectObjects] Compressed:", compressed.length, "bytes");
+  const imageUrl = await uploadImageToProxy(compressed);
 
   const result = await openaiChatViaProxy(
     [
       {
         role: "user",
         content: [
-          { type: "image_url", image_url: { url: compressedUri, detail: "high" } },
+          { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
           {
             type: "text",
             text: `Analyze this room photo. List EVERY single removable item — be very thorough, don't miss anything.
