@@ -245,7 +245,11 @@ export async function POST(req: NextRequest) {
     } else if (mode === "declutter") {
       const objectsList = declutterObjects ? JSON.parse(declutterObjects) as string[] : undefined;
       const bboxesList = declutterBboxes ? JSON.parse(declutterBboxes) as number[][] : undefined;
-      outputDataUri = await declutterRoom(dataUri, objectsList, bboxesList);
+      const removeLabelsRaw = formData.get("removeLabels") as string | null;
+      const keepLabelsRaw = formData.get("keepLabels") as string | null;
+      const removeLabels = removeLabelsRaw ? JSON.parse(removeLabelsRaw) as string[] : undefined;
+      const keepLabels = keepLabelsRaw ? JSON.parse(keepLabelsRaw) as string[] : undefined;
+      outputDataUri = await declutterRoom(dataUri, objectsList, bboxesList, removeLabels, keepLabels);
     } else if (mode === "bathroom") {
       outputDataUri = await remodelBathroom(dataUri, bathroomStyle || "modern_white", customBathroom || undefined);
     } else if (mode === "additem") {

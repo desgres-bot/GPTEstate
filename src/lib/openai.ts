@@ -1804,7 +1804,7 @@ const LABEL_RU: Record<string, string> = {
   "food package": "упаковка еды", "cleaning product": "моющее средство",
 };
 
-export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number; bbox: number[] }>> {
+export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; label: string; x: number; y: number; bbox: number[] }>> {
   console.log("[detectObjects] Using Grounding DINO for precise detection...");
   const replicate = getReplicate();
 
@@ -1857,7 +1857,7 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
     const labelParts = rawLabel.split(/\s+/);
     const name = LABEL_RU[rawLabel] || LABEL_RU[labelParts[0]] || rawLabel;
 
-    return { id: i + 1, name, x, y, bbox: det.bbox, score: det.confidence };
+    return { id: i + 1, name, label: labelParts[0], x, y, bbox: det.bbox, score: det.confidence };
   });
 
   // Sort by score descending and deduplicate nearby objects (within 5% distance)
@@ -1871,50 +1871,76 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
   }
 
   // Re-number and return without score field
-  return filtered.map((obj, i) => ({ id: i + 1, name: obj.name, x: obj.x, y: obj.y, bbox: obj.bbox }));
+  return filtered.map((obj, i) => ({ id: i + 1, name: obj.name, label: obj.label, x: obj.x, y: obj.y, bbox: obj.bbox }));
 }
 
 /**
- * Declutter — remove objects from a room using mask-based Bria Eraser.
- * When bboxes provided: builds mask from bboxes, uses Bria Eraser (sharp, no blur).
- * Without bboxes: falls back to Flux Kontext prompt-based removal.
+ * Declutter — remove objects from a room.
+ * When labels provided: Grounded SAM for pixel-perfect masks + Bria Eraser for removal.
+ * Without labels: falls back to Flux Kontext prompt-based removal.
  */
-export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][]): Promise<string> {
+export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], _bboxes?: number[][], removeLabels?: string[], keepLabels?: string[]): Promise<string> {
   const replicate = getReplicate();
 
-  // Mask-based approach with Bria Eraser (purpose-built for object removal)
-  if (bboxes && bboxes.length > 0) {
+  // Pixel-perfect mask approach: Grounded SAM + Bria Eraser
+  if (removeLabels && removeLabels.length > 0) {
+    // Step 1: Get pixel-perfect segmentation mask from Grounded SAM
+    const maskPrompt = Array.from(new Set(removeLabels)).join(",");
+    const negPrompt = keepLabels && keepLabels.length > 0
+      ? Array.from(new Set(keepLabels)).join(",")
+      : "";
+
+    console.log("[declutter] Grounded SAM mask_prompt:", maskPrompt, "negative:", negPrompt || "(none)");
+
+    const samInput: Record<string, unknown> = {
+      image: imageBase64,
+      mask_prompt: maskPrompt,
+      adjustment_factor: 10, // slight dilation to catch shadows
+    };
+    if (negPrompt) {
+      samInput.negative_mask_prompt = negPrompt;
+    }
+
+    const samOutput = await replicate.run("schananas/grounded_sam", { input: samInput });
+
+    // Grounded SAM yields 4 images: annotated, neg_annotated, mask, inverted_mask
+    // We need the 3rd one (index 2) — the final combined mask
+    let maskUrl: string;
+    if (Array.isArray(samOutput)) {
+      maskUrl = samOutput[2] as string; // mask is 3rd output
+    } else {
+      // Iterator/stream output — collect all
+      const outputs: string[] = [];
+      for await (const item of samOutput as AsyncIterable<unknown>) {
+        outputs.push(String(item));
+      }
+      maskUrl = outputs[2];
+    }
+
+    console.log("[declutter] SAM mask URL:", maskUrl?.slice(0, 100));
+
+    // Download SAM mask and convert to proper format for Bria
+    const maskResp = await fetch(maskUrl);
+    const maskBuf = Buffer.from(await maskResp.arrayBuffer());
+
+    // Ensure mask is same size as input image
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, "base64");
-    const meta = await sharp(buffer).metadata();
+    const origBuffer = Buffer.from(base64Data, "base64");
+    const meta = await sharp(origBuffer).metadata();
     const imgW = meta.width!;
     const imgH = meta.height!;
 
-    // Build white-on-black mask from bounding boxes (white = erase, black = keep)
-    const PAD = Math.max(5, Math.round(Math.min(imgW, imgH) * 0.015));
-    let rects = "";
-    for (const bbox of bboxes) {
-      const [xmin, ymin, xmax, ymax] = bbox;
-      const x = Math.max(0, Math.round(xmin) - PAD);
-      const y = Math.max(0, Math.round(ymin) - PAD);
-      const w = Math.min(imgW, Math.round(xmax) + PAD) - x;
-      const h = Math.min(imgH, Math.round(ymax) + PAD) - y;
-      rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="white"/>`;
-    }
-    const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${imgW}" height="${imgH}">
-      <rect width="${imgW}" height="${imgH}" fill="black"/>
-      ${rects}
-    </svg>`;
-    const maskBuffer = await sharp(Buffer.from(maskSvg)).resize(imgW, imgH).png().toBuffer();
-    const maskBase64 = `data:image/png;base64,${maskBuffer.toString("base64")}`;
+    const resizedMask = await sharp(maskBuf).resize(imgW, imgH).png().toBuffer();
+    const maskBase64 = `data:image/png;base64,${resizedMask.toString("base64")}`;
 
-    console.log("[declutter] Bria Eraser: removing", bboxes.length, "objects, image:", imgW, "x", imgH);
+    console.log("[declutter] Bria Eraser with SAM mask, image:", imgW, "x", imgH);
 
+    // Step 2: Bria Eraser removes masked areas
     const eraserOutput = await replicate.run("bria/eraser", {
       input: {
         image: imageBase64,
         mask: maskBase64,
-        mask_type: "manual",
+        mask_type: "automatic",
       },
     });
 
