@@ -2254,36 +2254,57 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
   }
 
-  // Auto-detect objects and remove only "clutter" (things you can pick up in 3 seconds)
-  // Appliances, fixtures, furniture = KEEP. Dishes, clothes, trash, small items = REMOVE.
-  const KEEP_LABELS = new Set([
-    // Kitchen appliances
-    "stove", "oven", "microwave", "refrigerator", "dishwasher", "coffee maker",
-    "toaster", "kettle", "blender", "mixer", "induction", "cooktop",
-    // Bathroom/laundry
-    "washing machine", "dryer", "toilet", "bathtub", "shower", "sink",
-    // Electronics (large)
-    "tv", "monitor", "computer", "printer", "air conditioner",
-    // Furniture
-    "table", "chair", "cabinet", "shelf", "bed", "sofa", "couch", "wardrobe",
-    "desk", "drawer", "nightstand", "dresser", "bookcase", "armchair",
-    // Fixtures
-    "lamp", "fan", "heater", "mirror", "clock", "curtain", "blind",
-    "faucet", "radiator", "chandelier",
-    // Large items
-    "stroller", "vacuum cleaner", "iron", "ironing board",
-  ]);
-
+  // Auto-detect objects, then ask GPT which ones are clutter
   console.log("[declutter] Auto mode: detecting all objects first...");
   const detected = await detectObjects(imageBase64);
-  // Filter: only remove clutter, keep appliances/furniture/fixtures
-  const clutter = detected.filter(o => !KEEP_LABELS.has(o.label));
-  console.log("[declutter] Auto mode: found", detected.length, "objects,", clutter.length, "are clutter,", detected.length - clutter.length, "kept");
 
-  if (clutter.length > 0) {
-    const autoLabels = clutter.map(o => o.label);
-    const autoBboxes = clutter.map(o => o.bbox);
-    return declutterRoom(imageBase64, clutter.map(o => o.name), autoBboxes, autoLabels, []);
+  if (detected.length > 0) {
+    // Ask GPT-4o to filter: what can a person pick up with one hand in 3 seconds?
+    const objectList = detected.map((o, i) => `${i + 1}. ${o.name} (${o.label})`).join("\n");
+    console.log("[declutter] Auto mode: asking GPT to filter", detected.length, "objects...");
+
+    try {
+      const gptResponse = await openaiChatViaProxy([
+        {
+          role: "system",
+          content: "You are a real estate photo editor assistant. You help identify clutter items that should be removed from room photos to make them look clean for listings."
+        },
+        {
+          role: "user",
+          content: `Here is a list of objects detected in a room photo. Return ONLY the numbers of objects that an average person can pick up and remove with one hand in under 3 seconds. These are clutter items like dishes, towels, papers, food, small trash, clothes etc.
+
+Do NOT include:
+- Appliances (stove, oven, microwave, fridge, washing machine, induction cooktop, etc.)
+- Furniture (table, chair, sofa, cabinet, shelf, bed, etc.)
+- Fixtures (sink, faucet, lamp, mirror, curtain, radiator, etc.)
+- Large items that require two hands or more than 3 seconds
+
+Objects found:
+${objectList}
+
+Reply with ONLY comma-separated numbers of clutter items. Example: 1,3,5,8
+If nothing is clutter, reply: NONE`
+        }
+      ], 200);
+
+      console.log("[declutter] GPT filter response:", gptResponse.trim());
+
+      if (gptResponse.trim() !== "NONE") {
+        const clutterIds = new Set(
+          gptResponse.trim().split(/[,\s]+/).map(n => parseInt(n.trim())).filter(n => !isNaN(n))
+        );
+        const clutter = detected.filter((_, i) => clutterIds.has(i + 1));
+        console.log("[declutter] Auto mode: GPT selected", clutter.length, "clutter items from", detected.length, "total");
+
+        if (clutter.length > 0) {
+          const autoLabels = clutter.map(o => o.label);
+          const autoBboxes = clutter.map(o => o.bbox);
+          return declutterRoom(imageBase64, clutter.map(o => o.name), autoBboxes, autoLabels, []);
+        }
+      }
+    } catch (err) {
+      console.log("[declutter] GPT filter error:", err);
+    }
   }
 
   // Last resort: Flux Kontext prompt-based removal (if no objects detected)
