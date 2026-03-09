@@ -2254,9 +2254,10 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
   }
 
-  // Auto-detect objects, then ask GPT which ones are clutter
-  console.log("[declutter] Auto mode: detecting all objects first...");
-  const detected = await detectObjects(imageBase64);
+  // Auto mode: use Flux Kontext with "3 second rule" prompt
+  // This is simpler and avoids SAM2+Bria artifacts when removing many objects at once
+  console.log("[declutter] Auto mode: using Flux Kontext with 3-second rule...");
+  const detected: Awaited<ReturnType<typeof detectObjects>> = []; // skip detection, go straight to Kontext
 
   if (detected.length > 0) {
     // Ask GPT-4o to filter: what can a person pick up with one hand in 3 seconds?
@@ -2307,17 +2308,18 @@ If nothing is clutter, reply: NONE`
     }
   }
 
-  // Last resort: Flux Kontext prompt-based removal (if no objects detected)
-  console.log("[declutter] Flux Kontext: prompt-based removal (no objects detected)...");
+  // Flux Kontext prompt-based removal
+  console.log("[declutter] Flux Kontext: prompt-based removal...");
   const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
-      prompt: "Remove only clutter and personal items from this room: clothes, shoes, toys, papers, dirty dishes, " +
-        "bags, cables, laundry, trash, scattered small objects on surfaces and floor. " +
-        "KEEP all appliances exactly as they are: stove, oven, induction cooktop, microwave, refrigerator, " +
-        "dishwasher, washing machine, coffee maker, toaster, kettle, TV, monitor, air conditioner. " +
-        "KEEP all furniture: tables, chairs, cabinets, shelves, bed, sofa, wardrobe. " +
-        "KEEP all fixtures: sink, faucet, toilet, bathtub, shower, light fixtures, curtains, blinds. " +
-        "Clean tidy surfaces, clear floor. Professional real estate photography.",
+      prompt: "Remove ONLY small clutter items that a person can pick up with one hand in under 3 seconds: " +
+        "dirty dishes, cups, plates, bowls, utensils, towels, rags, sponges, food scraps, bread, packages, " +
+        "papers, magazines, small trash, cables, clothes on surfaces, shoes on floor, toys, bags, bottles. " +
+        "IMPORTANT: Do NOT remove or change anything that requires two hands or more than 3 seconds to move. " +
+        "Keep ALL appliances (stove, oven, cooktop, microwave, fridge, washing machine, dishwasher, coffee maker, toaster, kettle). " +
+        "Keep ALL furniture, fixtures, plumbing, curtains, lamps, decorations. " +
+        "Keep the room layout, walls, floor, ceiling exactly the same. " +
+        "Result should look like someone quickly tidied up by hand. Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",
