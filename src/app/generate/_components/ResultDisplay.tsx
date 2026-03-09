@@ -124,24 +124,8 @@ export default function ResultDisplay({ mode, service }: Props) {
               <p className="mt-3 text-sm text-neutral-400">Закрасьте объекты, которые нужно убрать</p>
             </>
           ) : mode === "declutter" && !result ? (
-            <div className="relative overflow-hidden">
+            <div className="overflow-hidden">
               <img src={preview} alt="Оригинальное фото" className="w-full object-cover" />
-              {/* Object markers overlay */}
-              {service.declutterDetected && service.declutterObjects.map(obj => (
-                <button
-                  key={obj.id}
-                  onClick={() => service.toggleDeclutterObject(obj.id)}
-                  className={`absolute -ml-3 -mt-3 rounded-full border-2 transition-all text-[10px] font-bold flex items-center justify-center ${
-                    service.declutterSelected.has(obj.id)
-                      ? "bg-red-500 border-white text-white w-6 h-6"
-                      : "bg-white/70 border-neutral-300 text-neutral-400 w-5 h-5 opacity-50"
-                  }`}
-                  style={{ left: `${obj.x}%`, top: `${obj.y}%` }}
-                  title={obj.name}
-                >
-                  {obj.id}
-                </button>
-              ))}
             </div>
           ) : (
             <div className="overflow-hidden">
