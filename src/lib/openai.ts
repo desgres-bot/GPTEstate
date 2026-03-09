@@ -1762,22 +1762,72 @@ export async function makeVacant(imageBase64: string): Promise<string> {
 }
 
 /**
- * Declutter — automatically remove clutter, personal items, and mess from a room.
+ * Detect removable objects in a room photo using GPT-4o Vision.
+ * Returns a list of objects with names and approximate positions (% of image).
  */
-export async function declutterRoom(imageBase64: string): Promise<string> {
+export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number }>> {
+  console.log("[detectObjects] Analyzing room for removable objects...");
+  const compressed = await compressForAnalysis(imageBase64);
+
+  const result = await openaiChatViaProxy(
+    [
+      {
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: compressed, detail: "low" } },
+          {
+            type: "text",
+            text: `Analyze this room photo. List ALL removable items (clutter, personal items, objects on surfaces and floor).
+For each item provide:
+- "name": short name in Russian (e.g. "полотенце", "кастрюля", "сковорода")
+- "x": horizontal position as percentage (0-100, left to right)
+- "y": vertical position as percentage (0-100, top to bottom)
+
+Include items like: clothes, shoes, towels, dishes, bags, toys, papers, cables, bottles, food, boxes, cleaning supplies, personal items.
+Do NOT include: built-in furniture, appliances (oven, fridge, sink), countertops, cabinets, walls, floor, ceiling.
+
+Respond ONLY with a JSON array, no other text. Example:
+[{"name":"полотенце","x":25,"y":60},{"name":"кастрюля","x":50,"y":35}]`,
+          },
+        ],
+      },
+    ],
+    1000,
+  );
+
+  try {
+    const cleaned = result.replace(/```json\n?|\n?```/g, "").trim();
+    const objects = JSON.parse(cleaned) as Array<{ name: string; x: number; y: number }>;
+    return objects.map((obj, i) => ({ id: i + 1, ...obj }));
+  } catch {
+    console.error("[detectObjects] Failed to parse GPT response:", result);
+    return [];
+  }
+}
+
+/**
+ * Declutter — remove specific objects from a room (or all clutter if no list provided).
+ */
+export async function declutterRoom(imageBase64: string, objectsToRemove?: string[]): Promise<string> {
   const replicate = getReplicate();
 
   // Pass 1: Remove clutter
-  console.log("[declutter] Pass 1: Removing clutter...");
+  const hasSpecificObjects = objectsToRemove && objectsToRemove.length > 0;
+  const removeList = hasSpecificObjects ? objectsToRemove.join(", ") : null;
+
+  console.log("[declutter] Pass 1: Removing", hasSpecificObjects ? removeList : "all clutter...");
   const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
-      prompt:
-        "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
-        "bags, cables, laundry, trash, scattered objects on surfaces and floor. " +
-        "Leave all furniture in place — only remove mess from surfaces and floor. " +
-        "Clean tidy surfaces, clear floor. " +
-        "While maintaining all furniture, walls, floor, ceiling, windows, and room layout exactly as they are. " +
-        "Professional real estate photography.",
+      prompt: hasSpecificObjects
+        ? `Remove only these specific items from this room: ${removeList}. ` +
+          "Keep everything else exactly as it is — all furniture, appliances, and other objects must remain. " +
+          "Clean the surfaces where removed items were. Professional real estate photography."
+        : "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
+          "bags, cables, laundry, trash, scattered objects on surfaces and floor. " +
+          "Leave all furniture in place — only remove mess from surfaces and floor. " +
+          "Clean tidy surfaces, clear floor. " +
+          "While maintaining all furniture, walls, floor, ceiling, windows, and room layout exactly as they are. " +
+          "Professional real estate photography.",
       input_image: imageBase64,
       aspect_ratio: "match_input_image",
       output_format: "jpg",

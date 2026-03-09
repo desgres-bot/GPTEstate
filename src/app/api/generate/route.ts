@@ -33,6 +33,7 @@ import {
   estimateRepairCost,
   makeVacant,
   declutterRoom,
+  detectObjects,
   remodelBathroom,
   addItem,
   greenifyExterior,
@@ -51,7 +52,7 @@ const VALID_MODES = [
   "social", "floorplan",
   "flooring", "kitchen", "season", "decor",
   "commercial", "compliance", "textrender", "repaircost",
-  "vacant", "declutter",
+  "vacant", "declutter", "declutter-detect",
   "bathroom", "additem", "greenify",
   "refine",
 ];
@@ -100,6 +101,7 @@ export async function POST(req: NextRequest) {
     // Refine (AI chat editor)
     const refinePrompt = formData.get("refinePrompt") as string | null;
     const originalImage = formData.get("originalImage") as File | null;
+    const declutterObjects = formData.get("declutterObjects") as string | null;
 
     console.log("[generate] Mode:", mode, "Image size:", image?.size, "Image type:", image?.type);
 
@@ -153,6 +155,12 @@ export async function POST(req: NextRequest) {
     if (mode === "repaircost") {
       const text = await estimateRepairCost(dataUri);
       return NextResponse.json({ text });
+    }
+
+    // ─── Declutter detect mode ───
+    if (mode === "declutter-detect") {
+      const objects = await detectObjects(dataUri);
+      return NextResponse.json({ objects });
     }
 
     // ─── Compare mode ───
@@ -209,7 +217,8 @@ export async function POST(req: NextRequest) {
     } else if (mode === "vacant") {
       outputDataUri = await makeVacant(dataUri);
     } else if (mode === "declutter") {
-      outputDataUri = await declutterRoom(dataUri);
+      const objectsList = declutterObjects ? JSON.parse(declutterObjects) as string[] : undefined;
+      outputDataUri = await declutterRoom(dataUri, objectsList);
     } else if (mode === "bathroom") {
       outputDataUri = await remodelBathroom(dataUri, bathroomStyle || "modern_white", customBathroom || undefined);
     } else if (mode === "additem") {

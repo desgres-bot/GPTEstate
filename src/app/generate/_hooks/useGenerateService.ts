@@ -37,6 +37,13 @@ export function useGenerateService() {
   const [customBathroom, setCustomBathroom] = useState("");
   const [additemDescription, setAdditemDescription] = useState("");
 
+  // Declutter object detection
+  type DetectedObject = { id: number; name: string; x: number; y: number };
+  const [declutterObjects, setDeclutterObjects] = useState<DetectedObject[]>([]);
+  const [declutterSelected, setDeclutterSelected] = useState<Set<number>>(new Set());
+  const [declutterDetecting, setDeclutterDetecting] = useState(false);
+  const [declutterDetected, setDeclutterDetected] = useState(false);
+
   // AI Chat Editor (refine)
   const [refinePrompt, setRefinePrompt] = useState("");
   const [refineLoading, setRefineLoading] = useState(false);
@@ -64,6 +71,45 @@ export function useGenerateService() {
     setTextResult(null);
     setCompareResults(null);
     setError(null);
+    // Reset declutter state
+    setDeclutterObjects([]);
+    setDeclutterSelected(new Set());
+    setDeclutterDetected(false);
+  };
+
+  const handleDeclutterDetect = async () => {
+    if (!selectedFile) return;
+    setDeclutterDetecting(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+      formData.append("mode", "declutter-detect");
+      const res = await fetch("/api/generate", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Ошибка анализа");
+      }
+      const data = await res.json();
+      const objects = data.objects as DetectedObject[];
+      setDeclutterObjects(objects);
+      // Select all by default
+      setDeclutterSelected(new Set(objects.map(o => o.id)));
+      setDeclutterDetected(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка анализа");
+    } finally {
+      setDeclutterDetecting(false);
+    }
+  };
+
+  const toggleDeclutterObject = (id: number) => {
+    setDeclutterSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const handleGenerate = async () => {
@@ -154,6 +200,12 @@ export function useGenerateService() {
         if (customBathroom) formData.append("customBathroom", customBathroom);
       }
       if (mode === "additem") formData.append("additemDescription", additemDescription);
+      if (mode === "declutter" && declutterDetected && declutterSelected.size > 0) {
+        const selectedNames = declutterObjects
+          .filter(o => declutterSelected.has(o.id))
+          .map(o => o.name);
+        formData.append("declutterObjects", JSON.stringify(selectedNames));
+      }
 
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -307,6 +359,13 @@ export function useGenerateService() {
     refineHistory,
     handleRefine,
     undoRefine,
+    // Declutter object detection
+    declutterObjects,
+    declutterSelected,
+    declutterDetecting,
+    declutterDetected,
+    handleDeclutterDetect,
+    toggleDeclutterObject,
     // Actions
     handleImageSelect,
     handleGenerate,
