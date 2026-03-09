@@ -1915,18 +1915,20 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
 
     console.log("[declutter] Mask-based removal:", bboxes.length, "objects, image:", imgW, "x", imgH);
 
-    // Use LaMa for fast, clean inpainting
-    const lamaOutput = await replicate.run("zylim0702/remove-object", {
+    // Use FLUX Fill Pro for high-quality inpainting
+    const fillOutput = await replicate.run("black-forest-labs/flux-fill-pro", {
       input: {
         image: imageBase64,
         mask: maskBase64,
+        prompt: "Clean empty surface, matching surrounding materials and lighting. Professional real estate photography.",
+        output_format: "jpg",
       },
     });
 
-    const lamaUrl = extractUrl(lamaOutput);
-    const lamaResp = await fetch(lamaUrl);
-    const lamaBuf = await lamaResp.arrayBuffer();
-    return `data:image/jpeg;base64,${Buffer.from(lamaBuf).toString("base64")}`;
+    const fillUrl = extractUrl(fillOutput);
+    const fillResp = await fetch(fillUrl);
+    const fillBuf = await fillResp.arrayBuffer();
+    return `data:image/jpeg;base64,${Buffer.from(fillBuf).toString("base64")}`;
   }
 
   // Fallback: prompt-based removal with Flux Kontext (no bboxes available)
