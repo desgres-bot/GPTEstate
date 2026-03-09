@@ -1771,9 +1771,10 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
   const buffer = Buffer.from(base64Data, "base64");
   const compressed = await sharp(buffer)
-    .resize(1024, 1024, { fit: "inside" })
-    .jpeg({ quality: 70 })
+    .resize(512, 512, { fit: "inside" })
+    .jpeg({ quality: 50 })
     .toBuffer();
+  console.log("[detectObjects] Compressed size:", compressed.length, "bytes");
   const compressedUri = `data:image/jpeg;base64,${compressed.toString("base64")}`;
 
   const result = await openaiChatViaProxy(
