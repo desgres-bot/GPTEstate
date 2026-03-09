@@ -1802,17 +1802,34 @@ const LABEL_RU: Record<string, string> = {
   container: "контейнер", tray: "поднос", napkin: "салфетка",
   "paper towel": "бумажное полотенце", "plastic bag": "пакет",
   "food package": "упаковка еды", "cleaning product": "моющее средство",
+  // Extended vocabulary — common household clutter
+  clothes: "одежда", jacket: "куртка", shirt: "рубашка", pants: "штаны",
+  sock: "носок", underwear: "бельё", hat: "шапка", scarf: "шарф",
+  laptop: "ноутбук", charger: "зарядка", headphones: "наушники",
+  tablet: "планшет", keyboard: "клавиатура", mouse: "мышка",
+  pillow: "подушка", blanket: "одеяло", cushion: "подушка",
+  slippers: "тапочки", boots: "ботинки", sneakers: "кроссовки",
+  backpack: "рюкзак", purse: "сумка", wallet: "кошелёк",
+  umbrella: "зонт", stroller: "коляска", iron: "утюг",
+  "hair dryer": "фен", mirror: "зеркало", clock: "часы",
+  lamp: "лампа", fan: "вентилятор", heater: "обогреватель",
+  broom: "метла", mop: "швабра", "vacuum cleaner": "пылесос",
+  "laundry basket": "корзина для белья", "trash can": "мусорное ведро",
+  ashtray: "пепельница", cigarette: "сигарета", lighter: "зажигалка",
 };
 
 export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; label: string; x: number; y: number; bbox: number[] }>> {
   console.log("[detectObjects] Using Grounding DINO for precise detection...");
   const replicate = getReplicate();
 
-  // Comprehensive query for household clutter items
+  // Comprehensive query for household clutter items (expanded vocabulary)
   const query = "pot. pan. plate. dish. cup. mug. glass. bottle. jar. bowl. " +
     "fork. knife. spoon. spatula. cutting board. towel. cloth. rag. sponge. soap. detergent. " +
     "bread. food. package. bag. box. paper. cable. shoe. toy. book. magazine. trash. " +
-    "basket. bucket. candle. vase. plant. decoration. magnet. hanger. container. tray. napkin.";
+    "basket. bucket. candle. vase. plant. decoration. magnet. hanger. container. tray. napkin. " +
+    "remote control. phone. keys. clothes. jacket. shirt. pants. sock. hat. scarf. " +
+    "laptop. charger. headphones. pillow. blanket. cushion. slippers. boots. sneakers. " +
+    "backpack. purse. umbrella. iron. broom. mop. ashtray. clock. lamp. fan.";
 
   const output = await replicate.run("adirik/grounding-dino:efd10a8ddc57ea28773327e881ce95e20cc1d734c589f7dd01d2036921ed78aa", {
     input: {
@@ -1879,15 +1896,17 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
  * When labels provided: Grounded SAM for pixel-perfect masks + Bria Eraser for removal.
  * Without labels: falls back to Flux Kontext prompt-based removal.
  */
-export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], _bboxes?: number[][], removeLabels?: string[], keepLabels?: string[]): Promise<string> {
+export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][], removeLabels?: string[], keepLabels?: string[]): Promise<string> {
   const replicate = getReplicate();
 
-  // Iterative removal: process each unique label one at a time with small masks
-  // Small masks → Bria Eraser produces clean results without quality degradation
-  if (removeLabels && removeLabels.length > 0) {
+  // ── Bbox-guided removal: precise per-object removal using SAM mask ∩ bbox ──
+  // When we have both labels AND bboxes (from detectObjects), we:
+  // 1. Get SAM masks for each unique label IN PARALLEL (1 SAM call per label)
+  // 2. For each individual object, intersect SAM mask with its bbox → precise object mask
+  // 3. Call ClipDrop with the precise mask → only the target object is removed
+  // This fixes the old bug where unique-label deduplication removed wrong objects.
+  if (removeLabels && removeLabels.length > 0 && bboxes && bboxes.length === removeLabels.length) {
     const replicateToken = process.env.REPLICATE_API_TOKEN;
-    const uniqueRemoveLabels = Array.from(new Set(removeLabels));
-    const uniqueKeepLabels = keepLabels ? Array.from(new Set(keepLabels)) : [];
 
     // Get image dimensions
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
@@ -1896,19 +1915,14 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     const imgW = meta.width!;
     const imgH = meta.height!;
 
-    console.log("[declutter] Iterative removal:", uniqueRemoveLabels.length, "labels, image:", imgW, "x", imgH);
+    console.log("[declutter] Bbox-guided removal:", removeLabels.length, "objects, image:", imgW, "x", imgH);
 
-    let currentImage = imageBase64;
+    // ── Step 1: Group objects by unique label for efficient SAM calls ──
+    const uniqueLabels = Array.from(new Set(removeLabels.map(l => l.trim().toLowerCase())));
+    console.log("[declutter] Unique labels for SAM:", uniqueLabels.join(", "));
 
-    // Helper: call Grounded SAM and poll for result
-    const callSAM = async (image: string, prompt: string, negative: string): Promise<{ output?: string[]; error?: string }> => {
-      const samInput: Record<string, unknown> = {
-        image,
-        mask_prompt: prompt,
-        adjustment_factor: 10,
-      };
-      if (negative) samInput.negative_mask_prompt = negative;
-
+    // ── Step 2: Get SAM mask for each unique label IN PARALLEL ──
+    const callSAM = async (image: string, prompt: string): Promise<Buffer | null> => {
       const resp = await fetch("https://api.replicate.com/v1/predictions", {
         method: "POST",
         headers: {
@@ -1917,7 +1931,11 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
         },
         body: JSON.stringify({
           version: "ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
-          input: samInput,
+          input: {
+            image,
+            mask_prompt: prompt,
+            adjustment_factor: 10,
+          },
         }),
       });
       const predData = await resp.json() as { id: string; urls: { get: string } };
@@ -1933,89 +1951,193 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       } while (result.status !== "succeeded" && result.status !== "failed");
 
       if (result.status === "failed" || !result.output) {
-        return { error: result.error || "SAM failed" };
-      }
-      return { output: result.output };
-    }
-
-    for (let i = 0; i < uniqueRemoveLabels.length; i++) {
-      const label = uniqueRemoveLabels[i];
-      const otherLabels = uniqueKeepLabels.filter(l => l !== label);
-      const negPrompt = otherLabels.length > 0 ? otherLabels.join(",") : "";
-
-      console.log(`[declutter] Step ${i + 1}/${uniqueRemoveLabels.length}: removing "${label}", negative: "${negPrompt || "(none)"}"`);
-
-      // Step A: Grounded SAM mask — with retry (no negative on retry)
-      let samOut = await callSAM(currentImage, label, negPrompt);
-      if (samOut.error) {
-        console.log(`[declutter] SAM failed for "${label}", retrying without negative...`, samOut.error);
-        samOut = await callSAM(currentImage, label, "");
-      }
-      if (samOut.error || !samOut.output) {
-        console.log(`[declutter] SAM failed for "${label}" on retry, skipping`);
-        continue;
+        console.log(`[declutter] SAM failed for "${prompt}":`, result.error);
+        return null;
       }
 
-      const maskUrl = samOut.output[2];
-      console.log(`[declutter] SAM mask for "${label}":`, maskUrl);
-
-      // Download and resize mask
+      const maskUrl = result.output[2];
       const maskResp = await fetch(maskUrl);
       const maskBuf = Buffer.from(await maskResp.arrayBuffer());
-      const maskStats = await sharp(maskBuf).resize(imgW, imgH).grayscale().stats();
-      const maskMean = maskStats.channels[0].mean;
-      console.log(`[declutter] Mask stats for "${label}": mean=${maskMean.toFixed(2)}`);
-      if (maskMean < 0.01) {
-        console.log(`[declutter] Empty mask for "${label}" (mean=${maskMean.toFixed(4)}), skipping`);
-        continue;
+      // Return raw grayscale mask at original image dimensions
+      return await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer();
+    };
+
+    const samMasks = new Map<string, Buffer>();
+    console.log("[declutter] Getting SAM masks for", uniqueLabels.length, "labels in parallel...");
+    await Promise.all(
+      uniqueLabels.map(async (label) => {
+        const mask = await callSAM(imageBase64, label);
+        if (mask) {
+          samMasks.set(label, mask);
+          console.log(`[declutter] SAM mask ready for "${label}"`);
+        }
+      }),
+    );
+    console.log("[declutter] SAM masks obtained:", samMasks.size, "of", uniqueLabels.length);
+
+    // ── Step 3: Iterative removal — per object with bbox intersection ──
+    const BBOX_PADDING = 20; // px expansion around bbox for better SAM coverage
+    let currentImage = imageBase64;
+
+    for (let i = 0; i < removeLabels.length; i++) {
+      const label = removeLabels[i].trim().toLowerCase();
+      const bbox = bboxes[i]; // [xmin, ymin, xmax, ymax] in pixels from Grounding DINO
+      const samMask = samMasks.get(label);
+
+      // Compute padded bbox region
+      const bxmin = Math.max(0, Math.floor(bbox[0]) - BBOX_PADDING);
+      const bymin = Math.max(0, Math.floor(bbox[1]) - BBOX_PADDING);
+      const bxmax = Math.min(imgW, Math.ceil(bbox[2]) + BBOX_PADDING);
+      const bymax = Math.min(imgH, Math.ceil(bbox[3]) + BBOX_PADDING);
+
+      // Create object-specific mask by intersecting SAM mask with bbox region
+      const objectMaskRaw = Buffer.alloc(imgW * imgH, 0);
+
+      if (samMask) {
+        // Intersect: only keep SAM mask pixels that fall within the bbox
+        let pixelsInMask = 0;
+        for (let y = bymin; y < bymax; y++) {
+          for (let x = bxmin; x < bxmax; x++) {
+            const p = y * imgW + x;
+            if (samMask[p] > 128) {
+              objectMaskRaw[p] = 255;
+              pixelsInMask++;
+            }
+          }
+        }
+        console.log(`[declutter] Object ${i + 1}/${removeLabels.length} "${label}": SAM∩bbox = ${pixelsInMask} px`);
+
+        // If SAM didn't find the object in this bbox, fall back to rectangular bbox mask
+        if (pixelsInMask < 50) {
+          console.log(`[declutter] SAM mask too sparse for "${label}" in bbox, using bbox as rectangular mask`);
+          for (let y = bymin; y < bymax; y++) {
+            for (let x = bxmin; x < bxmax; x++) {
+              objectMaskRaw[y * imgW + x] = 255;
+            }
+          }
+        }
+      } else {
+        // No SAM mask at all — use rectangular bbox as fallback
+        console.log(`[declutter] No SAM mask for "${label}", using bbox as rectangular mask`);
+        for (let y = bymin; y < bymax; y++) {
+          for (let x = bxmin; x < bxmax; x++) {
+            objectMaskRaw[y * imgW + x] = 255;
+          }
+        }
       }
 
-      // Ensure mask is binary (0 or 255, no grey) and same size as image — ClipDrop requirement
-      const resizedMask = await sharp(maskBuf)
-        .resize(imgW, imgH)
-        .grayscale()
-        .threshold(128)
+      // Convert raw mask to PNG for Bria Eraser (slight dilation via blur for softer edges)
+      const maskPng = await sharp(objectMaskRaw, { raw: { width: imgW, height: imgH, channels: 1 } })
+        .blur(1.5) // slight feathering for softer edges
+        .threshold(64) // re-binarize after blur (keeps expanded edges)
         .png()
         .toBuffer();
+      const maskBase64 = `data:image/png;base64,${maskPng.toString("base64")}`;
 
-      // Step B: ClipDrop Cleanup API — professional object removal
-      const clipdropKey = process.env.CLIPDROP_API_KEY;
-      const curBase64 = currentImage.replace(/^data:image\/\w+;base64,/, "");
-      const curBuffer = Buffer.from(curBase64, "base64");
-      // Convert current image to JPEG buffer for upload
-      const imageForUpload = await sharp(curBuffer).jpeg({ quality: 95 }).toBuffer();
+      // ── Step 4: Bria Eraser — inpainting removal ──
+      console.log(`[declutter] Bria Eraser for object ${i + 1}/${removeLabels.length} "${label}" bbox:[${bxmin},${bymin},${bxmax},${bymax}]`);
 
-      const formData = new FormData();
-      formData.append("image_file", new Blob([new Uint8Array(imageForUpload)], { type: "image/jpeg" }), "image.jpg");
-      formData.append("mask_file", new Blob([new Uint8Array(resizedMask)], { type: "image/png" }), "mask.png");
+      try {
+        const eraserOutput = await replicate.run("bria/eraser", {
+          input: {
+            image: currentImage,
+            mask: maskBase64,
+            mask_type: "manual",
+          },
+        });
 
-      console.log(`[declutter] ClipDrop Cleanup for "${label}", image: ${imageForUpload.length}b, mask: ${resizedMask.length}b`);
+        const eraserUrl = extractUrl(eraserOutput);
+        const eraserResp = await fetch(eraserUrl);
+        const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
 
-      const clipResp = await fetch("https://clipdrop-api.co/cleanup/v1", {
-        method: "POST",
-        headers: { "x-api-key": clipdropKey || "" },
-        body: formData,
-      });
-
-      if (!clipResp.ok) {
-        const errText = await clipResp.text();
-        console.log(`[declutter] ClipDrop error for "${label}": ${clipResp.status} ${errText}`);
+        // Use PNG between steps to avoid JPEG compression artifacts accumulating
+        const stepResult = await sharp(eraserBuf).resize(imgW, imgH).png().toBuffer();
+        currentImage = `data:image/png;base64,${stepResult.toString("base64")}`;
+        console.log(`[declutter] Removed object ${i + 1} "${label}" ✓`);
+      } catch (err) {
+        console.log(`[declutter] Bria Eraser error for "${label}":`, err);
         continue;
       }
-
-      const clipBuf = Buffer.from(await clipResp.arrayBuffer());
-      const remaining = clipResp.headers.get("x-remaining-credits");
-      console.log(`[declutter] ClipDrop success for "${label}", result: ${clipBuf.length}b, credits left: ${remaining}`);
-
-      // ClipDrop returns full image with same dimensions — use directly
-      const stepResult = await sharp(clipBuf).resize(imgW, imgH).jpeg({ quality: 95 }).toBuffer();
-
-      currentImage = `data:image/jpeg;base64,${stepResult.toString("base64")}`;
-      console.log(`[declutter] Removed "${label}" successfully (composited)`);
     }
 
-    console.log("[declutter] Iterative removal complete");
-    return currentImage;
+    // Final output as JPEG
+    const finalBase64 = currentImage.replace(/^data:image\/\w+;base64,/, "");
+    const finalBuf = Buffer.from(finalBase64, "base64");
+    const finalJpeg = await sharp(finalBuf).jpeg({ quality: 95 }).toBuffer();
+    console.log("[declutter] Bbox-guided removal complete,", removeLabels.length, "objects processed");
+    return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
+  }
+
+  // ── Legacy: label-only removal (no bboxes) — kept for backward compat ──
+  if (removeLabels && removeLabels.length > 0) {
+    const replicateToken = process.env.REPLICATE_API_TOKEN;
+    const uniqueRemoveLabels = Array.from(new Set(removeLabels));
+
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const origBuffer = Buffer.from(base64Data, "base64");
+    const meta = await sharp(origBuffer).metadata();
+    const imgW = meta.width!;
+    const imgH = meta.height!;
+
+    console.log("[declutter] Legacy label-only removal:", uniqueRemoveLabels.length, "labels");
+
+    let currentImage = imageBase64;
+
+    const callSAMLegacy = async (image: string, prompt: string): Promise<Buffer | null> => {
+      const resp = await fetch("https://api.replicate.com/v1/predictions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${replicateToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          version: "ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
+          input: { image, mask_prompt: prompt, adjustment_factor: 10 },
+        }),
+      });
+      const predData = await resp.json() as { id: string; urls: { get: string } };
+      const getUrl = predData.urls?.get || `https://api.replicate.com/v1/predictions/${predData.id}`;
+
+      let result: { status: string; output?: string[]; error?: string };
+      do {
+        await new Promise(r => setTimeout(r, 2000));
+        const pollResp = await fetch(getUrl, {
+          headers: { "Authorization": `Bearer ${replicateToken}` },
+        });
+        result = await pollResp.json() as typeof result;
+      } while (result.status !== "succeeded" && result.status !== "failed");
+
+      if (result.status === "failed" || !result.output) return null;
+      const maskUrl = result.output[2];
+      const maskResp = await fetch(maskUrl);
+      const maskBuf = Buffer.from(await maskResp.arrayBuffer());
+      return await sharp(maskBuf).resize(imgW, imgH).grayscale().threshold(128).png().toBuffer();
+    };
+
+    for (const label of uniqueRemoveLabels) {
+      const maskPng = await callSAMLegacy(currentImage, label);
+      if (!maskPng) { console.log(`[declutter] Legacy: SAM failed for "${label}"`); continue; }
+
+      const maskBase64 = `data:image/png;base64,${maskPng.toString("base64")}`;
+      try {
+        const eraserOutput = await replicate.run("bria/eraser", {
+          input: { image: currentImage, mask: maskBase64, mask_type: "manual" },
+        });
+        const eraserUrl = extractUrl(eraserOutput);
+        const eraserResp = await fetch(eraserUrl);
+        const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
+        const stepResult = await sharp(eraserBuf).resize(imgW, imgH).png().toBuffer();
+        currentImage = `data:image/png;base64,${stepResult.toString("base64")}`;
+        console.log(`[declutter] Legacy: removed "${label}" ✓`);
+      } catch (err) {
+        console.log(`[declutter] Legacy: Bria Eraser error for "${label}":`, err);
+        continue;
+      }
+    }
+
+    const finalBuf = Buffer.from(currentImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
+    const finalJpeg = await sharp(finalBuf).jpeg({ quality: 95 }).toBuffer();
+    return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
   }
 
   // Fallback: prompt-based removal with Flux Kontext (no bboxes)
