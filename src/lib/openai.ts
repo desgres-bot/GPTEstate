@@ -1875,16 +1875,57 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
 }
 
 /**
- * Declutter — remove objects from a room.
- * When bboxes provided (selective mode): Flux Kontext removes ALL clutter,
- * then we composite original pixels back for objects user wants to KEEP.
- * Without bboxes: simple Flux Kontext prompt-based removal.
+ * Declutter — remove objects from a room using mask-based Bria Eraser.
+ * When bboxes provided: builds mask from bboxes, uses Bria Eraser (sharp, no blur).
+ * Without bboxes: falls back to Flux Kontext prompt-based removal.
  */
-export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][], allBboxes?: number[][]): Promise<string> {
+export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][]): Promise<string> {
   const replicate = getReplicate();
 
-  // Step 1: Flux Kontext removes ALL clutter (it's great at this)
-  console.log("[declutter] Step 1: Flux Kontext removing all clutter...");
+  // Mask-based approach with Bria Eraser (purpose-built for object removal)
+  if (bboxes && bboxes.length > 0) {
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+    const meta = await sharp(buffer).metadata();
+    const imgW = meta.width!;
+    const imgH = meta.height!;
+
+    // Build white-on-black mask from bounding boxes (white = erase, black = keep)
+    const PAD = Math.max(5, Math.round(Math.min(imgW, imgH) * 0.015));
+    let rects = "";
+    for (const bbox of bboxes) {
+      const [xmin, ymin, xmax, ymax] = bbox;
+      const x = Math.max(0, Math.round(xmin) - PAD);
+      const y = Math.max(0, Math.round(ymin) - PAD);
+      const w = Math.min(imgW, Math.round(xmax) + PAD) - x;
+      const h = Math.min(imgH, Math.round(ymax) + PAD) - y;
+      rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="white"/>`;
+    }
+    const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${imgW}" height="${imgH}">
+      <rect width="${imgW}" height="${imgH}" fill="black"/>
+      ${rects}
+    </svg>`;
+    const maskBuffer = await sharp(Buffer.from(maskSvg)).resize(imgW, imgH).png().toBuffer();
+    const maskBase64 = `data:image/png;base64,${maskBuffer.toString("base64")}`;
+
+    console.log("[declutter] Bria Eraser: removing", bboxes.length, "objects, image:", imgW, "x", imgH);
+
+    const eraserOutput = await replicate.run("bria/eraser", {
+      input: {
+        image: imageBase64,
+        mask: maskBase64,
+        mask_type: "manual",
+      },
+    });
+
+    const eraserUrl = extractUrl(eraserOutput);
+    const eraserResp = await fetch(eraserUrl);
+    const eraserBuf = await eraserResp.arrayBuffer();
+    return `data:image/jpeg;base64,${Buffer.from(eraserBuf).toString("base64")}`;
+  }
+
+  // Fallback: prompt-based removal with Flux Kontext (no bboxes)
+  console.log("[declutter] Flux Kontext: prompt-based removal (no bboxes)...");
   const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
     input: {
       prompt: "Remove all clutter and personal items from this room: clothes, shoes, toys, papers, dishes, " +
@@ -1899,75 +1940,10 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       prompt_upsampling: false,
     },
   });
-
   const dclUrl = extractUrl(dclOutput);
   const dclResp = await fetch(dclUrl);
-  const dclBuf = Buffer.from(await dclResp.arrayBuffer());
-
-  // If we have bboxes for selective removal, composite original back for KEPT objects
-  // allBboxes = all detected objects, bboxes = objects to REMOVE
-  // Objects to KEEP = allBboxes minus bboxes
-  if (allBboxes && bboxes && allBboxes.length > bboxes.length) {
-    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-    const origBuffer = Buffer.from(base64Data, "base64");
-    const meta = await sharp(origBuffer).metadata();
-    const imgW = meta.width!;
-    const imgH = meta.height!;
-
-    // Find bboxes to KEEP (allBboxes minus selected-to-remove bboxes)
-    const removeSet = new Set(bboxes.map(b => b.join(",")));
-    const keepBboxes = allBboxes.filter(b => !removeSet.has(b.join(",")));
-
-    if (keepBboxes.length > 0) {
-      console.log("[declutter] Step 2: Compositing back", keepBboxes.length, "kept objects...");
-
-      // Build mask: white = areas to restore from original (objects to keep)
-      const PAD = Math.max(8, Math.round(Math.min(imgW, imgH) * 0.02));
-      let rects = "";
-      for (const bbox of keepBboxes) {
-        const [xmin, ymin, xmax, ymax] = bbox;
-        const x = Math.max(0, Math.round(xmin) - PAD);
-        const y = Math.max(0, Math.round(ymin) - PAD);
-        const w = Math.min(imgW, Math.round(xmax) + PAD) - x;
-        const h = Math.min(imgH, Math.round(ymax) + PAD) - y;
-        rects += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="white" rx="4"/>`;
-      }
-      const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${imgW}" height="${imgH}">
-        <rect width="${imgW}" height="${imgH}" fill="black"/>
-        ${rects}
-      </svg>`;
-      // Blur mask edges for smooth blending (feathering)
-      const blurRadius = Math.max(10, Math.round(Math.min(imgW, imgH) * 0.03));
-      const keepMask = await sharp(Buffer.from(maskSvg))
-        .resize(imgW, imgH)
-        .blur(blurRadius)
-        .raw()
-        .toBuffer();
-
-      // Resize Kontext result to match original
-      const kontextResized = await sharp(dclBuf).resize(imgW, imgH).ensureAlpha().raw().toBuffer();
-      const origRaw = await sharp(origBuffer).ensureAlpha().raw().toBuffer();
-
-      // Per-pixel composite: mask white = original, mask black = kontext result
-      const result = Buffer.alloc(origRaw.length);
-      for (let i = 0; i < origRaw.length; i += 4) {
-        const maskVal = keepMask[i]; // R channel: 255=keep original, 0=use kontext
-        const t = maskVal / 255;
-        result[i]     = Math.round(kontextResized[i]     * (1 - t) + origRaw[i]     * t);
-        result[i + 1] = Math.round(kontextResized[i + 1] * (1 - t) + origRaw[i + 1] * t);
-        result[i + 2] = Math.round(kontextResized[i + 2] * (1 - t) + origRaw[i + 2] * t);
-        result[i + 3] = 255;
-      }
-
-      const finalBuf = await sharp(result, { raw: { width: imgW, height: imgH, channels: 4 } })
-        .jpeg({ quality: 92 })
-        .toBuffer();
-      return `data:image/jpeg;base64,${finalBuf.toString("base64")}`;
-    }
-  }
-
-  // No selective compositing needed — return Kontext result directly
-  return `data:image/jpeg;base64,${dclBuf.toString("base64")}`;
+  const dclBuf = await dclResp.arrayBuffer();
+  return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
 }
 
 /**

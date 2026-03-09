@@ -245,9 +245,7 @@ export async function POST(req: NextRequest) {
     } else if (mode === "declutter") {
       const objectsList = declutterObjects ? JSON.parse(declutterObjects) as string[] : undefined;
       const bboxesList = declutterBboxes ? JSON.parse(declutterBboxes) as number[][] : undefined;
-      const allBboxesRaw = formData.get("allBboxes") as string | null;
-      const allBboxesList = allBboxesRaw ? JSON.parse(allBboxesRaw) as number[][] : undefined;
-      outputDataUri = await declutterRoom(dataUri, objectsList, bboxesList, allBboxesList);
+      outputDataUri = await declutterRoom(dataUri, objectsList, bboxesList);
     } else if (mode === "bathroom") {
       outputDataUri = await remodelBathroom(dataUri, bathroomStyle || "modern_white", customBathroom || undefined);
     } else if (mode === "additem") {
