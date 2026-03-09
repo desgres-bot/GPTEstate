@@ -1785,95 +1785,102 @@ async function saveTempImage(imageBuffer: Buffer): Promise<string> {
   return `${host}/api/tmp/${id}`;
 }
 
+// English label → Russian translation for Grounding DINO results
+const LABEL_RU: Record<string, string> = {
+  pot: "кастрюля", pan: "сковорода", plate: "тарелка", dish: "тарелка",
+  cup: "чашка", mug: "кружка", glass: "стакан", bottle: "бутылка",
+  jar: "банка", bowl: "миска", fork: "вилка", knife: "нож",
+  spoon: "ложка", spatula: "лопатка", "cutting board": "доска",
+  towel: "полотенце", cloth: "тряпка", rag: "тряпка", sponge: "губка",
+  soap: "мыло", detergent: "моющее", bread: "хлеб", food: "еда",
+  package: "упаковка", bag: "пакет", box: "коробка", paper: "бумага",
+  cable: "кабель", shoe: "обувь", toy: "игрушка", book: "книга",
+  magazine: "журнал", trash: "мусор", "remote control": "пульт",
+  phone: "телефон", keys: "ключи", candle: "свеча", vase: "ваза",
+  basket: "корзина", bucket: "ведро", plant: "растение", decoration: "декор",
+  magnet: "магнит", hanger: "вешалка", "water bottle": "бутылка воды",
+  container: "контейнер", tray: "поднос", napkin: "салфетка",
+  "paper towel": "бумажное полотенце", "plastic bag": "пакет",
+  "food package": "упаковка еды", "cleaning product": "моющее средство",
+};
+
 export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; x: number; y: number }>> {
-  console.log("[detectObjects] Analyzing room for removable objects...");
-  const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-  const buffer = Buffer.from(base64Data, "base64");
+  console.log("[detectObjects] Using Grounding DINO for precise detection...");
+  const replicate = getReplicate();
 
-  // Overlay a labeled grid so GPT-4o can reference cells accurately
-  const COLS = 10;
-  const ROWS = 10;
-  const COL_LABELS = "ABCDEFGHIJ";
-  const meta = await sharp(buffer).metadata();
-  const w = meta.width!;
-  const h = meta.height!;
-  const cellW = Math.floor(w / COLS);
-  const cellH = Math.floor(h / ROWS);
+  // Comprehensive query for household clutter items
+  const query = "pot. pan. plate. dish. cup. mug. glass. bottle. jar. bowl. " +
+    "fork. knife. spoon. spatula. cutting board. towel. cloth. rag. sponge. soap. detergent. " +
+    "bread. food. package. bag. box. paper. cable. shoe. toy. book. magazine. trash. " +
+    "basket. bucket. candle. vase. plant. decoration. magnet. hanger. container. tray. napkin.";
 
-  // Build SVG grid overlay with labels
-  let svgLines = "";
-  // Vertical lines
-  for (let c = 1; c < COLS; c++) {
-    const x = c * cellW;
-    svgLines += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="rgba(255,255,0,0.5)" stroke-width="2"/>`;
-  }
-  // Horizontal lines
-  for (let r = 1; r < ROWS; r++) {
-    const y = r * cellH;
-    svgLines += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="rgba(255,255,0,0.5)" stroke-width="2"/>`;
-  }
-  // Cell labels (e.g. A1, B3)
-  const fontSize = Math.max(14, Math.min(cellW, cellH) * 0.3);
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const cx = c * cellW + cellW * 0.5;
-      const cy = r * cellH + cellH * 0.5;
-      const label = `${COL_LABELS[c]}${r + 1}`;
-      svgLines += `<text x="${cx}" y="${cy}" font-size="${fontSize}" font-family="Arial,sans-serif" font-weight="bold" fill="rgba(255,255,0,0.7)" text-anchor="middle" dominant-baseline="central">${label}</text>`;
+  const output = await replicate.run("adirik/grounding-dino:efd10a8ddc57ea28773327e881ce95e20cc1d734c589f7dd01d2036921ed78aa", {
+    input: {
+      image: imageBase64,
+      query,
+      box_threshold: 0.25,
+      text_threshold: 0.2,
+    },
+  }) as Record<string, unknown>;
+
+  console.log("[detectObjects] Raw output type:", typeof output, "keys:", output ? Object.keys(output) : "null");
+  console.log("[detectObjects] Raw output sample:", JSON.stringify(output).slice(0, 1000));
+
+  // Parse Grounding DINO output — may return { detections: [...] } or similar
+  let detections: Array<{ label: string; score: number; xmin: number; ymin: number; xmax: number; ymax: number }> = [];
+
+  if (output && typeof output === "object") {
+    if (Array.isArray((output as { detections?: unknown }).detections)) {
+      detections = (output as { detections: typeof detections }).detections;
+    } else if (Array.isArray(output)) {
+      detections = output as typeof detections;
     }
   }
-  const gridSvg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${svgLines}</svg>`);
 
-  const gridImage = await sharp(buffer)
-    .composite([{ input: gridSvg, top: 0, left: 0 }])
-    .jpeg({ quality: 85 })
-    .toBuffer();
-
-  console.log("[detectObjects] Grid image size:", gridImage.length, "bytes, original:", w, "x", h);
-  const imageUrl = await saveTempImage(gridImage);
-
-  const result = await openaiChatViaProxy(
-    [
-      {
-        role: "user",
-        content: [
-          { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
-          {
-            type: "text",
-            text: `This image has a labeled grid overlay (columns A-J, rows 1-10). Each cell is labeled like A1, B3, F7, etc.
-
-List EVERY removable item in this room. For each item provide:
-- "name": short name in Russian (e.g. "полотенце", "кастрюля", "сковорода")
-- "cell": the grid cell where the CENTER of this item is (e.g. "D7", "A3", "H5")
-
-List ALL: dishes, pots, pans, utensils, towels, cloths, food packages, bottles, bags, boxes, papers, cables, shoes, toys, cleaning supplies, soap, sponges, personal items, decorations, magnets, etc.
-Even small items like a single spoon or sponge should be listed separately.
-Do NOT include: built-in furniture, appliances (oven, fridge, dishwasher, microwave, sink, stove), countertops, cabinets, walls, floor, ceiling.
-
-Respond ONLY with a JSON array. Example:
-[{"name":"полотенце","cell":"C6"},{"name":"кастрюля","cell":"E3"}]`,
-          },
-        ],
-      },
-    ],
-    2000,
-  );
-
-  try {
-    const cleaned = result.replace(/```json\n?|\n?```/g, "").trim();
-    const objects = JSON.parse(cleaned) as Array<{ name: string; cell: string }>;
-    // Convert cell references (e.g. "D7") to percentage coordinates
-    return objects.map((obj, i) => {
-      const col = COL_LABELS.indexOf(obj.cell.charAt(0).toUpperCase());
-      const row = parseInt(obj.cell.slice(1), 10) - 1;
-      const x = col >= 0 ? ((col + 0.5) / COLS) * 100 : 50;
-      const y = row >= 0 ? ((row + 0.5) / ROWS) * 100 : 50;
-      return { id: i + 1, name: obj.name, x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
-    });
-  } catch {
-    console.error("[detectObjects] Failed to parse GPT response:", result);
+  if (detections.length === 0) {
+    console.error("[detectObjects] No detections found in output");
     return [];
   }
+
+  // Get image dimensions for coordinate conversion (if coords are pixel-based)
+  const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+  const buffer = Buffer.from(base64Data, "base64");
+  const meta = await sharp(buffer).metadata();
+  const imgW = meta.width || 1;
+  const imgH = meta.height || 1;
+
+  // Convert detections to our format
+  const results = detections.map((det, i) => {
+    // Determine if coordinates are normalized (0-1) or pixel-based
+    const isNormalized = det.xmax <= 1.0 && det.ymax <= 1.0;
+    const xmin = isNormalized ? det.xmin * 100 : (det.xmin / imgW) * 100;
+    const ymin = isNormalized ? det.ymin * 100 : (det.ymin / imgH) * 100;
+    const xmax = isNormalized ? det.xmax * 100 : (det.xmax / imgW) * 100;
+    const ymax = isNormalized ? det.ymax * 100 : (det.ymax / imgH) * 100;
+
+    // Center of bounding box
+    const x = Math.round(((xmin + xmax) / 2) * 10) / 10;
+    const y = Math.round(((ymin + ymax) / 2) * 10) / 10;
+
+    // Translate label to Russian
+    const label = det.label.trim().toLowerCase();
+    const name = LABEL_RU[label] || label;
+
+    return { id: i + 1, name, x, y, score: det.score };
+  });
+
+  // Sort by score descending and deduplicate nearby objects (within 5% distance)
+  results.sort((a, b) => b.score - a.score);
+  const filtered: typeof results = [];
+  for (const obj of results) {
+    const tooClose = filtered.some(
+      (existing) => Math.abs(existing.x - obj.x) < 5 && Math.abs(existing.y - obj.y) < 5 && existing.name === obj.name
+    );
+    if (!tooClose) filtered.push(obj);
+  }
+
+  // Re-number and return without score field
+  return filtered.map((obj, i) => ({ id: i + 1, name: obj.name, x: obj.x, y: obj.y }));
 }
 
 /**
