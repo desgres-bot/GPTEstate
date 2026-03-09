@@ -1869,12 +1869,20 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
     const x = Math.round((((bxmin + bxmax) / 2) / imgW) * 1000) / 10;
     const y = Math.round((((bymin + bymax) / 2) / imgH) * 1000) / 10;
 
-    // Translate label to Russian — label may be combined like "pot pan", take first match
-    const rawLabel = det.label.trim().toLowerCase();
-    const labelParts = rawLabel.split(/\s+/);
-    const name = LABEL_RU[rawLabel] || LABEL_RU[labelParts[0]] || rawLabel;
+    // Clean DINO labels: may return compound garbage like "towel scarf", "cup mug bottle jar"
+    // Extract first known word from LABEL_RU, or just the first word ≥3 chars
+    const rawLabel = det.label.trim().toLowerCase().replace(/^#+\s*/, ""); // strip "##r " prefix artifacts
+    const labelParts = rawLabel.split(/\s+/).filter(w => w.length >= 2);
+    let cleanedLabel = rawLabel;
+    for (const part of labelParts) {
+      if (part in LABEL_RU) { cleanedLabel = part; break; }
+    }
+    if (cleanedLabel === rawLabel && labelParts.length > 0) {
+      cleanedLabel = labelParts[0]; // just take first word if no LABEL_RU match
+    }
+    const name = LABEL_RU[cleanedLabel] || LABEL_RU[rawLabel] || cleanedLabel;
 
-    return { id: i + 1, name, label: rawLabel, x, y, bbox: det.bbox, score: det.confidence };
+    return { id: i + 1, name, label: cleanedLabel, x, y, bbox: det.bbox, score: det.confidence };
   });
 
   // Sort by score descending and deduplicate nearby objects (within 5% distance)
@@ -1899,15 +1907,12 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
 export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][], removeLabels?: string[], keepLabels?: string[]): Promise<string> {
   const replicate = getReplicate();
 
-  // ── Bbox-guided removal: precise per-object removal using SAM mask ∩ bbox ──
-  // When we have both labels AND bboxes (from detectObjects), we:
-  // 1. Get SAM masks for each unique label IN PARALLEL (1 SAM call per label)
-  // 2. For each individual object, intersect SAM mask with its bbox → precise object mask
-  // 3. Call ClipDrop with the precise mask → only the target object is removed
-  // This fixes the old bug where unique-label deduplication removed wrong objects.
+  // ── Bbox-guided removal: precise per-object removal using fal.ai SAM2 ──
+  // 1. Upload image → get public URL
+  // 2. For each object, call fal.ai SAM2 with exact bbox → precise pixel mask
+  // 3. Apply mask to Bria Eraser → clean object removal
+  // Falls back to Grounded SAM (text-based) or rectangular bbox if SAM2 unavailable.
   if (removeLabels && removeLabels.length > 0 && bboxes && bboxes.length === removeLabels.length) {
-    const replicateToken = process.env.REPLICATE_API_TOKEN;
-
     // Get image dimensions
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const origBuffer = Buffer.from(base64Data, "base64");
@@ -1917,140 +1922,201 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
 
     console.log("[declutter] Bbox-guided removal:", removeLabels.length, "objects, image:", imgW, "x", imgH);
 
-    // ── Step 1: Group objects by unique label for efficient SAM calls ──
-    const uniqueLabels = Array.from(new Set(removeLabels.map(l => l.trim().toLowerCase())));
-    console.log("[declutter] Unique labels for SAM:", uniqueLabels.join(", "));
+    // ── Step 1: Get precise masks for each object ──
+    const falKey = process.env.FAL_KEY;
+    const replicateToken = process.env.REPLICATE_API_TOKEN;
+    const objectMasks: (Buffer | null)[] = new Array(removeLabels.length).fill(null);
 
-    // ── Step 2: Get SAM mask for each unique label IN PARALLEL ──
-    const callSAM = async (image: string, prompt: string): Promise<Buffer | null> => {
-      const resp = await fetch("https://api.replicate.com/v1/predictions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${replicateToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          version: "ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
-          input: {
-            image,
-            mask_prompt: prompt,
-            adjustment_factor: 10,
-          },
+    if (falKey) {
+      // ═══ fal.ai SAM2 with bbox prompts (BEST approach) ═══
+      // Save image to temp URL so fal.ai can fetch it
+      const imageUrl = await saveTempImage(origBuffer);
+      console.log("[declutter] Image URL for SAM2:", imageUrl);
+
+      // Get SAM2 masks for all objects IN PARALLEL — each with its own bbox
+      console.log("[declutter] Getting fal.ai SAM2 masks for", removeLabels.length, "objects...");
+      await Promise.all(
+        bboxes.map(async (bbox, i) => {
+          try {
+            const sam2Resp = await fetch("https://fal.run/fal-ai/sam2/image", {
+              method: "POST",
+              headers: {
+                "Authorization": `Key ${falKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                image_url: imageUrl,
+                box_prompts: [{
+                  x_min: Math.floor(bbox[0]),
+                  y_min: Math.floor(bbox[1]),
+                  x_max: Math.ceil(bbox[2]),
+                  y_max: Math.ceil(bbox[3]),
+                }],
+                output_format: "png",
+              }),
+            });
+
+            if (!sam2Resp.ok) {
+              const errText = await sam2Resp.text();
+              console.log(`[declutter] SAM2 error for object ${i + 1}:`, sam2Resp.status, errText.substring(0, 200));
+              return;
+            }
+
+            const sam2Data = await sam2Resp.json() as { image?: { url: string } };
+            if (!sam2Data.image?.url) {
+              console.log(`[declutter] SAM2 no image in response for object ${i + 1}`);
+              return;
+            }
+
+            // Download mask and convert to grayscale raw buffer
+            const maskResp = await fetch(sam2Data.image.url);
+            const maskBuf = Buffer.from(await maskResp.arrayBuffer());
+            const rawMask = await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer();
+
+            // Check mask is non-empty
+            let maskSum = 0;
+            for (let p = 0; p < rawMask.length; p++) maskSum += rawMask[p];
+            if (maskSum > 0) {
+              objectMasks[i] = rawMask;
+              console.log(`[declutter] SAM2 mask OK for object ${i + 1} "${removeLabels[i]}" (${maskSum / 255} px)`);
+            } else {
+              console.log(`[declutter] SAM2 empty mask for object ${i + 1} "${removeLabels[i]}"`);
+            }
+          } catch (err) {
+            console.log(`[declutter] SAM2 exception for object ${i + 1}:`, err);
+          }
         }),
-      });
-      const predData = await resp.json() as { id: string; urls: { get: string } };
-      const getUrl = predData.urls?.get || `https://api.replicate.com/v1/predictions/${predData.id}`;
+      );
 
-      let result: { status: string; output?: string[]; error?: string };
-      do {
-        await new Promise(r => setTimeout(r, 2000));
-        const pollResp = await fetch(getUrl, {
-          headers: { "Authorization": `Bearer ${replicateToken}` },
-        });
-        result = await pollResp.json() as typeof result;
-      } while (result.status !== "succeeded" && result.status !== "failed");
-
-      if (result.status === "failed" || !result.output) {
-        console.log(`[declutter] SAM failed for "${prompt}":`, result.error);
-        return null;
-      }
-
-      const maskUrl = result.output[2];
-      const maskResp = await fetch(maskUrl);
-      const maskBuf = Buffer.from(await maskResp.arrayBuffer());
-      // Return raw grayscale mask at original image dimensions
-      return await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer();
-    };
-
-    const samMasks = new Map<string, Buffer>();
-    console.log("[declutter] Getting SAM masks for", uniqueLabels.length, "labels in parallel...");
-    await Promise.all(
-      uniqueLabels.map(async (label) => {
-        const mask = await callSAM(imageBase64, label);
-        if (mask) {
-          samMasks.set(label, mask);
-          console.log(`[declutter] SAM mask ready for "${label}"`);
+      const gotMasks = objectMasks.filter(m => m !== null).length;
+      console.log("[declutter] SAM2 masks obtained:", gotMasks, "of", removeLabels.length);
+    } else if (replicateToken) {
+      // ═══ Fallback: Grounded SAM with cleaned labels ═══
+      // Clean compound labels: "towel scarf" → "towel", "cup mug bottle" → "cup"
+      const cleanLabel = (raw: string): string => {
+        const parts = raw.trim().toLowerCase().split(/\s+/);
+        // Return first word that exists in LABEL_RU, or just first word
+        for (const part of parts) {
+          if (part in LABEL_RU || part.length >= 3) return part;
         }
-      }),
-    );
-    console.log("[declutter] SAM masks obtained:", samMasks.size, "of", uniqueLabels.length);
+        return parts[0];
+      };
 
-    // ── Step 3: Iterative removal — per object with bbox intersection ──
-    const BBOX_PADDING = 20; // px expansion around bbox for better SAM coverage
+      const uniqueCleanLabels = Array.from(new Set(removeLabels.map(cleanLabel)));
+      console.log("[declutter] Grounded SAM fallback, cleaned labels:", uniqueCleanLabels.join(", "));
+
+      const samMasks = new Map<string, Buffer>();
+      await Promise.all(
+        uniqueCleanLabels.map(async (label) => {
+          try {
+            const resp = await fetch("https://api.replicate.com/v1/predictions", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${replicateToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                version: "ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
+                input: { image: imageBase64, mask_prompt: label, adjustment_factor: 10 },
+              }),
+            });
+            const predData = await resp.json() as { id: string; urls: { get: string } };
+            const getUrl = predData.urls?.get || `https://api.replicate.com/v1/predictions/${predData.id}`;
+
+            let result: { status: string; output?: string[]; error?: string };
+            do {
+              await new Promise(r => setTimeout(r, 2000));
+              const pollResp = await fetch(getUrl, { headers: { "Authorization": `Bearer ${replicateToken}` } });
+              result = await pollResp.json() as typeof result;
+            } while (result.status !== "succeeded" && result.status !== "failed");
+
+            if (result.status === "succeeded" && result.output?.[2]) {
+              const maskResp = await fetch(result.output[2]);
+              const maskBuf = Buffer.from(await maskResp.arrayBuffer());
+              samMasks.set(label, await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer());
+              console.log(`[declutter] Grounded SAM mask for "${label}" ✓`);
+            } else {
+              console.log(`[declutter] Grounded SAM failed for "${label}":`, result.error);
+            }
+          } catch (err) {
+            console.log(`[declutter] Grounded SAM exception for "${label}":`, err);
+          }
+        }),
+      );
+
+      // Map SAM masks to individual objects via bbox intersection
+      const BBOX_PAD = 20;
+      for (let i = 0; i < removeLabels.length; i++) {
+        const cleaned = cleanLabel(removeLabels[i]);
+        const samMask = samMasks.get(cleaned);
+        if (!samMask) continue;
+
+        const bx0 = Math.max(0, Math.floor(bboxes[i][0]) - BBOX_PAD);
+        const by0 = Math.max(0, Math.floor(bboxes[i][1]) - BBOX_PAD);
+        const bx1 = Math.min(imgW, Math.ceil(bboxes[i][2]) + BBOX_PAD);
+        const by1 = Math.min(imgH, Math.ceil(bboxes[i][3]) + BBOX_PAD);
+
+        const intersected = Buffer.alloc(imgW * imgH, 0);
+        let px = 0;
+        for (let y = by0; y < by1; y++) {
+          for (let x = bx0; x < bx1; x++) {
+            const p = y * imgW + x;
+            if (samMask[p] > 128) { intersected[p] = 255; px++; }
+          }
+        }
+        if (px >= 50) objectMasks[i] = intersected;
+      }
+    }
+
+    // ── Step 2: Iterative removal with Bria Eraser ──
     let currentImage = imageBase64;
 
     for (let i = 0; i < removeLabels.length; i++) {
-      const label = removeLabels[i].trim().toLowerCase();
-      const bbox = bboxes[i]; // [xmin, ymin, xmax, ymax] in pixels from Grounding DINO
-      const samMask = samMasks.get(label);
+      const label = removeLabels[i];
+      const bbox = bboxes[i];
+      let maskRaw = objectMasks[i];
 
-      // Compute padded bbox region
-      const bxmin = Math.max(0, Math.floor(bbox[0]) - BBOX_PADDING);
-      const bymin = Math.max(0, Math.floor(bbox[1]) - BBOX_PADDING);
-      const bxmax = Math.min(imgW, Math.ceil(bbox[2]) + BBOX_PADDING);
-      const bymax = Math.min(imgH, Math.ceil(bbox[3]) + BBOX_PADDING);
-
-      // Create object-specific mask by intersecting SAM mask with bbox region
-      const objectMaskRaw = Buffer.alloc(imgW * imgH, 0);
-
-      if (samMask) {
-        // Intersect: only keep SAM mask pixels that fall within the bbox
-        let pixelsInMask = 0;
-        for (let y = bymin; y < bymax; y++) {
-          for (let x = bxmin; x < bxmax; x++) {
-            const p = y * imgW + x;
-            if (samMask[p] > 128) {
-              objectMaskRaw[p] = 255;
-              pixelsInMask++;
+      // If no precise mask, fall back to elliptical bbox mask (softer than rectangle)
+      if (!maskRaw) {
+        console.log(`[declutter] No precise mask for "${label}", using elliptical bbox mask`);
+        maskRaw = Buffer.alloc(imgW * imgH, 0);
+        const cx = (bbox[0] + bbox[2]) / 2;
+        const cy = (bbox[1] + bbox[3]) / 2;
+        const rx = (bbox[2] - bbox[0]) / 2 + 5; // slight padding
+        const ry = (bbox[3] - bbox[1]) / 2 + 5;
+        for (let y = Math.max(0, Math.floor(cy - ry)); y < Math.min(imgH, Math.ceil(cy + ry)); y++) {
+          for (let x = Math.max(0, Math.floor(cx - rx)); x < Math.min(imgW, Math.ceil(cx + rx)); x++) {
+            const dx = (x - cx) / rx;
+            const dy = (y - cy) / ry;
+            if (dx * dx + dy * dy <= 1.0) {
+              maskRaw[y * imgW + x] = 255;
             }
-          }
-        }
-        console.log(`[declutter] Object ${i + 1}/${removeLabels.length} "${label}": SAM∩bbox = ${pixelsInMask} px`);
-
-        // If SAM didn't find the object in this bbox, fall back to rectangular bbox mask
-        if (pixelsInMask < 50) {
-          console.log(`[declutter] SAM mask too sparse for "${label}" in bbox, using bbox as rectangular mask`);
-          for (let y = bymin; y < bymax; y++) {
-            for (let x = bxmin; x < bxmax; x++) {
-              objectMaskRaw[y * imgW + x] = 255;
-            }
-          }
-        }
-      } else {
-        // No SAM mask at all — use rectangular bbox as fallback
-        console.log(`[declutter] No SAM mask for "${label}", using bbox as rectangular mask`);
-        for (let y = bymin; y < bymax; y++) {
-          for (let x = bxmin; x < bxmax; x++) {
-            objectMaskRaw[y * imgW + x] = 255;
           }
         }
       }
 
-      // Convert raw mask to PNG for Bria Eraser (slight dilation via blur for softer edges)
-      const maskPng = await sharp(objectMaskRaw, { raw: { width: imgW, height: imgH, channels: 1 } })
-        .blur(1.5) // slight feathering for softer edges
-        .threshold(64) // re-binarize after blur (keeps expanded edges)
+      // Convert to PNG mask with slight feathering
+      const maskPng = await sharp(maskRaw, { raw: { width: imgW, height: imgH, channels: 1 } })
+        .blur(1.5)
+        .threshold(64)
         .png()
         .toBuffer();
       const maskBase64 = `data:image/png;base64,${maskPng.toString("base64")}`;
 
-      // ── Step 4: Bria Eraser — inpainting removal ──
+      // Bria Eraser removal
+      const bxmin = Math.max(0, Math.floor(bbox[0]));
+      const bymin = Math.max(0, Math.floor(bbox[1]));
+      const bxmax = Math.min(imgW, Math.ceil(bbox[2]));
+      const bymax = Math.min(imgH, Math.ceil(bbox[3]));
       console.log(`[declutter] Bria Eraser for object ${i + 1}/${removeLabels.length} "${label}" bbox:[${bxmin},${bymin},${bxmax},${bymax}]`);
 
       try {
         const eraserOutput = await replicate.run("bria/eraser", {
-          input: {
-            image: currentImage,
-            mask: maskBase64,
-            mask_type: "manual",
-          },
+          input: { image: currentImage, mask: maskBase64, mask_type: "manual" },
         });
-
         const eraserUrl = extractUrl(eraserOutput);
         const eraserResp = await fetch(eraserUrl);
         const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
-
-        // Use PNG between steps to avoid JPEG compression artifacts accumulating
         const stepResult = await sharp(eraserBuf).resize(imgW, imgH).png().toBuffer();
         currentImage = `data:image/png;base64,${stepResult.toString("base64")}`;
         console.log(`[declutter] Removed object ${i + 1} "${label}" ✓`);
@@ -2060,11 +2126,11 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       }
     }
 
-    // Final output as JPEG
+    // Final JPEG output
     const finalBase64 = currentImage.replace(/^data:image\/\w+;base64,/, "");
     const finalBuf = Buffer.from(finalBase64, "base64");
     const finalJpeg = await sharp(finalBuf).jpeg({ quality: 95 }).toBuffer();
-    console.log("[declutter] Bbox-guided removal complete,", removeLabels.length, "objects processed");
+    console.log("[declutter] Removal complete,", removeLabels.length, "objects processed");
     return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
   }
 
