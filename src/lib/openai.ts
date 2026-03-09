@@ -2254,14 +2254,36 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
     return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
   }
 
-  // Auto-detect all objects and use the same SAM2+Bria pipeline
+  // Auto-detect objects and remove only "clutter" (things you can pick up in 3 seconds)
+  // Appliances, fixtures, furniture = KEEP. Dishes, clothes, trash, small items = REMOVE.
+  const KEEP_LABELS = new Set([
+    // Kitchen appliances
+    "stove", "oven", "microwave", "refrigerator", "dishwasher", "coffee maker",
+    "toaster", "kettle", "blender", "mixer", "induction", "cooktop",
+    // Bathroom/laundry
+    "washing machine", "dryer", "toilet", "bathtub", "shower", "sink",
+    // Electronics (large)
+    "tv", "monitor", "computer", "printer", "air conditioner",
+    // Furniture
+    "table", "chair", "cabinet", "shelf", "bed", "sofa", "couch", "wardrobe",
+    "desk", "drawer", "nightstand", "dresser", "bookcase", "armchair",
+    // Fixtures
+    "lamp", "fan", "heater", "mirror", "clock", "curtain", "blind",
+    "faucet", "radiator", "chandelier",
+    // Large items
+    "stroller", "vacuum cleaner", "iron", "ironing board",
+  ]);
+
   console.log("[declutter] Auto mode: detecting all objects first...");
   const detected = await detectObjects(imageBase64);
-  if (detected.length > 0) {
-    const autoLabels = detected.map(o => o.label);
-    const autoBboxes = detected.map(o => o.bbox);
-    console.log("[declutter] Auto mode: found", detected.length, "objects, removing all via SAM2+Bria");
-    return declutterRoom(imageBase64, detected.map(o => o.name), autoBboxes, autoLabels, []);
+  // Filter: only remove clutter, keep appliances/furniture/fixtures
+  const clutter = detected.filter(o => !KEEP_LABELS.has(o.label));
+  console.log("[declutter] Auto mode: found", detected.length, "objects,", clutter.length, "are clutter,", detected.length - clutter.length, "kept");
+
+  if (clutter.length > 0) {
+    const autoLabels = clutter.map(o => o.label);
+    const autoBboxes = clutter.map(o => o.bbox);
+    return declutterRoom(imageBase64, clutter.map(o => o.name), autoBboxes, autoLabels, []);
   }
 
   // Last resort: Flux Kontext prompt-based removal (if no objects detected)
