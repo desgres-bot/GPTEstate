@@ -1915,16 +1915,22 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
 
     console.log("[declutter] Mask-based removal:", bboxes.length, "objects, image:", imgW, "x", imgH);
 
-    // Use LaMa for clean texture-fill inpainting (no generative hallucination)
-    const lamaOutput = await replicate.run(
-      "dpakkk/image-object-removal:40e67426e1bf78199d78b36580389fbbdcb4c9cdc2bc2b489e99d713f167b3c5",
-      { input: { image: imageBase64, mask: maskBase64 } },
-    );
+    // Use FLUX Fill Pro with strict prompt to prevent hallucinated objects
+    const fillOutput = await replicate.run("black-forest-labs/flux-fill-pro", {
+      input: {
+        image: imageBase64,
+        mask: maskBase64,
+        prompt: "Clean empty surface matching the surrounding materials — countertop, wall, floor. " +
+          "No objects, no text, no labels, no items. Just clean bare surface continuation.",
+        output_format: "jpg",
+        guidance: 4,
+      },
+    });
 
-    const lamaUrl = extractUrl(lamaOutput);
-    const lamaResp = await fetch(lamaUrl);
-    const lamaBuf = await lamaResp.arrayBuffer();
-    return `data:image/jpeg;base64,${Buffer.from(lamaBuf).toString("base64")}`;
+    const fillUrl = extractUrl(fillOutput);
+    const fillResp = await fetch(fillUrl);
+    const fillBuf = await fillResp.arrayBuffer();
+    return `data:image/jpeg;base64,${Buffer.from(fillBuf).toString("base64")}`;
   }
 
   // Fallback: prompt-based removal with Flux Kontext (no bboxes available)
