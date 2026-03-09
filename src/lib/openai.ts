@@ -2133,8 +2133,8 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       console.log(`[declutter] Added mask for "${label}" to combined mask`);
     }
 
-    // Dilate combined mask by ~12px for better blending at edges
-    const DILATE_PX = 12;
+    // Dilate combined mask by ~5px for blending (12px was too much — bled into nearby objects)
+    const DILATE_PX = 5;
     const dilatedMask = Buffer.alloc(imgW * imgH, 0);
     for (let y = 0; y < imgH; y++) {
       for (let x = 0; x < imgW; x++) {
