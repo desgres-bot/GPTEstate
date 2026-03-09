@@ -1882,119 +1882,111 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
 export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], _bboxes?: number[][], removeLabels?: string[], keepLabels?: string[]): Promise<string> {
   const replicate = getReplicate();
 
-  // Pixel-perfect mask approach: Grounded SAM + Bria Eraser
+  // Iterative removal: process each unique label one at a time with small masks
+  // Small masks → Bria Eraser produces clean results without quality degradation
   if (removeLabels && removeLabels.length > 0) {
-    // Step 1: Get pixel-perfect segmentation mask from Grounded SAM
-    const maskPrompt = Array.from(new Set(removeLabels)).join(",");
-    const negPrompt = keepLabels && keepLabels.length > 0
-      ? Array.from(new Set(keepLabels)).join(",")
-      : "";
-
-    console.log("[declutter] Grounded SAM mask_prompt:", maskPrompt, "negative:", negPrompt || "(none)");
-
-    const samInput: Record<string, unknown> = {
-      image: imageBase64,
-      mask_prompt: maskPrompt,
-      adjustment_factor: 10, // slight dilation to catch shadows
-    };
-    if (negPrompt) {
-      samInput.negative_mask_prompt = negPrompt;
-    }
-
-    // Call Grounded SAM via Replicate API directly (SDK uses wrong endpoint for this model)
     const replicateToken = process.env.REPLICATE_API_TOKEN;
-    const samPrediction = await fetch("https://api.replicate.com/v1/predictions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${replicateToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        version: "ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
-        input: samInput,
-      }),
-    });
-    const samPredData = await samPrediction.json() as { id: string; urls: { get: string } };
-    console.log("[declutter] SAM prediction created:", samPredData.id);
+    const uniqueRemoveLabels = Array.from(new Set(removeLabels));
+    const uniqueKeepLabels = keepLabels ? Array.from(new Set(keepLabels)) : [];
 
-    // Poll for completion
-    let samResult: { status: string; output?: string[] };
-    const getUrl = samPredData.urls?.get || `https://api.replicate.com/v1/predictions/${samPredData.id}`;
-    do {
-      await new Promise(r => setTimeout(r, 2000));
-      const pollResp = await fetch(getUrl, {
-        headers: { "Authorization": `Bearer ${replicateToken}` },
-      });
-      samResult = await pollResp.json() as typeof samResult;
-    } while (samResult.status !== "succeeded" && samResult.status !== "failed");
-
-    if (samResult.status === "failed" || !samResult.output) {
-      throw new Error("Grounded SAM failed: " + JSON.stringify(samResult));
-    }
-    const samOutput = samResult.output;
-
-    // Grounded SAM returns 4 images: annotated, neg_annotated, mask, inverted_mask
-    // We need the 3rd one (index 2) — the final combined mask
-    const maskUrl = samOutput[2];
-
-    console.log("[declutter] SAM mask URL:", maskUrl?.slice(0, 100));
-
-    // Download SAM mask and convert to proper format for Bria
-    const maskResp = await fetch(maskUrl);
-    const maskBuf = Buffer.from(await maskResp.arrayBuffer());
-
-    // Ensure mask is same size as input image
+    // Get image dimensions
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const origBuffer = Buffer.from(base64Data, "base64");
     const meta = await sharp(origBuffer).metadata();
     const imgW = meta.width!;
     const imgH = meta.height!;
 
-    const resizedMask = await sharp(maskBuf).resize(imgW, imgH).png().toBuffer();
-    const maskBase64 = `data:image/png;base64,${resizedMask.toString("base64")}`;
+    console.log("[declutter] Iterative removal:", uniqueRemoveLabels.length, "labels, image:", imgW, "x", imgH);
 
-    console.log("[declutter] Bria Eraser + composite, image:", imgW, "x", imgH);
+    let currentImage = imageBase64;
 
-    // Step 2: Bria Eraser removes masked areas
-    const eraserOutput = await replicate.run("bria/eraser", {
-      input: {
-        image: imageBase64,
-        mask: maskBase64,
-        mask_type: "manual",
-      },
-    });
+    for (let i = 0; i < uniqueRemoveLabels.length; i++) {
+      const label = uniqueRemoveLabels[i];
+      // All other labels (keep + remaining remove labels) are negative
+      const otherLabels = [
+        ...uniqueKeepLabels,
+        ...uniqueRemoveLabels.filter((_, j) => j > i), // not-yet-processed labels still in image
+      ];
+      const negPrompt = otherLabels.length > 0 ? otherLabels.join(",") : "";
 
-    const eraserUrl = extractUrl(eraserOutput);
-    const eraserResp = await fetch(eraserUrl);
-    const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
+      console.log(`[declutter] Step ${i + 1}/${uniqueRemoveLabels.length}: removing "${label}", negative: "${negPrompt || "(none)"}"`);
 
-    // Step 3: Composite — original pixels where mask is black, Bria result where mask is white
-    // This preserves original quality for everything outside the mask
-    const eraserResized = await sharp(eraserBuf).resize(imgW, imgH).raw().toBuffer();
-    const origRaw = await sharp(origBuffer).resize(imgW, imgH).raw().toBuffer();
-    const maskRaw = await sharp(maskBuf).resize(imgW, imgH).grayscale().raw().toBuffer();
-
-    const composited = Buffer.alloc(origRaw.length);
-    for (let i = 0; i < maskRaw.length; i++) {
-      const m = maskRaw[i]; // 0 = keep original, 255 = use eraser result
-      const idx = i * 3;
-      if (m > 128) {
-        composited[idx] = eraserResized[idx];
-        composited[idx + 1] = eraserResized[idx + 1];
-        composited[idx + 2] = eraserResized[idx + 2];
-      } else {
-        composited[idx] = origRaw[idx];
-        composited[idx + 1] = origRaw[idx + 1];
-        composited[idx + 2] = origRaw[idx + 2];
+      // Step A: Grounded SAM mask for this single label
+      const samInput: Record<string, unknown> = {
+        image: currentImage,
+        mask_prompt: label,
+        adjustment_factor: 10,
+      };
+      if (negPrompt) {
+        samInput.negative_mask_prompt = negPrompt;
       }
+
+      const samPrediction = await fetch("https://api.replicate.com/v1/predictions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${replicateToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          version: "ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
+          input: samInput,
+        }),
+      });
+      const samPredData = await samPrediction.json() as { id: string; urls: { get: string } };
+
+      // Poll for SAM completion
+      let samResult: { status: string; output?: string[]; error?: string };
+      const getUrl = samPredData.urls?.get || `https://api.replicate.com/v1/predictions/${samPredData.id}`;
+      do {
+        await new Promise(r => setTimeout(r, 2000));
+        const pollResp = await fetch(getUrl, {
+          headers: { "Authorization": `Bearer ${replicateToken}` },
+        });
+        samResult = await pollResp.json() as typeof samResult;
+      } while (samResult.status !== "succeeded" && samResult.status !== "failed");
+
+      if (samResult.status === "failed" || !samResult.output) {
+        console.log(`[declutter] SAM failed for "${label}", skipping:`, samResult.error);
+        continue; // Skip this label, try next
+      }
+
+      const maskUrl = samResult.output[2]; // mask is 3rd output
+      console.log(`[declutter] SAM mask for "${label}":`, maskUrl?.slice(0, 80));
+
+      // Download and resize mask
+      const maskResp = await fetch(maskUrl);
+      const maskBuf = Buffer.from(await maskResp.arrayBuffer());
+
+      // Check if mask is empty (all black = nothing detected)
+      const maskStats = await sharp(maskBuf).resize(imgW, imgH).grayscale().stats();
+      if (maskStats.channels[0].mean < 5) {
+        console.log(`[declutter] Empty mask for "${label}", skipping`);
+        continue;
+      }
+
+      const resizedMask = await sharp(maskBuf).resize(imgW, imgH).png().toBuffer();
+      const maskBase64 = `data:image/png;base64,${resizedMask.toString("base64")}`;
+
+      // Step B: Bria Eraser with small mask
+      const eraserOutput = await replicate.run("bria/eraser", {
+        input: {
+          image: currentImage,
+          mask: maskBase64,
+          mask_type: "manual",
+        },
+      });
+
+      const eraserUrl = extractUrl(eraserOutput);
+      const eraserResp = await fetch(eraserUrl);
+      const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
+
+      // Update current image for next iteration
+      currentImage = `data:image/jpeg;base64,${eraserBuf.toString("base64")}`;
+      console.log(`[declutter] Removed "${label}" successfully`);
     }
 
-    const resultBuf = await sharp(composited, { raw: { width: imgW, height: imgH, channels: 3 } })
-      .jpeg({ quality: 95 })
-      .toBuffer();
-
-    console.log("[declutter] Composite result size:", resultBuf.length);
-    return `data:image/jpeg;base64,${resultBuf.toString("base64")}`;
+    console.log("[declutter] Iterative removal complete");
+    return currentImage;
   }
 
   // Fallback: prompt-based removal with Flux Kontext (no bboxes)
