@@ -2104,17 +2104,34 @@ If nothing should be removed, reply: NONE`
           return;
         }
 
-        const sam2Data = await sam2Resp.json() as { image?: { url: string } };
-        if (!sam2Data.image?.url) return;
+        const sam2Data = await sam2Resp.json() as Record<string, unknown>;
+        console.log(`[classify] SAM2 response keys for "${obj.label}":`, Object.keys(sam2Data));
 
-        // Download mask, invert (SAM2 returns white=background), resize to preview size
-        const maskResp = await fetch(sam2Data.image.url);
+        // Try masks array first, then fall back to image
+        let maskUrl: string | undefined;
+        const masks = sam2Data.masks as Array<{ url: string }> | undefined;
+        if (masks && masks.length > 0) {
+          maskUrl = masks[0].url;
+          console.log(`[classify] Using masks[0] for "${obj.label}"`);
+        } else if ((sam2Data.image as { url?: string })?.url) {
+          maskUrl = (sam2Data.image as { url: string }).url;
+          console.log(`[classify] Using image for "${obj.label}"`);
+        }
+        if (!maskUrl) return;
+
+        // Download mask, resize to preview size
+        const maskResp = await fetch(maskUrl);
         const maskBuf = Buffer.from(await maskResp.arrayBuffer());
-        const smallMask = await sharp(maskBuf)
-          .negate()
+        // Check if mask needs inversion: if mostly white pixels, invert it
+        const rawMeta = await sharp(maskBuf).stats();
+        const isInverted = rawMeta.channels[0].mean > 128; // mostly white = background is white
+        let pipeline = sharp(maskBuf);
+        if (isInverted) pipeline = pipeline.negate();
+        const smallMask = await pipeline
           .resize(maskW, maskH, { fit: "fill" })
           .png({ compressionLevel: 9 })
           .toBuffer();
+        console.log(`[classify] Mask for "${obj.label}": mean=${rawMeta.channels[0].mean.toFixed(0)}, inverted=${isInverted}`);
 
         maskResults[idx] = `data:image/png;base64,${smallMask.toString("base64")}`;
         console.log(`[classify] SAM2 mask OK for "${obj.label}" (${smallMask.length} bytes)`);
