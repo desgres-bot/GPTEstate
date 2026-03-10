@@ -2107,10 +2107,11 @@ If nothing should be removed, reply: NONE`
         const sam2Data = await sam2Resp.json() as { image?: { url: string } };
         if (!sam2Data.image?.url) return;
 
-        // Download mask, resize to preview size, convert to small PNG
+        // Download mask, invert (SAM2 returns white=background), resize to preview size
         const maskResp = await fetch(sam2Data.image.url);
         const maskBuf = Buffer.from(await maskResp.arrayBuffer());
         const smallMask = await sharp(maskBuf)
+          .negate()
           .resize(maskW, maskH, { fit: "fill" })
           .png({ compressionLevel: 9 })
           .toBuffer();
