@@ -38,7 +38,7 @@ export function useGenerateService() {
   const [additemDescription, setAdditemDescription] = useState("");
 
   // Declutter object detection & classification
-  type ClassifiedObject = { id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[] };
+  type ClassifiedObject = { id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[]; maskPng?: string };
   const [declutterRemove, setDeclutterRemove] = useState<ClassifiedObject[]>([]);
   const [declutterKeep, setDeclutterKeep] = useState<ClassifiedObject[]>([]);
   const [declutterDetecting, setDeclutterDetecting] = useState(false);

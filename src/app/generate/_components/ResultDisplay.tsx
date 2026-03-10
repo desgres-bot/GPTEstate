@@ -124,29 +124,67 @@ export default function ResultDisplay({ mode, service }: Props) {
               <p className="mt-3 text-sm text-neutral-400">Закрасьте объекты, которые нужно убрать</p>
             </>
           ) : mode === "declutter" && !result ? (
-            <div className="relative overflow-hidden">
-              <img src={preview} alt="Оригинальное фото" className="w-full" />
-              {/* Bbox highlight overlay on hover */}
-              {service.declutterDetected && service.hoveredObjectId !== null && (() => {
+            <div
+              className="relative overflow-hidden"
+              onMouseMove={(e) => {
+                if (!service.declutterDetected) return;
+                // Hit-test: find object whose bbox contains cursor
+                const rect = e.currentTarget.getBoundingClientRect();
+                const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+                const yPct = ((e.clientY - rect.top) / rect.height) * 100;
                 const allObjects = [...service.declutterRemove, ...service.declutterKeep];
-                const obj = allObjects.find(o => o.id === service.hoveredObjectId);
-                if (!obj?.bboxPct) return null;
+                const hit = allObjects.find(o => {
+                  const [l, t, r, b] = o.bboxPct;
+                  return xPct >= l && xPct <= r && yPct >= t && yPct <= b;
+                });
+                service.setHoveredObjectId(hit?.id ?? null);
+              }}
+              onMouseLeave={() => service.setHoveredObjectId(null)}
+            >
+              <img src={preview} alt="Оригинальное фото" className="w-full" />
+              {/* SAM mask overlays — show all detected objects with colored contours */}
+              {service.declutterDetected && [...service.declutterRemove, ...service.declutterKeep].map(obj => {
                 const isRemove = service.declutterRemove.some(o => o.id === obj.id);
+                const isHovered = service.hoveredObjectId === obj.id;
+                // Always show faint overlay; highlight on hover
+                const opacity = isHovered ? 0.5 : 0.15;
+                if (obj.maskPng) {
+                  // SAM precise mask
+                  return (
+                    <img
+                      key={obj.id}
+                      src={obj.maskPng}
+                      alt=""
+                      className="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-150"
+                      style={{
+                        opacity,
+                        mixBlendMode: "multiply",
+                        filter: isRemove
+                          ? "sepia(1) saturate(5) hue-rotate(-30deg) brightness(0.8)"
+                          : "sepia(1) saturate(5) hue-rotate(90deg) brightness(0.8)",
+                      }}
+                    />
+                  );
+                }
+                // Fallback: bbox rectangle
+                if (!obj.bboxPct) return null;
                 const [left, top, right, bottom] = obj.bboxPct;
                 return (
                   <div
-                    className={`absolute border-2 rounded-sm transition-all pointer-events-none ${
-                      isRemove ? "border-red-500 bg-red-500/20" : "border-green-500 bg-green-500/20"
+                    key={obj.id}
+                    className={`absolute border-2 rounded-sm pointer-events-none transition-all duration-150 ${
+                      isRemove ? "border-red-500" : "border-green-500"
                     }`}
                     style={{
                       left: `${left}%`,
                       top: `${top}%`,
                       width: `${right - left}%`,
                       height: `${bottom - top}%`,
+                      backgroundColor: isRemove ? `rgba(239,68,68,${opacity})` : `rgba(34,197,94,${opacity})`,
                     }}
                   />
                 );
-              })()}
+              })}
             </div>
           ) : (
             <div className="overflow-hidden">
@@ -193,7 +231,11 @@ export default function ResultDisplay({ mode, service }: Props) {
                         onClick={() => service.toggleDeclutterObject(obj.id)}
                         onMouseEnter={() => service.setHoveredObjectId(obj.id)}
                         onMouseLeave={() => service.setHoveredObjectId(null)}
-                        className="rounded-full px-3 py-1 text-xs bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-all cursor-pointer"
+                        className={`rounded-full px-3 py-1 text-xs border transition-all cursor-pointer ${
+                          service.hoveredObjectId === obj.id
+                            ? "bg-red-500/40 text-red-200 border-red-400 ring-2 ring-red-500/50 scale-105"
+                            : "bg-red-500/20 text-red-300 border-red-500/30 hover:bg-red-500/30"
+                        }`}
                       >
                         {obj.name}
                       </button>
@@ -216,7 +258,11 @@ export default function ResultDisplay({ mode, service }: Props) {
                         onClick={() => service.toggleDeclutterObject(obj.id)}
                         onMouseEnter={() => service.setHoveredObjectId(obj.id)}
                         onMouseLeave={() => service.setHoveredObjectId(null)}
-                        className="rounded-full px-3 py-1 text-xs bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-all cursor-pointer"
+                        className={`rounded-full px-3 py-1 text-xs border transition-all cursor-pointer ${
+                          service.hoveredObjectId === obj.id
+                            ? "bg-green-500/40 text-green-200 border-green-400 ring-2 ring-green-500/50 scale-105"
+                            : "bg-green-500/20 text-green-300 border-green-500/30 hover:bg-green-500/30"
+                        }`}
                       >
                         {obj.name}
                       </button>

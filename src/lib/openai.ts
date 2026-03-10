@@ -1946,9 +1946,11 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
  * Detect objects AND classify them as REMOVE/KEEP using GPT-4o text.
  * Returns two lists for the UI: items to remove and items to keep.
  */
+type ClassifiedObj = { id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[]; maskPng?: string };
+
 export async function detectAndClassifyObjects(imageBase64: string): Promise<{
-  remove: Array<{ id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[] }>;
-  keep: Array<{ id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[] }>;
+  remove: ClassifiedObj[];
+  keep: ClassifiedObj[];
 }> {
   // Step 1: DINO detects all objects
   const detected = await detectObjects(imageBase64);
@@ -2017,8 +2019,119 @@ If nothing should be removed, reply: NONE`
   }
 
   // Re-number both lists
-  const remove = autoRemove.map((obj, i) => ({ ...obj, id: i + 1 }));
-  const keep = autoKeep.map((obj, i) => ({ ...obj, id: remove.length + i + 1 }));
+  const allClassified = [
+    ...autoRemove.map((obj, i) => ({ ...obj, id: i + 1, isRemove: true })),
+    ...autoKeep.map((obj, i) => ({ ...obj, id: autoRemove.length + i + 1, isRemove: false })),
+  ];
+
+  // Step 4: Get SAM2 masks for ALL objects (precise contours)
+  const falKey = process.env.FAL_KEY;
+  if (falKey && allClassified.length > 0) {
+    console.log("[classify] Getting SAM2 masks for", allClassified.length, "objects...");
+
+    // Get image dimensions
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const origBuffer = Buffer.from(base64Data, "base64");
+    const meta = await sharp(origBuffer).metadata();
+    const imgW = meta.width || 1;
+    const imgH = meta.height || 1;
+
+    // Resize image for SAM2 if too large (max 2048px side for speed)
+    let sam2ImageBase64 = origBuffer.toString("base64");
+    const maxSide = Math.max(imgW, imgH);
+    if (maxSide > 2048) {
+      const resized = await sharp(origBuffer)
+        .resize({ width: maxSide === imgW ? 2048 : undefined, height: maxSide === imgH ? 2048 : undefined, fit: "inside" })
+        .jpeg({ quality: 90 })
+        .toBuffer();
+      sam2ImageBase64 = resized.toString("base64");
+    }
+    const sam2ImageUrl = `data:image/jpeg;base64,${sam2ImageBase64}`;
+
+    // Determine preview size for mask output (small PNG for client)
+    const MASK_MAX_SIDE = 800;
+    const scale = Math.min(MASK_MAX_SIDE / imgW, MASK_MAX_SIDE / imgH, 1);
+    const maskW = Math.round(imgW * scale);
+    const maskH = Math.round(imgH * scale);
+
+    const SAM2_CONCURRENCY = 3;
+    const maskResults: (string | null)[] = new Array(allClassified.length).fill(null);
+
+    const fetchSAM2Mask = async (obj: typeof allClassified[0], idx: number, retries = 1): Promise<void> => {
+      try {
+        // Scale bbox from original image to SAM2 input size
+        const sam2Meta = maxSide > 2048
+          ? await sharp(Buffer.from(sam2ImageBase64, "base64")).metadata()
+          : { width: imgW, height: imgH };
+        const scaleX = (sam2Meta.width || imgW) / imgW;
+        const scaleY = (sam2Meta.height || imgH) / imgH;
+
+        const sam2Resp = await fetch("https://fal.run/fal-ai/sam2/image", {
+          method: "POST",
+          headers: {
+            "Authorization": `Key ${falKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image_url: sam2ImageUrl,
+            box_prompts: [{
+              x_min: Math.floor(obj.bbox[0] * scaleX),
+              y_min: Math.floor(obj.bbox[1] * scaleY),
+              x_max: Math.ceil(obj.bbox[2] * scaleX),
+              y_max: Math.ceil(obj.bbox[3] * scaleY),
+            }],
+            output_format: "png",
+          }),
+        });
+
+        if (sam2Resp.status === 429 && retries > 0) {
+          console.log(`[classify] SAM2 rate limited for "${obj.label}", retrying in 2s...`);
+          await new Promise(r => setTimeout(r, 2000));
+          return fetchSAM2Mask(obj, idx, retries - 1);
+        }
+
+        if (!sam2Resp.ok) {
+          console.log(`[classify] SAM2 error for "${obj.label}":`, sam2Resp.status);
+          return;
+        }
+
+        const sam2Data = await sam2Resp.json() as { image?: { url: string } };
+        if (!sam2Data.image?.url) return;
+
+        // Download mask, resize to preview size, convert to small PNG
+        const maskResp = await fetch(sam2Data.image.url);
+        const maskBuf = Buffer.from(await maskResp.arrayBuffer());
+        const smallMask = await sharp(maskBuf)
+          .resize(maskW, maskH, { fit: "fill" })
+          .png({ compressionLevel: 9 })
+          .toBuffer();
+
+        maskResults[idx] = `data:image/png;base64,${smallMask.toString("base64")}`;
+        console.log(`[classify] SAM2 mask OK for "${obj.label}" (${smallMask.length} bytes)`);
+      } catch (err) {
+        console.log(`[classify] SAM2 exception for "${obj.label}":`, err);
+      }
+    };
+
+    // Process in batches
+    for (let batch = 0; batch < allClassified.length; batch += SAM2_CONCURRENCY) {
+      const batchItems = allClassified.slice(batch, batch + SAM2_CONCURRENCY);
+      await Promise.all(
+        batchItems.map((obj, j) => fetchSAM2Mask(obj, batch + j)),
+      );
+    }
+
+    // Attach masks to objects
+    for (let i = 0; i < allClassified.length; i++) {
+      if (maskResults[i]) {
+        (allClassified[i] as ClassifiedObj).maskPng = maskResults[i]!;
+      }
+    }
+    console.log("[classify] SAM2 masks done:", maskResults.filter(Boolean).length, "/", allClassified.length);
+  }
+
+  const remove = allClassified.filter(o => o.isRemove).map(({ isRemove: _, ...rest }) => rest);
+  const keep = allClassified.filter(o => !o.isRemove).map(({ isRemove: _, ...rest }) => rest);
 
   console.log("[classify] Result: REMOVE", remove.length, "items, KEEP", keep.length, "items");
   return { remove, keep };
