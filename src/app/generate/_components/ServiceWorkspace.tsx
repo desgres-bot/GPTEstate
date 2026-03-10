@@ -110,7 +110,7 @@ export default function ServiceWorkspace({ mode, service, onBack }: Props) {
       )}
 
       {/* Fixed bottom generate button — mobile only, shown when image uploaded but no result */}
-      {service.preview && !service.hasResult && (
+      {service.preview && !service.hasResult && mode !== "declutter" && (
         <div
           className="fixed bottom-0 left-0 right-0 z-[999] md:hidden"
           style={{

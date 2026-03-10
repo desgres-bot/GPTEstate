@@ -368,10 +368,11 @@ export default function ResultDisplay({ mode, service }: Props) {
           {!hasResult ? (
             <>
               {/* Generate button — on desktop inline, on mobile it's fixed bottom (in ServiceWorkspace) */}
+              {/* Hidden for declutter mode — wizard handles generation */}
               <button
                 onClick={service.handleGenerate}
                 disabled={service.loading || (service.style === "custom" && !service.customStyle.trim() && (mode === "redesign" || mode === "staging")) || (mode === "exterior" && service.exteriorStyle === "custom" && !service.customExterior.trim()) || (mode === "wallcolor" && service.wallColor === "custom" && !service.customWallColor.trim()) || (mode === "furnish" && !service.furnishDescription.trim()) || (mode === "flooring" && service.flooringType === "custom" && !service.customFlooring.trim()) || (mode === "kitchen" && service.kitchenStyle === "custom" && !service.customKitchen.trim()) || (mode === "textrender" && !service.textrenderPrompt.trim())}
-                className="btn-generate flex-1 hidden md:flex items-center justify-center"
+                className={`btn-generate flex-1 hidden ${mode === "declutter" ? "" : "md:flex"} items-center justify-center`}
               >
                 {service.loading ? (
                   <span className="flex items-center justify-center gap-2">
