@@ -2432,18 +2432,18 @@ KEEP: [comma-separated descriptions with locations]`
     console.log("[declutter] REMOVE:", removeList.substring(0, 300));
     console.log("[declutter] KEEP:", keepList.substring(0, 300));
 
-    // Step 4: Flux Kontext with precise prompt + static KEEP safety net
-    const STATIC_KEEP = "sink, faucet, stove, oven, cooktop, refrigerator, microwave, dishwasher, washing machine, " +
-      "cabinets, countertop, backsplash, table, chairs, sofa, bed, wardrobe, shelves, curtains, " +
-      "windows, doors, walls, floor, ceiling, lights, radiator, bathtub, toilet, shower";
-    const fullKeep = keepList ? `${keepList}, ${STATIC_KEEP}` : STATIC_KEEP;
+    // Step 4: Flux Kontext with SHORT prompt (long prompts get rendered as text!)
+    // Extract just item names without positions for a cleaner prompt
+    const removeItems = removeList
+      .replace(/\s*\(.*?\)\s*/g, "")  // strip "(at x:..% y:..%)" location info
+      .replace(/\s*at\s+x:\d+%\s+y:\d+%/g, "")  // strip "at x:..% y:..%" patterns
+      .replace(/\s+/g, " ")
+      .trim();
 
-    const kontextPrompt = `Remove ONLY these specific items from the photo: ${removeList}. ` +
-      `IMPORTANT: Keep ALL of the following EXACTLY as they are, do not move, change, or remove them: ${fullKeep}. ` +
-      `Where items were removed, show the clean surface underneath (countertop, wall, floor, etc.) matching the surrounding area seamlessly. ` +
-      `Keep the exact same room layout, lighting, perspective, and colors. Professional real estate photography result.`;
+    // Keep prompt SHORT — Kontext renders long prompts as text on the image
+    const kontextPrompt = `Remove clutter: ${removeItems.substring(0, 150)}. Show clean surfaces underneath. Keep all furniture, appliances, fixtures.`;
 
-    console.log("[declutter] Kontext prompt length:", kontextPrompt.length);
+    console.log("[declutter] Kontext prompt:", kontextPrompt.length, "chars");
 
     const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
       input: {
