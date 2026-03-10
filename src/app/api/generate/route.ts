@@ -280,13 +280,30 @@ export async function POST(req: NextRequest) {
     } else if (mode === "vacant") {
       outputDataUri = await makeVacant(dataUri);
     } else if (mode === "declutter") {
+      // Async background job — browser polls for result
       const objectsList = declutterObjects ? JSON.parse(declutterObjects) as string[] : undefined;
       const bboxesList = declutterBboxes ? JSON.parse(declutterBboxes) as number[][] : undefined;
       const removeLabelsRaw = formData.get("removeLabels") as string | null;
       const keepLabelsRaw = formData.get("keepLabels") as string | null;
       const removeLabels = removeLabelsRaw ? JSON.parse(removeLabelsRaw) as string[] : undefined;
       const keepLabels = keepLabelsRaw ? JSON.parse(keepLabelsRaw) as string[] : undefined;
-      outputDataUri = await declutterRoom(dataUri, objectsList, bboxesList, removeLabels, keepLabels, userPrompt || undefined);
+
+      const job = createJob();
+      updateJob(job.id, { status: "processing", progress: "Удаляем объекты..." });
+
+      (async () => {
+        try {
+          const resultDataUri = await declutterRoom(dataUri, objectsList, bboxesList, removeLabels, keepLabels, userPrompt || undefined);
+          logHistory({ mode, params: allParams, inputBuffer, outputDataUri: resultDataUri, ip, userAgent });
+          updateJob(job.id, { status: "done", result: { output_url: resultDataUri } });
+        } catch (err) {
+          console.error("[declutter] Background job error:", err);
+          logHistory({ mode: "error", params: { error: err instanceof Error ? err.message : "unknown" }, inputBuffer: Buffer.alloc(0), error: err instanceof Error ? err.message : "unknown" }).catch(() => {});
+          updateJob(job.id, { status: "error", error: err instanceof Error ? err.message : "Ошибка удаления объектов" });
+        }
+      })();
+
+      return NextResponse.json({ jobId: job.id });
     } else if (mode === "bathroom") {
       outputDataUri = await remodelBathroom(dataUri, bathroomStyle || "modern_white", customBathroom || undefined);
     } else if (mode === "additem") {

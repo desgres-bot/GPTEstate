@@ -137,13 +137,64 @@ export function useGenerateService() {
     await poll();
   }, []);
 
+  // Poll declutter generation job (Bria Eraser + Flux cleanup)
+  const pollDeclutterGen = useCallback(async (jobId: string) => {
+    setLoading(true);
+    setError(null);
+    setDeclutterProgress("Удаляем объекты...");
+
+    const poll = async (): Promise<void> => {
+      try {
+        const res = await fetch(`/api/jobs/${jobId}`);
+        if (!res.ok) {
+          localStorage.removeItem("declutter_gen_job_id");
+          throw new Error("Job не найден");
+        }
+        const data = await res.json();
+
+        if (data.progress) setDeclutterProgress(data.progress);
+
+        if (data.status === "done") {
+          localStorage.removeItem("declutter_gen_job_id");
+          setResult(data.result.output_url);
+          setShowResult(true);
+          setLoading(false);
+          setDeclutterProgress("");
+          return;
+        }
+
+        if (data.status === "error") {
+          localStorage.removeItem("declutter_gen_job_id");
+          setError(data.error || "Ошибка удаления");
+          setLoading(false);
+          setDeclutterProgress("");
+          return;
+        }
+
+        await new Promise(r => setTimeout(r, 2000));
+        return poll();
+      } catch (err) {
+        localStorage.removeItem("declutter_gen_job_id");
+        setError(err instanceof Error ? err.message : "Ошибка удаления");
+        setLoading(false);
+        setDeclutterProgress("");
+      }
+    };
+
+    await poll();
+  }, []);
+
   // Resume polling on mount if there's an active job
   useEffect(() => {
     const savedJobId = localStorage.getItem("declutter_job_id");
     if (savedJobId) {
       pollJob(savedJobId);
     }
-  }, [pollJob]);
+    const savedGenJobId = localStorage.getItem("declutter_gen_job_id");
+    if (savedGenJobId) {
+      pollDeclutterGen(savedGenJobId);
+    }
+  }, [pollJob, pollDeclutterGen]);
 
   const handleDeclutterDetect = async () => {
     if (!selectedFile) return;
@@ -312,6 +363,14 @@ export function useGenerateService() {
       }
 
       const data = await res.json();
+
+      // Declutter returns jobId — poll for result
+      if (mode === "declutter" && data.jobId) {
+        localStorage.setItem("declutter_gen_job_id", data.jobId);
+        await pollDeclutterGen(data.jobId);
+        return;
+      }
+
       if (mode === "compare" && data.output_urls) {
         setCompareResults(data.output_urls);
       } else if (isTextMode) {
