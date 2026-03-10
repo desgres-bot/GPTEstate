@@ -146,7 +146,7 @@ export default function ResultDisplay({ mode, service }: Props) {
               {service.declutterDetected && [...service.declutterRemove, ...service.declutterKeep].map(obj => {
                 const isRemove = service.declutterRemove.some(o => o.id === obj.id);
                 const isHovered = service.hoveredObjectId === obj.id;
-                const opacity = isHovered ? 0.5 : 0.15;
+                const opacity = isHovered ? 0.5 : 0;
                 if (obj.maskPng) {
                   // SAM precise mask — use as CSS mask on colored overlay
                   const color = isRemove ? "rgba(239,68,68,1)" : "rgba(34,197,94,1)";
