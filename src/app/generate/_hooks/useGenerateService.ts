@@ -192,7 +192,7 @@ export function useGenerateService() {
   const composeDeclutterPrompt = () => {
     const removeNames = declutterRemove.map(o => o.name).join(", ");
     const keepNames = declutterKeep.map(o => o.name).join(", ");
-    return `Same photo, decluttered. No ${removeNames} on any surface. Clean empty countertops and surfaces. All appliances and furniture stay.${keepNames ? `\nОставить: ${keepNames}` : ""}`;
+    return `Same photo but remove ONLY these items: ${removeNames}. Replace removed items with the surface/background behind them. Keep EVERYTHING else exactly as is${keepNames ? `, especially: ${keepNames}` : ""}. Do not add, move, or change anything else.`;
   };
 
   const advanceDeclutterStep = () => {
