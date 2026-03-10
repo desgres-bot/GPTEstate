@@ -148,38 +148,20 @@ export default function ResultDisplay({ mode, service }: Props) {
                 const isHovered = service.hoveredObjectId === obj.id;
                 if (!isHovered) return null;
                 if (obj.maskPng) {
-                  // SAM precise mask — render as colored overlay via canvas-drawn image
-                  const color = isRemove ? "rgba(239,68,68,0.45)" : "rgba(34,197,94,0.45)";
-                  const borderColor = isRemove ? "rgba(239,68,68,0.8)" : "rgba(34,197,94,0.8)";
+                  // RGBA mask (white object on transparent bg) — tint with CSS filter
+                  // Red: hue-rotate(-50deg), Green: hue-rotate(85deg)
+                  const hue = isRemove ? "-50deg" : "85deg";
                   return (
-                    <div key={obj.id} className="absolute inset-0 w-full h-full pointer-events-none">
-                      {/* Mask overlay */}
-                      <div
-                        className="absolute inset-0 w-full h-full"
-                        style={{
-                          backgroundColor: color,
-                          WebkitMaskImage: `url(${obj.maskPng})`,
-                          WebkitMaskSize: "100% 100%",
-                          WebkitMaskRepeat: "no-repeat",
-                          maskImage: `url(${obj.maskPng})`,
-                          maskSize: "100% 100%",
-                          maskRepeat: "no-repeat",
-                        }}
-                      />
-                      {/* Bbox border as fallback indicator */}
-                      {obj.bboxPct && (
-                        <div
-                          className="absolute border-2 rounded-sm"
-                          style={{
-                            left: `${obj.bboxPct[0]}%`,
-                            top: `${obj.bboxPct[1]}%`,
-                            width: `${obj.bboxPct[2] - obj.bboxPct[0]}%`,
-                            height: `${obj.bboxPct[3] - obj.bboxPct[1]}%`,
-                            borderColor: borderColor,
-                          }}
-                        />
-                      )}
-                    </div>
+                    <img
+                      key={obj.id}
+                      src={obj.maskPng}
+                      alt=""
+                      className="absolute inset-0 w-full h-full pointer-events-none"
+                      style={{
+                        opacity: 0.6,
+                        filter: `brightness(0.5) sepia(1) saturate(10) hue-rotate(${hue})`,
+                      }}
+                    />
                   );
                 }
                 // Fallback: bbox rectangle (only on hover)

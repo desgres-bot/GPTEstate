@@ -2122,16 +2122,25 @@ If nothing should be removed, reply: NONE`
         // Download mask, resize to preview size
         const maskResp = await fetch(maskUrl);
         const maskBuf = Buffer.from(await maskResp.arrayBuffer());
-        // Check if mask needs inversion: if mostly white pixels, invert it
-        const rawMeta = await sharp(maskBuf).stats();
-        const isInverted = rawMeta.channels[0].mean > 128; // mostly white = background is white
-        let pipeline = sharp(maskBuf);
-        if (isInverted) pipeline = pipeline.negate();
-        const smallMask = await pipeline
+        // Convert grayscale mask to RGBA: white object on transparent background
+        // SAM2 returns grayscale (0=background, 255=object)
+        const resized = await sharp(maskBuf)
           .resize(maskW, maskH, { fit: "fill" })
+          .grayscale()
+          .raw()
+          .toBuffer();
+
+        // Build RGBA: R=G=B=255, A=mask pixel value
+        const rgba = Buffer.alloc(resized.length * 4);
+        for (let i = 0; i < resized.length; i++) {
+          rgba[i * 4] = 255;       // R
+          rgba[i * 4 + 1] = 255;   // G
+          rgba[i * 4 + 2] = 255;   // B
+          rgba[i * 4 + 3] = resized[i]; // A = mask value
+        }
+        const smallMask = await sharp(rgba, { raw: { width: maskW, height: maskH, channels: 4 } })
           .png({ compressionLevel: 9 })
           .toBuffer();
-        console.log(`[classify] Mask for "${obj.label}": mean=${rawMeta.channels[0].mean.toFixed(0)}, inverted=${isInverted}`);
 
         maskResults[idx] = `data:image/png;base64,${smallMask.toString("base64")}`;
         console.log(`[classify] SAM2 mask OK for "${obj.label}" (${smallMask.length} bytes)`);
