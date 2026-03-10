@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import sharp from "sharp";
 import {
   enhancePhoto,
   stageRoom,
@@ -116,14 +117,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Неверный режим" }, { status: 400 });
     }
 
-    // Convert file to base64 data URI
-    const bytes = await image.arrayBuffer();
-    const base64 = Buffer.from(bytes).toString("base64");
-    const mimeType = image.type || "image/jpeg";
-    const dataUri = `data:${mimeType};base64,${base64}`;
+    // Convert file to base64 data URI (with HEIC/HEIF → JPEG conversion)
+    const rawBytes = await image.arrayBuffer();
+    const rawBuffer = Buffer.from(rawBytes);
+    const isHeic = image.type === "image/heic" || image.type === "image/heif" ||
+      image.name?.toLowerCase().endsWith(".heic") || image.name?.toLowerCase().endsWith(".heif");
 
-    // Common history params
-    const inputBuffer = Buffer.from(bytes);
+    let inputBuffer: Buffer;
+    let mimeType: string;
+    if (isHeic) {
+      console.log("[generate] Converting HEIC/HEIF to JPEG...");
+      inputBuffer = await sharp(rawBuffer).jpeg({ quality: 95 }).toBuffer();
+      mimeType = "image/jpeg";
+    } else {
+      inputBuffer = rawBuffer;
+      mimeType = image.type || "image/jpeg";
+    }
+    const base64 = inputBuffer.toString("base64");
+    const dataUri = `data:${mimeType};base64,${base64}`;
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "";
     const userAgent = req.headers.get("user-agent") || "";
     const allParams: Record<string, string | null> = {

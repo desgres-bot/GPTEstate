@@ -2375,9 +2375,8 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       console.log("[declutter] No objects detected, using generic Kontext prompt");
       const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
         input: {
-          prompt: "Remove only small clutter items that a person can pick up with one hand in under 3 seconds. " +
-            "Keep all appliances, furniture, fixtures, and permanent items exactly as they are. " +
-            "Professional real estate photography.",
+          prompt: "Same room but with all small clutter items gone. Clean empty surfaces. " +
+            "All appliances, furniture, fixtures remain exactly in place. Professional real estate photo.",
           input_image: imageBase64,
           aspect_ratio: "match_input_image",
           output_format: "jpg",
@@ -2432,16 +2431,26 @@ KEEP: [comma-separated descriptions with locations]`
     console.log("[declutter] REMOVE:", removeList.substring(0, 300));
     console.log("[declutter] KEEP:", keepList.substring(0, 300));
 
-    // Step 4: Flux Kontext with SHORT prompt (long prompts get rendered as text!)
-    // Extract just item names without positions for a cleaner prompt
+    // Step 4: Flux Kontext — describe DESIRED RESULT, not instructions!
+    // Kontext renders instructional prompts ("Remove X", "IMPORTANT:") as text on image.
+    // Instead describe what the photo should look like AFTER editing.
+    const STATIC_KEEP = "sink, faucet, stove, oven, cooktop, refrigerator, microwave, dishwasher, washing machine, " +
+      "cabinets, countertop, backsplash, table, chairs, sofa, bed, wardrobe, shelves, curtains, " +
+      "windows, doors, walls, floor, ceiling, lights, radiator, bathtub, toilet, shower";
+    const fullKeep = keepList ? `${keepList}, ${STATIC_KEEP}` : STATIC_KEEP;
+
+    // Strip position info from remove list — Kontext doesn't use coordinates
     const removeItems = removeList
-      .replace(/\s*\(.*?\)\s*/g, "")  // strip "(at x:..% y:..%)" location info
-      .replace(/\s*at\s+x:\d+%\s+y:\d+%/g, "")  // strip "at x:..% y:..%" patterns
+      .replace(/\s*\(.*?\)\s*/g, "")  // strip "(hanging on oven handle)" etc
+      .replace(/\s*at\s+x:\d+%\s+y:\d+%/g, "")  // strip "at x:..% y:..%"
       .replace(/\s+/g, " ")
       .trim();
 
-    // Keep prompt SHORT — Kontext renders long prompts as text on the image
-    const kontextPrompt = `Remove clutter: ${removeItems.substring(0, 150)}. Show clean surfaces underneath. Keep all furniture, appliances, fixtures.`;
+    // Descriptive prompt: what the photo looks like, not what to do
+    const kontextPrompt = `Same room photo but without ${removeItems}. ` +
+      `Clean empty surfaces where items were. ` +
+      `${fullKeep} all remain exactly in place unchanged. ` +
+      `Same lighting, angle, colors. Professional real estate photo.`;
 
     console.log("[declutter] Kontext prompt:", kontextPrompt.length, "chars");
 
@@ -2464,9 +2473,8 @@ KEEP: [comma-separated descriptions with locations]`
     console.log("[declutter] Falling back to generic Kontext prompt...");
     const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
       input: {
-        prompt: "Remove only small clutter items that a person can pick up with one hand in under 3 seconds. " +
-          "Keep all appliances, furniture, fixtures, and permanent items exactly as they are. " +
-          "Professional real estate photography.",
+        prompt: "Same room but with all small clutter items gone. Clean empty surfaces. " +
+          "All appliances, furniture, fixtures remain exactly in place. Professional real estate photo.",
         input_image: imageBase64,
         aspect_ratio: "match_input_image",
         output_format: "jpg",
