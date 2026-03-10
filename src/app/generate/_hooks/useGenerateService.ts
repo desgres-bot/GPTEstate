@@ -37,12 +37,16 @@ export function useGenerateService() {
   const [customBathroom, setCustomBathroom] = useState("");
   const [additemDescription, setAdditemDescription] = useState("");
 
-  // Declutter object detection
-  type DetectedObject = { id: number; name: string; label: string; x: number; y: number; bbox: number[] };
-  const [declutterObjects, setDeclutterObjects] = useState<DetectedObject[]>([]);
-  const [declutterSelected, setDeclutterSelected] = useState<Set<number>>(new Set());
+  // Declutter object detection & classification
+  type ClassifiedObject = { id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[] };
+  const [declutterRemove, setDeclutterRemove] = useState<ClassifiedObject[]>([]);
+  const [declutterKeep, setDeclutterKeep] = useState<ClassifiedObject[]>([]);
   const [declutterDetecting, setDeclutterDetecting] = useState(false);
   const [declutterDetected, setDeclutterDetected] = useState(false);
+  const [hoveredObjectId, setHoveredObjectId] = useState<number | null>(null);
+  // Legacy compat
+  const declutterObjects = [...declutterRemove, ...declutterKeep];
+  const declutterSelected = new Set(declutterRemove.map(o => o.id));
 
   // AI Chat Editor (refine)
   const [refinePrompt, setRefinePrompt] = useState("");
@@ -72,9 +76,10 @@ export function useGenerateService() {
     setCompareResults(null);
     setError(null);
     // Reset declutter state
-    setDeclutterObjects([]);
-    setDeclutterSelected(new Set());
+    setDeclutterRemove([]);
+    setDeclutterKeep([]);
     setDeclutterDetected(false);
+    setHoveredObjectId(null);
   };
 
   const handleDeclutterDetect = async () => {
@@ -84,17 +89,16 @@ export function useGenerateService() {
     try {
       const formData = new FormData();
       formData.append("image", selectedFile);
-      formData.append("mode", "declutter-detect");
+      formData.append("mode", "declutter-classify");
       const res = await fetch("/api/generate", { method: "POST", body: formData });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Ошибка анализа");
       }
       const data = await res.json();
-      const objects = data.objects as DetectedObject[];
-      setDeclutterObjects(objects);
-      // Select all by default
-      setDeclutterSelected(new Set(objects.map(o => o.id)));
+      const classified = data.classified as { remove: ClassifiedObject[]; keep: ClassifiedObject[] };
+      setDeclutterRemove(classified.remove);
+      setDeclutterKeep(classified.keep);
       setDeclutterDetected(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка анализа");
@@ -104,12 +108,18 @@ export function useGenerateService() {
   };
 
   const toggleDeclutterObject = (id: number) => {
-    setDeclutterSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    // Move between remove ↔ keep lists
+    const inRemove = declutterRemove.find(o => o.id === id);
+    if (inRemove) {
+      setDeclutterRemove(prev => prev.filter(o => o.id !== id));
+      setDeclutterKeep(prev => [...prev, inRemove]);
+    } else {
+      const inKeep = declutterKeep.find(o => o.id === id);
+      if (inKeep) {
+        setDeclutterKeep(prev => prev.filter(o => o.id !== id));
+        setDeclutterRemove(prev => [...prev, inKeep]);
+      }
+    }
   };
 
   const handleGenerate = async () => {
@@ -200,13 +210,11 @@ export function useGenerateService() {
         if (customBathroom) formData.append("customBathroom", customBathroom);
       }
       if (mode === "additem") formData.append("additemDescription", additemDescription);
-      if (mode === "declutter" && declutterDetected && declutterSelected.size > 0) {
-        const selected = declutterObjects.filter(o => declutterSelected.has(o.id));
-        const kept = declutterObjects.filter(o => !declutterSelected.has(o.id));
-        formData.append("declutterObjects", JSON.stringify(selected.map(o => o.name)));
-        formData.append("declutterBboxes", JSON.stringify(selected.map(o => o.bbox)));
-        formData.append("removeLabels", JSON.stringify(selected.map(o => o.label)));
-        formData.append("keepLabels", JSON.stringify(kept.map(o => o.label)));
+      if (mode === "declutter" && declutterDetected && declutterRemove.length > 0) {
+        formData.append("declutterObjects", JSON.stringify(declutterRemove.map(o => o.name)));
+        formData.append("declutterBboxes", JSON.stringify(declutterRemove.map(o => o.bbox)));
+        formData.append("removeLabels", JSON.stringify(declutterRemove.map(o => o.label)));
+        formData.append("keepLabels", JSON.stringify(declutterKeep.map(o => o.label)));
       }
 
       const res = await fetch("/api/generate", {
@@ -361,11 +369,14 @@ export function useGenerateService() {
     refineHistory,
     handleRefine,
     undoRefine,
-    // Declutter object detection
+    // Declutter object detection & classification
     declutterObjects,
     declutterSelected,
+    declutterRemove,
+    declutterKeep,
     declutterDetecting,
     declutterDetected,
+    hoveredObjectId, setHoveredObjectId,
     handleDeclutterDetect,
     toggleDeclutterObject,
     // Actions

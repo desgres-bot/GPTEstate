@@ -34,6 +34,7 @@ import {
   makeVacant,
   declutterRoom,
   detectObjects,
+  detectAndClassifyObjects,
   remodelBathroom,
   addItem,
   greenifyExterior,
@@ -53,7 +54,7 @@ const VALID_MODES = [
   "social", "floorplan",
   "flooring", "kitchen", "season", "decor",
   "commercial", "compliance", "textrender", "repaircost",
-  "vacant", "declutter", "declutter-detect",
+  "vacant", "declutter", "declutter-detect", "declutter-classify",
   "bathroom", "additem", "greenify",
   "refine",
 ];
@@ -186,6 +187,13 @@ export async function POST(req: NextRequest) {
       const objects = await detectObjects(dataUri);
       logHistory({ mode, params: { ...allParams, result: JSON.stringify(objects) }, inputBuffer, ip, userAgent });
       return NextResponse.json({ objects });
+    }
+
+    // ─── Declutter classify mode (detect + GPT-4o classification) ───
+    if (mode === "declutter-classify") {
+      const classified = await detectAndClassifyObjects(dataUri);
+      logHistory({ mode, params: { ...allParams, result: JSON.stringify(classified) }, inputBuffer, ip, userAgent });
+      return NextResponse.json({ classified });
     }
 
     // ─── Compare mode ───

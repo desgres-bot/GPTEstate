@@ -1816,20 +1816,39 @@ const LABEL_RU: Record<string, string> = {
   broom: "метла", mop: "швабра", "vacuum cleaner": "пылесос",
   "laundry basket": "корзина для белья", "trash can": "мусорное ведро",
   ashtray: "пепельница", cigarette: "сигарета", lighter: "зажигалка",
+  // Permanent/fixture items — for KEEP detection
+  sink: "раковина", faucet: "кран", stove: "плита", oven: "духовка",
+  refrigerator: "холодильник", microwave: "микроволновка", dishwasher: "посудомойка",
+  "washing machine": "стир. машина", cabinet: "шкаф", table: "стол",
+  chair: "стул", sofa: "диван", bed: "кровать", shelf: "полка",
+  curtain: "штора", radiator: "радиатор", bathtub: "ванна",
+  toilet: "унитаз", shower: "душ", "coffee maker": "кофеварка",
+  toaster: "тостер", kettle: "чайник",
 };
 
-export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; label: string; x: number; y: number; bbox: number[] }>> {
+// Labels that are permanent fixtures — never remove by default
+const PERMANENT_LABELS = new Set([
+  "sink", "faucet", "stove", "oven", "refrigerator", "microwave", "dishwasher",
+  "washing machine", "cabinet", "table", "chair", "sofa", "bed", "shelf",
+  "curtain", "radiator", "bathtub", "toilet", "shower", "coffee maker",
+  "toaster", "kettle", "lamp", "mirror", "fan", "heater",
+]);
+
+export async function detectObjects(imageBase64: string): Promise<Array<{ id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[] }>> {
   console.log("[detectObjects] Using Grounding DINO for precise detection...");
   const replicate = getReplicate();
 
-  // Comprehensive query for household clutter items (expanded vocabulary)
+  // Comprehensive query: clutter items + permanent fixtures (for classify mode)
   const query = "pot. pan. plate. dish. cup. mug. glass. bottle. jar. bowl. " +
     "fork. knife. spoon. spatula. cutting board. towel. cloth. rag. sponge. soap. detergent. " +
     "bread. food. package. bag. box. paper. cable. shoe. toy. book. magazine. trash. " +
     "basket. bucket. candle. vase. plant. decoration. magnet. hanger. container. tray. napkin. " +
     "remote control. phone. keys. clothes. jacket. shirt. pants. sock. hat. scarf. " +
     "laptop. charger. headphones. pillow. blanket. cushion. slippers. boots. sneakers. " +
-    "backpack. purse. umbrella. iron. broom. mop. ashtray. clock. lamp. fan.";
+    "backpack. purse. umbrella. iron. broom. mop. ashtray. clock. lamp. fan. " +
+    "sink. faucet. stove. oven. refrigerator. microwave. dishwasher. washing machine. " +
+    "cabinet. table. chair. sofa. bed. shelf. curtain. radiator. bathtub. toilet. shower. " +
+    "coffee maker. toaster. kettle.";
 
   const output = await replicate.run("adirik/grounding-dino:efd10a8ddc57ea28773327e881ce95e20cc1d734c589f7dd01d2036921ed78aa", {
     input: {
@@ -1898,7 +1917,15 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
     }
     const name = LABEL_RU[cleanedLabel] || cleanedLabel;
 
-    return { id: i + 1, name, label: cleanedLabel, x, y, bbox: det.bbox, score: det.confidence };
+    // bbox as percentages for UI overlay
+    const bboxPct = [
+      Math.round((bxmin / imgW) * 1000) / 10,
+      Math.round((bymin / imgH) * 1000) / 10,
+      Math.round((bxmax / imgW) * 1000) / 10,
+      Math.round((bymax / imgH) * 1000) / 10,
+    ];
+
+    return { id: i + 1, name, label: cleanedLabel, x, y, bbox: det.bbox, bboxPct, score: det.confidence };
   });
 
   // Sort by score descending and deduplicate nearby objects (within 5% distance)
@@ -1912,7 +1939,89 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
   }
 
   // Re-number and return without score field
-  return filtered.map((obj, i) => ({ id: i + 1, name: obj.name, label: obj.label, x: obj.x, y: obj.y, bbox: obj.bbox }));
+  return filtered.map((obj, i) => ({ id: i + 1, name: obj.name, label: obj.label, x: obj.x, y: obj.y, bbox: obj.bbox, bboxPct: obj.bboxPct }));
+}
+
+/**
+ * Detect objects AND classify them as REMOVE/KEEP using GPT-4o text.
+ * Returns two lists for the UI: items to remove and items to keep.
+ */
+export async function detectAndClassifyObjects(imageBase64: string): Promise<{
+  remove: Array<{ id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[] }>;
+  keep: Array<{ id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[] }>;
+}> {
+  // Step 1: DINO detects all objects
+  const detected = await detectObjects(imageBase64);
+  console.log("[classify] DINO found", detected.length, "objects:", detected.map(o => o.label).join(", "));
+
+  if (detected.length === 0) {
+    return { remove: [], keep: [] };
+  }
+
+  // Step 2: Classify using PERMANENT_LABELS first, then GPT-4o for ambiguous items
+  const autoKeep: typeof detected = [];
+  const autoRemove: typeof detected = [];
+  const ambiguous: typeof detected = [];
+
+  for (const obj of detected) {
+    if (PERMANENT_LABELS.has(obj.label)) {
+      autoKeep.push(obj);
+    } else {
+      ambiguous.push(obj);
+    }
+  }
+
+  // Step 3: GPT-4o text-only classifies ambiguous items
+  if (ambiguous.length > 0) {
+    try {
+      const objectList = ambiguous.map((o, i) => `${i + 1}. ${o.label}`).join("\n");
+
+      const gptResponse = await openaiChatViaProxy([
+        {
+          role: "system",
+          content: `You classify objects detected in a room photo. The "3-second rule": if a person can pick it up with ONE hand in under 3 seconds, it's clutter → REMOVE. Otherwise → KEEP.
+
+REMOVE: dirty dishes, cups, plates, bowls, utensils, towels, rags, sponges, soap bottles, food, bread, packages, papers, magazines, trash, cables, clothes on surfaces, shoes, toys, bags, bottles, pans, cutting boards, candles, small decorations, remote controls, phones, keys.
+
+KEEP: large plants, vases with flowers, decorative items that look intentional, large baskets, pillows on sofas.
+
+Reply with ONLY comma-separated numbers of items to REMOVE. Example: 1,3,5,8
+If nothing should be removed, reply: NONE`
+        },
+        {
+          role: "user",
+          content: `Objects:\n${objectList}`
+        },
+      ], 200);
+
+      console.log("[classify] GPT-4o response:", gptResponse.trim());
+
+      if (gptResponse.trim() !== "NONE") {
+        const removeIds = new Set(
+          gptResponse.trim().split(/[,\s]+/).map(n => parseInt(n.trim())).filter(n => !isNaN(n))
+        );
+        for (let i = 0; i < ambiguous.length; i++) {
+          if (removeIds.has(i + 1)) {
+            autoRemove.push(ambiguous[i]);
+          } else {
+            autoKeep.push(ambiguous[i]);
+          }
+        }
+      } else {
+        autoKeep.push(...ambiguous);
+      }
+    } catch (err) {
+      console.log("[classify] GPT-4o error, treating ambiguous as REMOVE:", err);
+      autoRemove.push(...ambiguous);
+    }
+  }
+
+  // Re-number both lists
+  const remove = autoRemove.map((obj, i) => ({ ...obj, id: i + 1 }));
+  const keep = autoKeep.map((obj, i) => ({ ...obj, id: remove.length + i + 1 }));
+
+  console.log("[classify] Result: REMOVE", remove.length, "items, KEEP", keep.length, "items");
+  return { remove, keep };
 }
 
 /**
@@ -2323,9 +2432,14 @@ KEEP: [comma-separated descriptions with locations]`
     console.log("[declutter] REMOVE:", removeList.substring(0, 300));
     console.log("[declutter] KEEP:", keepList.substring(0, 300));
 
-    // Step 4: Flux Kontext with precise prompt
+    // Step 4: Flux Kontext with precise prompt + static KEEP safety net
+    const STATIC_KEEP = "sink, faucet, stove, oven, cooktop, refrigerator, microwave, dishwasher, washing machine, " +
+      "cabinets, countertop, backsplash, table, chairs, sofa, bed, wardrobe, shelves, curtains, " +
+      "windows, doors, walls, floor, ceiling, lights, radiator, bathtub, toilet, shower";
+    const fullKeep = keepList ? `${keepList}, ${STATIC_KEEP}` : STATIC_KEEP;
+
     const kontextPrompt = `Remove ONLY these specific items from the photo: ${removeList}. ` +
-      `IMPORTANT: Keep ALL of the following EXACTLY as they are, do not move, change, or remove them: ${keepList}. ` +
+      `IMPORTANT: Keep ALL of the following EXACTLY as they are, do not move, change, or remove them: ${fullKeep}. ` +
       `Where items were removed, show the clean surface underneath (countertop, wall, floor, etc.) matching the surrounding area seamlessly. ` +
       `Keep the exact same room layout, lighting, perspective, and colors. Professional real estate photography result.`;
 

@@ -126,22 +126,27 @@ export default function ResultDisplay({ mode, service }: Props) {
           ) : mode === "declutter" && !result ? (
             <div className="relative overflow-hidden">
               <img src={preview} alt="Оригинальное фото" className="w-full" />
-              {/* Object markers overlay */}
-              {service.declutterDetected && service.declutterObjects.map(obj => (
-                <button
-                  key={obj.id}
-                  onClick={() => service.toggleDeclutterObject(obj.id)}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all text-[10px] font-bold flex items-center justify-center ${
-                    service.declutterSelected.has(obj.id)
-                      ? "bg-red-500 border-white text-white w-7 h-7 shadow-lg"
-                      : "bg-white/70 border-neutral-300 text-neutral-400 w-6 h-6 opacity-60"
-                  }`}
-                  style={{ left: `${obj.x}%`, top: `${obj.y}%` }}
-                  title={obj.name}
-                >
-                  {obj.id}
-                </button>
-              ))}
+              {/* Bbox highlight overlay on hover */}
+              {service.declutterDetected && service.hoveredObjectId !== null && (() => {
+                const allObjects = [...service.declutterRemove, ...service.declutterKeep];
+                const obj = allObjects.find(o => o.id === service.hoveredObjectId);
+                if (!obj?.bboxPct) return null;
+                const isRemove = service.declutterRemove.some(o => o.id === obj.id);
+                const [left, top, right, bottom] = obj.bboxPct;
+                return (
+                  <div
+                    className={`absolute border-2 rounded-sm transition-all pointer-events-none ${
+                      isRemove ? "border-red-500 bg-red-500/20" : "border-green-500 bg-green-500/20"
+                    }`}
+                    style={{
+                      left: `${left}%`,
+                      top: `${top}%`,
+                      width: `${right - left}%`,
+                      height: `${bottom - top}%`,
+                    }}
+                  />
+                );
+              })()}
             </div>
           ) : (
             <div className="overflow-hidden">
@@ -151,7 +156,7 @@ export default function ResultDisplay({ mode, service }: Props) {
         </div>
       )}
 
-      {/* Declutter object selection */}
+      {/* Declutter object selection — two lists */}
       {mode === "declutter" && !hasResult && preview && (
         <div className="space-y-3">
           {!service.declutterDetected ? (
@@ -166,34 +171,59 @@ export default function ResultDisplay({ mode, service }: Props) {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Ищу предметы...
+                  Анализируем фото...
                 </span>
               ) : (
-                "🔍 Выбрать что убрать"
+                "🧹 Расхламить"
               )}
             </button>
           ) : (
-            <div className="rounded-xl bg-white/[0.04] border border-white/[0.08] p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-white/50">Нажмите на предмет чтобы оставить:</span>
-                <span className="text-xs text-white/30">{service.declutterSelected.size} из {service.declutterObjects.length}</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {service.declutterObjects.map(obj => (
-                  <button
-                    key={obj.id}
-                    onClick={() => service.toggleDeclutterObject(obj.id)}
-                    className={`rounded-full px-3 py-1 text-xs transition-all ${
-                      service.declutterSelected.has(obj.id)
-                        ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                        : "bg-white/8 text-white/40 border border-white/10 line-through"
-                    }`}
-                  >
-                    <span className="font-bold mr-1">{obj.id}</span>
-                    {obj.name}
-                  </button>
-                ))}
-              </div>
+            <div className="space-y-3">
+              {/* REMOVE list (red) */}
+              {service.declutterRemove.length > 0 && (
+                <div className="rounded-xl bg-red-500/[0.06] border border-red-500/[0.15] p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-red-400 font-medium">Убрать ({service.declutterRemove.length})</span>
+                    <span className="text-xs text-white/30">нажмите чтобы оставить</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {service.declutterRemove.map(obj => (
+                      <button
+                        key={obj.id}
+                        onClick={() => service.toggleDeclutterObject(obj.id)}
+                        onMouseEnter={() => service.setHoveredObjectId(obj.id)}
+                        onMouseLeave={() => service.setHoveredObjectId(null)}
+                        className="rounded-full px-3 py-1 text-xs bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-all cursor-pointer"
+                      >
+                        {obj.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* KEEP list (green) */}
+              {service.declutterKeep.length > 0 && (
+                <div className="rounded-xl bg-green-500/[0.06] border border-green-500/[0.15] p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-green-400 font-medium">Оставить ({service.declutterKeep.length})</span>
+                    <span className="text-xs text-white/30">нажмите чтобы убрать</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {service.declutterKeep.map(obj => (
+                      <button
+                        key={obj.id}
+                        onClick={() => service.toggleDeclutterObject(obj.id)}
+                        onMouseEnter={() => service.setHoveredObjectId(obj.id)}
+                        onMouseLeave={() => service.setHoveredObjectId(null)}
+                        className="rounded-full px-3 py-1 text-xs bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30 transition-all cursor-pointer"
+                      >
+                        {obj.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
