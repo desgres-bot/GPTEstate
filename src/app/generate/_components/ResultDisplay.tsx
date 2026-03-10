@@ -146,34 +146,49 @@ export default function ResultDisplay({ mode, service }: Props) {
               {service.declutterDetected && [...service.declutterRemove, ...service.declutterKeep].map(obj => {
                 const isRemove = service.declutterRemove.some(o => o.id === obj.id);
                 const isHovered = service.hoveredObjectId === obj.id;
-                const opacity = isHovered ? 0.5 : 0;
+                if (!isHovered) return null;
                 if (obj.maskPng) {
-                  // SAM precise mask — use as CSS mask on colored overlay
-                  const color = isRemove ? "rgba(239,68,68,1)" : "rgba(34,197,94,1)";
+                  // SAM precise mask — render as colored overlay via canvas-drawn image
+                  const color = isRemove ? "rgba(239,68,68,0.45)" : "rgba(34,197,94,0.45)";
+                  const borderColor = isRemove ? "rgba(239,68,68,0.8)" : "rgba(34,197,94,0.8)";
                   return (
-                    <div
-                      key={obj.id}
-                      className="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-150"
-                      style={{
-                        opacity,
-                        backgroundColor: color,
-                        WebkitMaskImage: `url(${obj.maskPng})`,
-                        WebkitMaskSize: "100% 100%",
-                        WebkitMaskRepeat: "no-repeat",
-                        maskImage: `url(${obj.maskPng})`,
-                        maskSize: "100% 100%",
-                        maskRepeat: "no-repeat",
-                      }}
-                    />
+                    <div key={obj.id} className="absolute inset-0 w-full h-full pointer-events-none">
+                      {/* Mask overlay */}
+                      <div
+                        className="absolute inset-0 w-full h-full"
+                        style={{
+                          backgroundColor: color,
+                          WebkitMaskImage: `url(${obj.maskPng})`,
+                          WebkitMaskSize: "100% 100%",
+                          WebkitMaskRepeat: "no-repeat",
+                          maskImage: `url(${obj.maskPng})`,
+                          maskSize: "100% 100%",
+                          maskRepeat: "no-repeat",
+                        }}
+                      />
+                      {/* Bbox border as fallback indicator */}
+                      {obj.bboxPct && (
+                        <div
+                          className="absolute border-2 rounded-sm"
+                          style={{
+                            left: `${obj.bboxPct[0]}%`,
+                            top: `${obj.bboxPct[1]}%`,
+                            width: `${obj.bboxPct[2] - obj.bboxPct[0]}%`,
+                            height: `${obj.bboxPct[3] - obj.bboxPct[1]}%`,
+                            borderColor: borderColor,
+                          }}
+                        />
+                      )}
+                    </div>
                   );
                 }
-                // Fallback: bbox rectangle
+                // Fallback: bbox rectangle (only on hover)
                 if (!obj.bboxPct) return null;
                 const [left, top, right, bottom] = obj.bboxPct;
                 return (
                   <div
                     key={obj.id}
-                    className={`absolute border-2 rounded-sm pointer-events-none transition-all duration-150 ${
+                    className={`absolute border-2 rounded-sm pointer-events-none ${
                       isRemove ? "border-red-500" : "border-green-500"
                     }`}
                     style={{
@@ -181,7 +196,7 @@ export default function ResultDisplay({ mode, service }: Props) {
                       top: `${top}%`,
                       width: `${right - left}%`,
                       height: `${bottom - top}%`,
-                      backgroundColor: isRemove ? `rgba(239,68,68,${opacity})` : `rgba(34,197,94,${opacity})`,
+                      backgroundColor: isRemove ? "rgba(239,68,68,0.25)" : "rgba(34,197,94,0.25)",
                     }}
                   />
                 );
