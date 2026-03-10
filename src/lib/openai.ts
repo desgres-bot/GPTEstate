@@ -2022,10 +2022,15 @@ If nothing should be removed, reply: NONE`
     }
   }
 
+  // DEV LIMIT: cap to 3 remove + 3 keep for testing (saves time & money)
+  const DEV_LIMIT = 3;
+  const cappedRemove = autoRemove.slice(0, DEV_LIMIT);
+  const cappedKeep = autoKeep.slice(0, DEV_LIMIT);
+
   // Re-number both lists
   const allClassified = [
-    ...autoRemove.map((obj, i) => ({ ...obj, id: i + 1, isRemove: true })),
-    ...autoKeep.map((obj, i) => ({ ...obj, id: autoRemove.length + i + 1, isRemove: false })),
+    ...cappedRemove.map((obj, i) => ({ ...obj, id: i + 1, isRemove: true })),
+    ...cappedKeep.map((obj, i) => ({ ...obj, id: cappedRemove.length + i + 1, isRemove: false })),
   ];
 
   // Step 4: Get SAM2 masks for ALL objects (precise contours)
