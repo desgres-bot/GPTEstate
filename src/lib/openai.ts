@@ -2419,13 +2419,24 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       }
     }
 
-    // Convert to PNG mask with soft edges
-    const maskPng = await sharp(dilatedMask, { raw: { width: imgW, height: imgH, channels: 1 } })
-      .blur(3)
-      .threshold(100)
+    // Convert to RGB PNG mask (white = remove, black = keep) — no blur/threshold
+    const rgbMask = Buffer.alloc(imgW * imgH * 3, 0);
+    for (let i = 0; i < dilatedMask.length; i++) {
+      if (dilatedMask[i] === 255) {
+        rgbMask[i * 3] = 255;
+        rgbMask[i * 3 + 1] = 255;
+        rgbMask[i * 3 + 2] = 255;
+      }
+    }
+    const maskPng = await sharp(rgbMask, { raw: { width: imgW, height: imgH, channels: 3 } })
       .png()
       .toBuffer();
     const maskBase64 = `data:image/png;base64,${maskPng.toString("base64")}`;
+
+    // Debug: count mask pixels
+    let maskPxCount = 0;
+    for (let i = 0; i < dilatedMask.length; i++) if (dilatedMask[i] === 255) maskPxCount++;
+    console.log(`[declutter] Mask: ${maskPxCount} white px of ${imgW * imgH} total (${(maskPxCount / (imgW * imgH) * 100).toFixed(1)}%)`);
 
     // Single Bria Eraser pass — precise SAM2 masks + dilation = clean result
     console.log(`[declutter] Bria Eraser: removing ${removeLabels.length} objects in single pass`);
