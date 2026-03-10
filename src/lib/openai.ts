@@ -2448,9 +2448,32 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       const eraserUrl = extractUrl(eraserOutput);
       const eraserResp = await fetch(eraserUrl);
       const eraserBuf = Buffer.from(await eraserResp.arrayBuffer());
-      const finalJpeg = await sharp(eraserBuf).resize(imgW, imgH).jpeg({ quality: 95 }).toBuffer();
-      console.log("[declutter] Removal complete,", removeLabels.length, "objects processed");
-      return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
+      const erasedJpeg = await sharp(eraserBuf).resize(imgW, imgH).jpeg({ quality: 95 }).toBuffer();
+      const erasedDataUri = `data:image/jpeg;base64,${erasedJpeg.toString("base64")}`;
+      console.log("[declutter] Bria Eraser done, starting cleanup pass with Flux Kontext...");
+
+      // ── Cleanup pass: Flux Kontext removes shadows/artifacts left by eraser ──
+      try {
+        const removedNames = removeLabels.join(", ");
+        const cleanupOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
+          input: {
+            prompt: `Same exact photo. Clean up any dark shadows, smudges, blur artifacts and color mismatches in the areas where ${removedNames} were removed. Fill those areas naturally with the floor, wall or surface that should be there. Do not change anything else in the photo.`,
+            input_image: erasedDataUri,
+            aspect_ratio: "match_input_image",
+            output_format: "jpg",
+            prompt_upsampling: false,
+          },
+        });
+        const cleanupUrl = extractUrl(cleanupOutput);
+        const cleanupResp = await fetch(cleanupUrl);
+        const cleanupBuf = Buffer.from(await cleanupResp.arrayBuffer());
+        const finalJpeg = await sharp(cleanupBuf).resize(imgW, imgH).jpeg({ quality: 95 }).toBuffer();
+        console.log("[declutter] Cleanup pass complete,", removeLabels.length, "objects processed");
+        return `data:image/jpeg;base64,${finalJpeg.toString("base64")}`;
+      } catch (cleanupErr) {
+        console.log("[declutter] Cleanup pass failed, returning eraser result:", cleanupErr);
+        return erasedDataUri;
+      }
     } catch (err) {
       console.log("[declutter] Bria Eraser error:", err);
       // If Bria fails, return original image
