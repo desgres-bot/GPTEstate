@@ -1948,11 +1948,14 @@ export async function detectObjects(imageBase64: string): Promise<Array<{ id: nu
  */
 type ClassifiedObj = { id: number; name: string; label: string; x: number; y: number; bbox: number[]; bboxPct: number[]; maskPng?: string };
 
-export async function detectAndClassifyObjects(imageBase64: string): Promise<{
+export async function detectAndClassifyObjects(imageBase64: string, onProgress?: (msg: string) => void): Promise<{
   remove: ClassifiedObj[];
   keep: ClassifiedObj[];
 }> {
+  const progress = (msg: string) => { onProgress?.(msg); };
+
   // Step 1: DINO detects all objects
+  progress("DINO ищет объекты...");
   const detected = await detectObjects(imageBase64);
   console.log("[classify] DINO found", detected.length, "objects:", detected.map(o => o.label).join(", "));
 
@@ -1975,6 +1978,7 @@ export async function detectAndClassifyObjects(imageBase64: string): Promise<{
 
   // Step 3: GPT-4o text-only classifies ambiguous items
   if (ambiguous.length > 0) {
+    progress(`GPT-4o классифицирует ${ambiguous.length} объектов...`);
     try {
       const objectList = ambiguous.map((o, i) => `${i + 1}. ${o.label}`).join("\n");
 
@@ -2114,10 +2118,15 @@ If nothing should be removed, reply: NONE`
     };
 
     // Process in batches
+    let masksDone = 0;
     for (let batch = 0; batch < allClassified.length; batch += SAM2_CONCURRENCY) {
       const batchItems = allClassified.slice(batch, batch + SAM2_CONCURRENCY);
       await Promise.all(
-        batchItems.map((obj, j) => fetchSAM2Mask(obj, batch + j)),
+        batchItems.map(async (obj, j) => {
+          await fetchSAM2Mask(obj, batch + j);
+          masksDone++;
+          progress(`SAM2 маски: ${masksDone}/${allClassified.length}`);
+        }),
       );
     }
 

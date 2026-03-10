@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { COMPARE_STYLES } from "@/lib/constants";
 import type { Mode, Style, SkyType, RenovationType, Platform, Tone, ExteriorStyle, LandscapeType, WallColor, SocialPlatform, FlooringType, KitchenStyle, SeasonType, DecorType, CommercialType, BathroomStyle } from "@/types";
 import { TEXT_MODES } from "../_data/services";
@@ -85,9 +85,70 @@ export function useGenerateService() {
     setHoveredObjectId(null);
   };
 
+  const [declutterProgress, setDeclutterProgress] = useState("");
+
+  // Poll job status — works even after page reload
+  const pollJob = useCallback(async (jobId: string) => {
+    setDeclutterDetecting(true);
+    setError(null);
+
+    const poll = async (): Promise<void> => {
+      try {
+        const res = await fetch(`/api/jobs/${jobId}`);
+        if (!res.ok) {
+          localStorage.removeItem("declutter_job_id");
+          throw new Error("Job не найден");
+        }
+        const data = await res.json();
+
+        if (data.progress) setDeclutterProgress(data.progress);
+
+        if (data.status === "done") {
+          localStorage.removeItem("declutter_job_id");
+          const classified = data.result.classified as { remove: ClassifiedObject[]; keep: ClassifiedObject[] };
+          setDeclutterRemove(classified.remove);
+          setDeclutterKeep(classified.keep);
+          setDeclutterDetected(true);
+          setDeclutterStep(1);
+          setDeclutterDetecting(false);
+          setDeclutterProgress("");
+          return;
+        }
+
+        if (data.status === "error") {
+          localStorage.removeItem("declutter_job_id");
+          setError(data.error || "Ошибка анализа");
+          setDeclutterDetecting(false);
+          setDeclutterProgress("");
+          return;
+        }
+
+        // Still processing — poll again in 2s
+        await new Promise(r => setTimeout(r, 2000));
+        return poll();
+      } catch (err) {
+        localStorage.removeItem("declutter_job_id");
+        setError(err instanceof Error ? err.message : "Ошибка анализа");
+        setDeclutterDetecting(false);
+        setDeclutterProgress("");
+      }
+    };
+
+    await poll();
+  }, []);
+
+  // Resume polling on mount if there's an active job
+  useEffect(() => {
+    const savedJobId = localStorage.getItem("declutter_job_id");
+    if (savedJobId) {
+      pollJob(savedJobId);
+    }
+  }, [pollJob]);
+
   const handleDeclutterDetect = async () => {
     if (!selectedFile) return;
     setDeclutterDetecting(true);
+    setDeclutterProgress("Отправляем фото...");
     setError(null);
     try {
       const formData = new FormData();
@@ -99,15 +160,17 @@ export function useGenerateService() {
         throw new Error(data.error || "Ошибка анализа");
       }
       const data = await res.json();
-      const classified = data.classified as { remove: ClassifiedObject[]; keep: ClassifiedObject[] };
-      setDeclutterRemove(classified.remove);
-      setDeclutterKeep(classified.keep);
-      setDeclutterDetected(true);
-      setDeclutterStep(1);
+      const jobId = data.jobId as string;
+
+      // Save jobId to localStorage — survives page reloads
+      localStorage.setItem("declutter_job_id", jobId);
+
+      // Start polling
+      await pollJob(jobId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка анализа");
-    } finally {
       setDeclutterDetecting(false);
+      setDeclutterProgress("");
     }
   };
 
@@ -399,6 +462,7 @@ export function useGenerateService() {
     declutterKeep,
     declutterDetecting,
     declutterDetected,
+    declutterProgress,
     hoveredObjectId, setHoveredObjectId,
     declutterStep, setDeclutterStep,
     declutterPrompt, setDeclutterPrompt,

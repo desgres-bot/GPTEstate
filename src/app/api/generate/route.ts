@@ -42,6 +42,7 @@ import {
   refineWithAI,
 } from "@/lib/openai";
 import { logHistory } from "@/lib/history";
+import { createJob, updateJob } from "@/lib/jobStore";
 
 export const maxDuration = 300; // Allow up to 5 min for image generation
 
@@ -201,11 +202,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ objects });
     }
 
-    // ─── Declutter classify mode (detect + GPT-4o classification) ───
+    // ─── Declutter classify mode (async background job) ───
     if (mode === "declutter-classify") {
-      const classified = await detectAndClassifyObjects(dataUri);
-      logHistory({ mode, params: { ...allParams, result: JSON.stringify(classified) }, inputBuffer, ip, userAgent });
-      return NextResponse.json({ classified });
+      const job = createJob();
+      updateJob(job.id, { status: "processing", progress: "Ищем объекты на фото..." });
+
+      // Run in background — don't await
+      (async () => {
+        try {
+          updateJob(job.id, { progress: "DINO анализирует фото..." });
+          const classified = await detectAndClassifyObjects(dataUri, (progress: string) => {
+            updateJob(job.id, { progress });
+          });
+          logHistory({ mode, params: { ...allParams, result: JSON.stringify(classified) }, inputBuffer, ip, userAgent });
+          updateJob(job.id, { status: "done", result: { classified } });
+        } catch (err) {
+          console.error("[declutter-classify] Background job error:", err);
+          updateJob(job.id, { status: "error", error: err instanceof Error ? err.message : "Ошибка анализа" });
+        }
+      })();
+
+      return NextResponse.json({ jobId: job.id });
     }
 
     // ─── Compare mode ───
