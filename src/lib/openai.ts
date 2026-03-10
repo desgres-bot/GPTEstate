@@ -2544,28 +2544,26 @@ KEEP: [comma-separated descriptions with locations]`
     console.log("[declutter] REMOVE:", removeList.substring(0, 300));
     console.log("[declutter] KEEP:", keepList.substring(0, 300));
 
-    // Step 4: Flux Kontext — describe DESIRED RESULT, not instructions!
-    // Kontext renders instructional prompts ("Remove X", "IMPORTANT:") as text on image.
-    // Instead describe what the photo should look like AFTER editing.
-    const STATIC_KEEP = "sink, faucet, stove, oven, cooktop, refrigerator, microwave, dishwasher, washing machine, " +
-      "cabinets, countertop, backsplash, table, chairs, sofa, bed, wardrobe, shelves, curtains, " +
-      "windows, doors, walls, floor, ceiling, lights, radiator, bathtub, toilet, shower";
-    const fullKeep = keepList ? `${keepList}, ${STATIC_KEEP}` : STATIC_KEEP;
-
-    // Strip position info from remove list — Kontext doesn't use coordinates
+    // Step 4: Flux Kontext — SHORT descriptive prompt only!
+    // Kontext renders long/instructional prompts as text on the image.
+    // Strip ALL position info and keep prompt under ~250 chars.
     const removeItems = removeList
-      .replace(/\s*\(.*?\)\s*/g, "")  // strip "(hanging on oven handle)" etc
-      .replace(/\s*at\s+x:\d+%\s+y:\d+%/g, "")  // strip "at x:..% y:..%"
+      .replace(/\s*\([^)]*\)\s*/g, " ")  // strip "(hanging on oven handle)" etc
+      .replace(/\s*at\s+x:\d+\.?\d*%\s+y:\d+\.?\d*%/g, "")  // strip "at x:35.9% y:48.4%"
+      .replace(/["]/g, "")  // strip quotes
       .replace(/\s+/g, " ")
       .trim();
 
-    // Descriptive prompt: what the photo looks like, not what to do
-    const kontextPrompt = `Same room photo but without ${removeItems}. ` +
-      `Clean empty surfaces where items were. ` +
-      `${fullKeep} all remain exactly in place unchanged. ` +
-      `Same lighting, angle, colors. Professional real estate photo.`;
+    // Extract just unique item names (no duplicates, no positions)
+    const itemNames = Array.from(new Set(
+      removeItems.split(/,\s*/).map(s => s.trim()).filter(Boolean)
+    ));
 
-    console.log("[declutter] Kontext prompt:", kontextPrompt.length, "chars");
+    // Build short prompt: max ~250 chars, describe desired result
+    const shortItems = itemNames.slice(0, 12).join(", ");
+    const kontextPrompt = `Same photo, decluttered. No ${shortItems} on any surface. Clean empty countertops and surfaces. All appliances and furniture stay.`;
+
+    console.log("[declutter] Kontext prompt:", kontextPrompt.length, "chars:", kontextPrompt);
 
     const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
       input: {
