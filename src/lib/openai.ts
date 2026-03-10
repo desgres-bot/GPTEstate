@@ -2186,27 +2186,9 @@ If nothing should be removed, reply: NONE`
 export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][], removeLabels?: string[], keepLabels?: string[], userPrompt?: string): Promise<string> {
   const replicate = getReplicate();
 
-  // ── User-provided prompt: skip SAM2/Bria, go straight to Kontext ──
-  if (userPrompt?.trim()) {
-    console.log("[declutter] Using user-provided prompt:", userPrompt.length, "chars");
-    // Strip the Russian "Оставить:" line — Kontext only takes English
-    const englishPrompt = userPrompt.replace(/\nОставить:[\s\S]*$/, "").trim();
-    const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
-      input: {
-        prompt: englishPrompt,
-        input_image: imageBase64,
-        aspect_ratio: "match_input_image",
-        output_format: "jpg",
-        prompt_upsampling: false,
-      },
-    });
-    const dclUrl = extractUrl(dclOutput);
-    const dclResp = await fetch(dclUrl);
-    const dclBuf = await dclResp.arrayBuffer();
-    return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
-  }
-
   // ── Bbox-guided removal: precise per-object removal using fal.ai SAM2 ──
+  // Priority: when removeLabels + bboxes are available, ALWAYS use SAM2 + Bria Eraser
+  // (more precise than Flux Kontext text-based approach)
   // 1. Upload image → get public URL
   // 2. For each object, call fal.ai SAM2 with exact bbox → precise pixel mask
   // 3. Apply mask to Bria Eraser → clean object removal
