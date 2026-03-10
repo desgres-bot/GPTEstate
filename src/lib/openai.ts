@@ -2452,12 +2452,11 @@ export async function declutterRoom(imageBase64: string, objectsToRemove?: strin
       const erasedDataUri = `data:image/jpeg;base64,${erasedJpeg.toString("base64")}`;
       console.log("[declutter] Bria Eraser done, starting cleanup pass with Flux Kontext...");
 
-      // ── Cleanup pass: Flux Kontext removes shadows/artifacts left by eraser ──
+      // ── Cleanup pass: Flux Kontext fixes texture/color artifacts left by eraser ──
       try {
-        const removedNames = removeLabels.join(", ");
         const cleanupOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
           input: {
-            prompt: `Same exact photo. Clean up any dark shadows, smudges, blur artifacts and color mismatches in the areas where ${removedNames} were removed. Fill those areas naturally with the floor, wall or surface that should be there. Do not change anything else in the photo.`,
+            prompt: "Exact same photo, same room, same angle, same lighting. Do NOT remove, add, move or change ANY objects. Every single item must stay exactly where it is. Only fix slight color mismatches and texture seams so the photo looks natural. Nothing else changes.",
             input_image: erasedDataUri,
             aspect_ratio: "match_input_image",
             output_format: "jpg",
