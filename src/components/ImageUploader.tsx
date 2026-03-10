@@ -11,8 +11,47 @@ export default function ImageUploader({ onImageSelect }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
-    (file: File) => {
-      if (!file.type.startsWith("image/")) return;
+    async (file: File) => {
+      if (!file.type.startsWith("image/") && !file.name.toLowerCase().endsWith(".heic") && !file.name.toLowerCase().endsWith(".heif")) return;
+
+      const isHeic = file.type === "image/heic" || file.type === "image/heif" ||
+        file.name.toLowerCase().endsWith(".heic") || file.name.toLowerCase().endsWith(".heif");
+
+      if (isHeic) {
+        // Convert HEIC/HEIF → JPEG via Canvas (browser handles decoding on iOS/macOS)
+        const blobUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext("2d")!;
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(blobUrl);
+
+          canvas.toBlob((blob) => {
+            if (!blob) return;
+            const jpegFile = new File([blob], file.name.replace(/\.heic$/i, ".jpg").replace(/\.heif$/i, ".jpg"), { type: "image/jpeg" });
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              onImageSelect(jpegFile, e.target?.result as string);
+            };
+            reader.readAsDataURL(jpegFile);
+          }, "image/jpeg", 0.95);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(blobUrl);
+          // Fallback: send as-is, server will try to convert
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            onImageSelect(file, e.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        };
+        img.src = blobUrl;
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         onImageSelect(file, e.target?.result as string);
@@ -78,7 +117,7 @@ export default function ImageUploader({ onImageSelect }: Props) {
           if (e.target.files?.[0]) handleFile(e.target.files[0]);
         }}
       />
-      <p className="mt-3 text-xs text-gray-400">JPG, PNG до 10 МБ</p>
+      <p className="mt-3 text-xs text-gray-400">JPG, PNG, HEIC до 10 МБ</p>
     </div>
   );
 }
