@@ -146,22 +146,23 @@ export default function ResultDisplay({ mode, service }: Props) {
               {service.declutterDetected && [...service.declutterRemove, ...service.declutterKeep].map(obj => {
                 const isRemove = service.declutterRemove.some(o => o.id === obj.id);
                 const isHovered = service.hoveredObjectId === obj.id;
-                // Always show faint overlay; highlight on hover
                 const opacity = isHovered ? 0.5 : 0.15;
                 if (obj.maskPng) {
-                  // SAM precise mask
+                  // SAM precise mask — use as CSS mask on colored overlay
+                  const color = isRemove ? "rgba(239,68,68,1)" : "rgba(34,197,94,1)";
                   return (
-                    <img
+                    <div
                       key={obj.id}
-                      src={obj.maskPng}
-                      alt=""
                       className="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-150"
                       style={{
                         opacity,
-                        mixBlendMode: "multiply",
-                        filter: isRemove
-                          ? "sepia(1) saturate(5) hue-rotate(-30deg) brightness(0.8)"
-                          : "sepia(1) saturate(5) hue-rotate(90deg) brightness(0.8)",
+                        backgroundColor: color,
+                        WebkitMaskImage: `url(${obj.maskPng})`,
+                        WebkitMaskSize: "100% 100%",
+                        WebkitMaskRepeat: "no-repeat",
+                        maskImage: `url(${obj.maskPng})`,
+                        maskSize: "100% 100%",
+                        maskRepeat: "no-repeat",
                       }}
                     />
                   );
