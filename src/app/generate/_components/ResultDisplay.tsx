@@ -194,10 +194,22 @@ export default function ResultDisplay({ mode, service }: Props) {
         </div>
       )}
 
-      {/* Declutter object selection — two lists */}
+      {/* Declutter step wizard */}
       {mode === "declutter" && !hasResult && preview && (
         <div className="space-y-3">
-          {!service.declutterDetected ? (
+          {/* Step indicator */}
+          {service.declutterStep > 0 && (
+            <div className="flex items-center gap-2 text-xs text-white/40">
+              <span className={service.declutterStep >= 1 ? "text-accent-400 font-medium" : ""}>1. Объекты</span>
+              <span>→</span>
+              <span className={service.declutterStep >= 2 ? "text-accent-400 font-medium" : ""}>2. Промпт</span>
+              <span>→</span>
+              <span className={service.loading ? "text-accent-400 font-medium" : ""}>3. Генерация</span>
+            </div>
+          )}
+
+          {/* Step 0: Start button */}
+          {service.declutterStep === 0 && (
             <button
               onClick={service.handleDeclutterDetect}
               disabled={service.declutterDetecting}
@@ -212,10 +224,13 @@ export default function ResultDisplay({ mode, service }: Props) {
                   Анализируем фото...
                 </span>
               ) : (
-                "🧹 Расхламить"
+                "Расхламить"
               )}
             </button>
-          ) : (
+          )}
+
+          {/* Step 1: Review detected objects */}
+          {service.declutterStep === 1 && (
             <div className="space-y-3">
               {/* REMOVE list (red) */}
               {service.declutterRemove.length > 0 && (
@@ -270,6 +285,60 @@ export default function ResultDisplay({ mode, service }: Props) {
                   </div>
                 </div>
               )}
+
+              {/* Next button */}
+              <button
+                onClick={service.advanceDeclutterStep}
+                disabled={service.declutterRemove.length === 0}
+                className="w-full rounded-lg bg-accent-600 py-3 text-sm text-white font-medium hover:bg-accent-500 disabled:opacity-40 transition-all"
+              >
+                Далее — проверить промпт
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: Review/edit prompt */}
+          {service.declutterStep === 2 && (
+            <div className="space-y-3">
+              <div className="rounded-xl bg-white/[0.04] border border-white/10 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-white/50 font-medium">Промпт для Kontext</span>
+                  <button
+                    onClick={() => service.setDeclutterStep(1)}
+                    className="text-xs text-accent-400 hover:text-accent-300"
+                  >
+                    ← Назад к объектам
+                  </button>
+                </div>
+                <textarea
+                  value={service.declutterPrompt}
+                  onChange={(e) => service.setDeclutterPrompt(e.target.value)}
+                  rows={5}
+                  className="w-full bg-white/8 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/40 focus:bg-white/12 focus:outline-none resize-y font-mono"
+                />
+                <p className="mt-2 text-xs text-white/30">
+                  {service.declutterPrompt.length} символов — можно отредактировать перед генерацией
+                </p>
+              </div>
+
+              {/* Generate button */}
+              <button
+                onClick={service.handleGenerate}
+                disabled={service.loading || !service.declutterPrompt.trim()}
+                className="w-full rounded-lg bg-accent-600 py-3 text-sm text-white font-medium hover:bg-accent-500 disabled:opacity-40 transition-all"
+              >
+                {service.loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Генерируем...
+                  </span>
+                ) : (
+                  "Генерировать"
+                )}
+              </button>
             </div>
           )}
         </div>

@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
     const originalImage = formData.get("originalImage") as File | null;
     const declutterObjects = formData.get("declutterObjects") as string | null;
     const declutterBboxes = formData.get("declutterBboxes") as string | null;
+    const userPrompt = formData.get("userPrompt") as string | null;
 
     console.log("[generate] Mode:", mode, "Image size:", image?.size, "Image type:", image?.type);
 
@@ -143,7 +144,7 @@ export async function POST(req: NextRequest) {
       landscapeType, wallColor, customWallColor, socialPlatform,
       furnishDescription, flooringType, customFlooring, kitchenStyle, customKitchen,
       seasonType, decorType, commercialType, textrenderPrompt,
-      bathroomStyle, customBathroom, additemDescription, refinePrompt, declutterObjects,
+      bathroomStyle, customBathroom, additemDescription, refinePrompt, declutterObjects, userPrompt,
     };
 
     // ─── Text modes ───
@@ -268,7 +269,7 @@ export async function POST(req: NextRequest) {
       const keepLabelsRaw = formData.get("keepLabels") as string | null;
       const removeLabels = removeLabelsRaw ? JSON.parse(removeLabelsRaw) as string[] : undefined;
       const keepLabels = keepLabelsRaw ? JSON.parse(keepLabelsRaw) as string[] : undefined;
-      outputDataUri = await declutterRoom(dataUri, objectsList, bboxesList, removeLabels, keepLabels);
+      outputDataUri = await declutterRoom(dataUri, objectsList, bboxesList, removeLabels, keepLabels, userPrompt || undefined);
     } else if (mode === "bathroom") {
       outputDataUri = await remodelBathroom(dataUri, bathroomStyle || "modern_white", customBathroom || undefined);
     } else if (mode === "additem") {

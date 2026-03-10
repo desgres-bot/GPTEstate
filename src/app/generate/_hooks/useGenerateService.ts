@@ -44,6 +44,9 @@ export function useGenerateService() {
   const [declutterDetecting, setDeclutterDetecting] = useState(false);
   const [declutterDetected, setDeclutterDetected] = useState(false);
   const [hoveredObjectId, setHoveredObjectId] = useState<number | null>(null);
+  // Step wizard: 0=not started, 1=review objects, 2=review prompt
+  const [declutterStep, setDeclutterStep] = useState<number>(0);
+  const [declutterPrompt, setDeclutterPrompt] = useState("");
   // Legacy compat
   const declutterObjects = [...declutterRemove, ...declutterKeep];
   const declutterSelected = new Set(declutterRemove.map(o => o.id));
@@ -100,6 +103,7 @@ export function useGenerateService() {
       setDeclutterRemove(classified.remove);
       setDeclutterKeep(classified.keep);
       setDeclutterDetected(true);
+      setDeclutterStep(1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка анализа");
     } finally {
@@ -119,6 +123,20 @@ export function useGenerateService() {
         setDeclutterKeep(prev => prev.filter(o => o.id !== id));
         setDeclutterRemove(prev => [...prev, inKeep]);
       }
+    }
+  };
+
+  const composeDeclutterPrompt = () => {
+    const removeNames = declutterRemove.map(o => o.name).join(", ");
+    const keepNames = declutterKeep.map(o => o.name).join(", ");
+    return `Same photo, decluttered. No ${removeNames} on any surface. Clean empty countertops and surfaces. All appliances and furniture stay.${keepNames ? `\nОставить: ${keepNames}` : ""}`;
+  };
+
+  const advanceDeclutterStep = () => {
+    if (declutterStep === 1) {
+      // Move to prompt review
+      setDeclutterPrompt(composeDeclutterPrompt());
+      setDeclutterStep(2);
     }
   };
 
@@ -215,6 +233,9 @@ export function useGenerateService() {
         formData.append("declutterBboxes", JSON.stringify(declutterRemove.map(o => o.bbox)));
         formData.append("removeLabels", JSON.stringify(declutterRemove.map(o => o.label)));
         formData.append("keepLabels", JSON.stringify(declutterKeep.map(o => o.label)));
+        if (declutterPrompt.trim()) {
+          formData.append("userPrompt", declutterPrompt.trim());
+        }
       }
 
       const res = await fetch("/api/generate", {
@@ -309,6 +330,8 @@ export function useGenerateService() {
     setCopied(false);
     setRefinePrompt("");
     setRefineHistory([]);
+    setDeclutterStep(0);
+    setDeclutterPrompt("");
   };
 
   const copyToClipboard = async () => {
@@ -377,6 +400,9 @@ export function useGenerateService() {
     declutterDetecting,
     declutterDetected,
     hoveredObjectId, setHoveredObjectId,
+    declutterStep, setDeclutterStep,
+    declutterPrompt, setDeclutterPrompt,
+    advanceDeclutterStep,
     handleDeclutterDetect,
     toggleDeclutterObject,
     // Actions

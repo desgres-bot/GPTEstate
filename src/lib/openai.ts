@@ -2142,8 +2142,28 @@ If nothing should be removed, reply: NONE`
  * When labels provided: Grounded SAM for pixel-perfect masks + Bria Eraser for removal.
  * Without labels: falls back to Flux Kontext prompt-based removal.
  */
-export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][], removeLabels?: string[], keepLabels?: string[]): Promise<string> {
+export async function declutterRoom(imageBase64: string, objectsToRemove?: string[], bboxes?: number[][], removeLabels?: string[], keepLabels?: string[], userPrompt?: string): Promise<string> {
   const replicate = getReplicate();
+
+  // ── User-provided prompt: skip SAM2/Bria, go straight to Kontext ──
+  if (userPrompt?.trim()) {
+    console.log("[declutter] Using user-provided prompt:", userPrompt.length, "chars");
+    // Strip the Russian "Оставить:" line — Kontext only takes English
+    const englishPrompt = userPrompt.replace(/\nОставить:[\s\S]*$/, "").trim();
+    const dclOutput = await replicate.run("black-forest-labs/flux-kontext-pro", {
+      input: {
+        prompt: englishPrompt,
+        input_image: imageBase64,
+        aspect_ratio: "match_input_image",
+        output_format: "jpg",
+        prompt_upsampling: false,
+      },
+    });
+    const dclUrl = extractUrl(dclOutput);
+    const dclResp = await fetch(dclUrl);
+    const dclBuf = await dclResp.arrayBuffer();
+    return `data:image/jpeg;base64,${Buffer.from(dclBuf).toString("base64")}`;
+  }
 
   // ── Bbox-guided removal: precise per-object removal using fal.ai SAM2 ──
   // 1. Upload image → get public URL
